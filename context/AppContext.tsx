@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppState, Product, Sale, Customer, Expense, Role, AuditLog, PaymentMethod } from '../types';
+import { AppState, Product, Sale, Customer, Expense, Role, AuditLog, PaymentMethod, PurchaseOrder, GoodsReceivedNote, PurchaseOrderItem, GRNItem, ProductCategory } from '../types';
 import { loadState, saveState } from '../services/dataService';
 import { v4 as uuidv4 } from 'uuid'; // Note: In a real app we'd use uuid, here we simulate
 
@@ -13,6 +13,22 @@ const generateInvoiceNumber = () => {
   const random = Math.floor(10000 + Math.random() * 90000);
   return `INV-${yyyy}${mm}${dd}-${random}`;
 };
+const generatePONumber = () => {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const random = Math.floor(10000 + Math.random() * 90000);
+  return `PO-${yyyy}${mm}${dd}-${random}`;
+};
+const generateGRNNumber = () => {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const random = Math.floor(10000 + Math.random() * 90000);
+  return `GRN-${yyyy}${mm}${dd}-${random}`;
+};
 
 interface AppContextType extends AppState {
   setUserRole: (role: Role) => void;
@@ -22,6 +38,8 @@ interface AppContextType extends AppState {
   cancelSale: (saleId: string, note: string) => void;
   transferStock: (productId: string, qty: number) => void; // Warehouse -> Shop
   addStockToWarehouse: (supplier: string, items: { productId: string, qty: number, cost: number }[]) => void;
+  createPurchaseOrder: (supplierName: string, items: PurchaseOrderItem[], note?: string) => string;
+  createGRN: (poId: string, items: GRNItem[], note?: string) => { success: boolean; message?: string };
   addExpense: (expense: Omit<Expense, 'id'>) => void;
   addCustomer: (customer: Omit<Customer, 'id' | 'outstandingBalance'>) => void;
   recordPayment: (customerId: string, amount: number, method: PaymentMethod) => void;
@@ -187,6 +205,131 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addLog('PURCHASE', `Stock-in from ${supplier}`);
   };
 
+  const createPurchaseOrder = (supplierName: string, items: PurchaseOrderItem[], note?: string): string => {
+    // Create new product if it doesn't exist (user can add NEW products directly here)
+    const updatedProducts = [...state.products];
+    items.forEach(item => {
+      const existingProduct = updatedProducts.find(p => p.id === item.productId);
+      if (!existingProduct) {
+        // Product doesn't exist, create it
+        const newProduct: Product = {
+          id: item.productId,
+          name: item.name,
+          category: ProductCategory.OTHER, // Default category
+          stockWarehouse: 0,
+          stockShop: 0,
+          costPrice: item.costPrice,
+          sellingPrice: item.costPrice * 1.5, // Default markup
+          lowStockThreshold: 10
+        };
+        updatedProducts.push(newProduct);
+      }
+    });
+
+    const newPO: PurchaseOrder = {
+      id: generateId(),
+      poNumber: generatePONumber(),
+      date: new Date().toISOString(),
+      supplierName,
+      items,
+      status: 'PENDING',
+      note
+    };
+
+    setState(prev => ({
+      ...prev,
+      products: updatedProducts,
+      purchaseOrders: [newPO, ...(prev.purchaseOrders || [])]
+    }));
+
+    addLog('CREATE_PO', `Created PO ${newPO.poNumber} from ${supplierName}`);
+    return newPO.id;
+  };
+
+  const createGRN = (poId: string, items: GRNItem[], note?: string): { success: boolean; message?: string } => {
+    const po = (state.purchaseOrders || []).find(p => p.id === poId);
+    if (!po) {
+      return { success: false, message: 'Purchase Order not found' };
+    }
+
+    // Validate items - check that qtyReceived = qtyGood + qtyBad for each item
+    for (const item of items) {
+      if (item.qtyReceived !== item.qtyGood + item.qtyBad) {
+        return { success: false, message: `For ${item.name}: Received quantity must equal Good + Bad quantities` };
+      }
+    }
+
+    // Create GRN
+    const newGRN: GoodsReceivedNote = {
+      id: generateId(),
+      grnNumber: generateGRNNumber(),
+      poId: po.id,
+      poNumber: po.poNumber,
+      date: new Date().toISOString(),
+      items,
+      note
+    };
+
+    // Update stock - ONLY good items go to warehouse
+    const updatedProducts = [...state.products];
+    items.forEach(grnItem => {
+      const product = updatedProducts.find(p => p.id === grnItem.productId);
+      if (product) {
+        // Only add good items to warehouse
+        product.stockWarehouse += grnItem.qtyGood;
+        product.costPrice = grnItem.costPrice; // Update cost price
+      }
+    });
+
+    // Update PO status based on received quantities (sum all GRNs for this PO)
+    let updatedPOs = [...(state.purchaseOrders || [])];
+    const poIndex = updatedPOs.findIndex(p => p.id === poId);
+    if (poIndex !== -1) {
+      // Get all GRNs for this PO (including the one we just created)
+      const allGRNsForPO = [...(state.goodsReceivedNotes || []), newGRN].filter(grn => grn.poId === poId);
+      
+      // Calculate total received for each product
+      const totalReceivedByProduct: Record<string, number> = {};
+      allGRNsForPO.forEach(grn => {
+        grn.items.forEach(item => {
+          totalReceivedByProduct[item.productId] = (totalReceivedByProduct[item.productId] || 0) + item.qtyReceived;
+        });
+      });
+
+      let allFullyReceived = true;
+      let anyPartiallyReceived = false;
+
+      po.items.forEach(poItem => {
+        const totalReceived = totalReceivedByProduct[poItem.productId] || 0;
+        if (totalReceived < poItem.qty) {
+          allFullyReceived = false;
+          if (totalReceived > 0) {
+            anyPartiallyReceived = true;
+          }
+        }
+      });
+
+      if (allFullyReceived) {
+        updatedPOs[poIndex].status = 'RECEIVED';
+      } else if (anyPartiallyReceived) {
+        updatedPOs[poIndex].status = 'PARTIALLY_RECEIVED';
+      }
+    }
+
+    setState(prev => ({
+      ...prev,
+      products: updatedProducts,
+      purchaseOrders: updatedPOs,
+      goodsReceivedNotes: [newGRN, ...(prev.goodsReceivedNotes || [])]
+    }));
+
+    const goodItemsTotal = items.reduce((sum, item) => sum + item.qtyGood, 0);
+    const badItemsTotal = items.reduce((sum, item) => sum + item.qtyBad, 0);
+    addLog('CREATE_GRN', `Created GRN ${newGRN.grnNumber} for PO ${po.poNumber}. Good: ${goodItemsTotal}, Bad: ${badItemsTotal}`);
+    
+    return { success: true };
+  };
+
   const addExpense = (expenseData: Omit<Expense, 'id'>) => {
     const expense: Expense = { ...expenseData, id: generateId() };
     setState(prev => ({ ...prev, expenses: [expense, ...prev.expenses] }));
@@ -219,6 +362,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       cancelSale,
       transferStock,
       addStockToWarehouse,
+      createPurchaseOrder,
+      createGRN,
       addExpense,
       addCustomer,
       recordPayment

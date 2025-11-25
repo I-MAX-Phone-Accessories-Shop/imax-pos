@@ -8,6 +8,8 @@ const DEFAULT_STATE: AppState = {
   sales: [],
   customers: INITIAL_CUSTOMERS,
   expenses: [],
+  purchaseOrders: [],
+  goodsReceivedNotes: [],
   logs: [],
   currentUser: {
     name: 'Admin User',
@@ -21,7 +23,14 @@ export const loadState = (): AppState => {
     if (!serialized) {
       return DEFAULT_STATE;
     }
-    return JSON.parse(serialized);
+    const loadedState = JSON.parse(serialized);
+    // Ensure new fields exist (for backward compatibility)
+    return {
+      ...DEFAULT_STATE,
+      ...loadedState,
+      purchaseOrders: loadedState.purchaseOrders || [],
+      goodsReceivedNotes: loadedState.goodsReceivedNotes || []
+    };
   } catch (e) {
     console.error("Failed to load state", e);
     return DEFAULT_STATE;

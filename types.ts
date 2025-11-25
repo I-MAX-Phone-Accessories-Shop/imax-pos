@@ -92,11 +92,51 @@ export interface AuditLog {
   user: string;
 }
 
+export interface PurchaseOrderItem {
+  productId: string;
+  name: string;
+  qty: number;
+  costPrice: number;
+  note?: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  poNumber: string;
+  date: string; // ISO String
+  supplierName: string;
+  items: PurchaseOrderItem[];
+  status: 'PENDING' | 'PARTIALLY_RECEIVED' | 'RECEIVED';
+  note?: string;
+}
+
+export interface GRNItem {
+  productId: string;
+  name: string;
+  qtyOrdered: number; // From PO
+  qtyReceived: number; // Total received
+  qtyGood: number; // Good items
+  qtyBad: number; // Bad items
+  costPrice: number;
+}
+
+export interface GoodsReceivedNote {
+  id: string;
+  grnNumber: string;
+  poId: string; // Linked PO
+  poNumber: string;
+  date: string; // ISO String
+  items: GRNItem[];
+  note?: string;
+}
+
 export interface AppState {
   products: Product[];
   sales: Sale[];
   customers: Customer[];
   expenses: Expense[];
+  purchaseOrders: PurchaseOrder[];
+  goodsReceivedNotes: GoodsReceivedNote[];
   logs: AuditLog[];
   currentUser: {
     name: string;
