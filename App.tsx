@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Toaster } from "sonner";
 import { AppProvider } from "./context/AppContext";
 import { Sidebar } from "./components/Sidebar";
 import { DemoBanner } from "./components/DemoBanner";
@@ -40,6 +41,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* <DemoBanner /> */}
+      <Toaster position="top-right" richColors />
       <div className="flex flex-1 relative">
         <Sidebar currentPage={currentPage} setPage={setPage} />
         <main className="flex-1 ml-64 p-0 overflow-x-hidden">
