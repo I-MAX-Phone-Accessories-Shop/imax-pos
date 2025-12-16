@@ -11,6 +11,7 @@ import { Inventory } from "./pages/Inventory";
 import { Purchasing } from "./pages/Purchasing";
 import { Credits } from "./pages/Credits";
 import { Expenses } from "./pages/Expenses";
+import { Suppliers } from "./pages/Suppliers";
 
 const AppContent: React.FC = () => {
   const [currentPage, setPage] = useState("pos");
@@ -33,6 +34,8 @@ const AppContent: React.FC = () => {
         return <Credits />;
       case "expenses":
         return <Expenses />;
+      case "suppliers":
+        return <Suppliers />;
       default:
         return <POS />;
     }
