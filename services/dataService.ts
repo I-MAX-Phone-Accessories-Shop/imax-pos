@@ -1,7 +1,7 @@
-import { AppState, Role } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_CUSTOMERS } from '../constants';
+import { AppState, Role } from "../types";
+import { INITIAL_PRODUCTS, INITIAL_CUSTOMERS } from "../constants";
 
-const STORAGE_KEY = 'mobileax_pos_data';
+const STORAGE_KEY = "mobileax_pos_data";
 
 const DEFAULT_STATE: AppState = {
   products: INITIAL_PRODUCTS,
@@ -12,9 +12,9 @@ const DEFAULT_STATE: AppState = {
   goodsReceivedNotes: [],
   logs: [],
   currentUser: {
-    name: 'Admin User',
-    role: Role.ADMIN
-  }
+    name: "Admin User",
+    role: Role.ADMIN,
+  },
 };
 
 export const loadState = (): AppState => {
@@ -29,7 +29,7 @@ export const loadState = (): AppState => {
       ...DEFAULT_STATE,
       ...loadedState,
       purchaseOrders: loadedState.purchaseOrders || [],
-      goodsReceivedNotes: loadedState.goodsReceivedNotes || []
+      goodsReceivedNotes: loadedState.goodsReceivedNotes || [],
     };
   } catch (e) {
     console.error("Failed to load state", e);

@@ -1,26 +1,26 @@
 export enum Role {
-  ADMIN = 'ADMIN',
-  STAFF = 'STAFF'
+  ADMIN = "ADMIN",
+  STAFF = "STAFF",
 }
 
 export enum PaymentMethod {
-  CASH = 'Cash',
-  KBZ_PAY = 'KBZPay',
-  WAVE_PAY = 'WavePay',
-  AYA_PAY = 'AYA Pay',
-  UAB_PAY = 'UAB Pay',
-  BANK_TRANSFER = 'Bank Transfer',
-  CREDIT = 'Credit (Pay Later)'
+  CASH = "Cash",
+  KBZ_PAY = "KBZPay",
+  WAVE_PAY = "WavePay",
+  AYA_PAY = "AYA Pay",
+  UAB_PAY = "UAB Pay",
+  BANK_TRANSFER = "Bank Transfer",
+  CREDIT = "Credit (Pay Later)",
 }
 
 export enum ProductCategory {
-  PHONE_COVER = 'Phone Cover',
-  TEMPERED_GLASS = 'Tempered Glass',
-  CHARGER_CABLE = 'Charger Cable',
-  CHARGER_ADAPTER = 'Charger Adapter',
-  TWS = 'TWS',
-  BLUETOOTH_SPEAKER = 'Bluetooth Speaker',
-  OTHER = 'Other'
+  PHONE_COVER = "Phone Cover",
+  TEMPERED_GLASS = "Tempered Glass",
+  CHARGER_CABLE = "Charger Cable",
+  CHARGER_ADAPTER = "Charger Adapter",
+  TWS = "TWS",
+  BLUETOOTH_SPEAKER = "Bluetooth Speaker",
+  OTHER = "Other",
 }
 
 export interface Product {
@@ -36,7 +36,7 @@ export interface Product {
 
 export interface CartItem extends Product {
   qty: number;
-  discountedPrice?: number; 
+  discountedPrice?: number;
 }
 
 export interface Sale {
@@ -55,7 +55,7 @@ export interface Sale {
   paymentMethod: PaymentMethod;
   cashierName: string;
   customerId?: string; // For credit sales
-  status: 'COMPLETED' | 'CANCELLED';
+  status: "COMPLETED" | "CANCELLED";
   note?: string;
 }
 
@@ -106,7 +106,7 @@ export interface PurchaseOrder {
   date: string; // ISO String
   supplierName: string;
   items: PurchaseOrderItem[];
-  status: 'PENDING' | 'PARTIALLY_RECEIVED' | 'RECEIVED';
+  status: "PENDING" | "PARTIALLY_RECEIVED" | "RECEIVED";
   note?: string;
 }
 
@@ -128,6 +128,34 @@ export interface GoodsReceivedNote {
   date: string; // ISO String
   items: GRNItem[];
   note?: string;
+}
+
+export interface WarehouseProfile {
+  id?: string;
+  _id?: string;
+  warehouseCode: string;
+  warehouseName: string;
+  warehouseAddress: string;
+  warehousePhone: string;
+  warehouseEmail?: string;
+  managerName?: string;
+  status?: "active" | "inactive";
+  description?: string;
+  notes?: string;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Supplier {
+  id: string;
+  _id?: string;
+  supplierName: string;
+  contactNumber: string;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AppState {
