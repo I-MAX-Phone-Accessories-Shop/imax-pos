@@ -6,6 +6,7 @@ import { fetchSuppliers } from "../services/Supplier/fetchSuppliers";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
 import { createPurchase } from "../services/Purchase/createPurchase";
 import { fetchPurchases } from "../services/Purchase/fetchPurchases";
+import { updatePurchaseStatus } from "../services/Purchase/updatePurchaseStatus";
 import { ApiPurchaseOrder } from "../types";
 import { Modal } from "../components/Modal";
 import { toast } from "sonner";
@@ -15,9 +16,21 @@ type TabType = "po" | "grn";
 export const Purchasing: React.FC = () => {
   const { purchaseOrders = [], createGRN } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>("po");
+  const [poFilter, setPoFilter] = useState<"pending" | "arrived">("pending");
 
   // PO State
   const [poList, setPOList] = useState<ApiPurchaseOrder[]>([]);
+
+  // Filter POs based on selected tab
+  const filteredPOs = poList.filter((po) => {
+    const status = po.status?.toLowerCase() || "";
+    if (poFilter === "pending") {
+      return status === "pending";
+    } else {
+      return status === "arrived" || status === "received";
+    }
+  });
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [poSupplierId, setPOSupplierId] = useState("");
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -71,6 +84,21 @@ export const Purchasing: React.FC = () => {
     } catch (error) {
       console.error("Failed to load POs", error);
       toast.error("Failed to load Purchase Orders");
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const res = await updatePurchaseStatus(id, status);
+      if (res.success) {
+        toast.success("Status updated successfully");
+        loadPurchases();
+      } else {
+        toast.error(res.message || "Failed to update status");
+      }
+    } catch (error: any) {
+      console.error("Failed to update status", error);
+      toast.error(error.message || "Failed to update status");
     }
   };
 
@@ -293,6 +321,30 @@ export const Purchasing: React.FC = () => {
             </button>
           </div>
 
+          {/* Filter Tabs */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPoFilter("pending")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                poFilter === "pending"
+                  ? "bg-slate-800 text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-50 border"
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setPoFilter("arrived")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                poFilter === "arrived"
+                  ? "bg-green-600 text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-50 border"
+              }`}
+            >
+              Arrived
+            </button>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50 border-b">
@@ -303,17 +355,18 @@ export const Purchasing: React.FC = () => {
                   <th className="p-4">Total Amount</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Note</th>
+                  <th className="p-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {poList.length === 0 ? (
+                {filteredPOs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-400">
-                      No purchase orders found
+                    <td colSpan={7} className="p-8 text-center text-slate-400">
+                      No {poFilter} purchase orders found
                     </td>
                   </tr>
                 ) : (
-                  poList.map((po) => {
+                  filteredPOs.map((po) => {
                     const supplier = suppliers.find(
                       (s) => (s.id || s._id) === po.supplierId
                     );
@@ -344,6 +397,18 @@ export const Purchasing: React.FC = () => {
                         </td>
                         <td className="p-4 text-slate-500 truncate max-w-xs">
                           {po.note}
+                        </td>
+                        <td className="p-4">
+                          {po.status === "pending" && (
+                            <button
+                              onClick={() =>
+                                handleUpdateStatus(po._id, "arrived")
+                              }
+                              className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors"
+                            >
+                              Mark Arrived
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
