@@ -94,6 +94,28 @@ export interface AuditLog {
   user: string;
 }
 
+export interface PurchaseOrderProduct {
+  inventoryId: string;
+  productName: string;
+  buyingPrice: number;
+  purchaseQuantity: number;
+  productCode?: string;
+  _id?: string;
+}
+
+export interface ApiPurchaseOrder {
+  _id: string;
+  supplierId: string;
+  products: PurchaseOrderProduct[];
+  status: string;
+  note: string;
+  totalAmount: number;
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
+  id?: string;
+}
+
 export interface PurchaseOrderItem {
   productId: string;
   name: string;
