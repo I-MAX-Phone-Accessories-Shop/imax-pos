@@ -29,6 +29,8 @@ export const Purchasing: React.FC = () => {
   const [poNote, setPONote] = useState("");
   const [poNewProductName, setPONewProductName] = useState("");
 
+  console.log(poItems);
+
   // Fetch Suppliers and Products
   useEffect(() => {
     const loadData = async () => {
@@ -72,7 +74,7 @@ export const Purchasing: React.FC = () => {
     }
   };
 
-  console.log("products", products);
+  // console.log("products", products);
 
   // GRN State
   const [selectedPOId, setSelectedPOId] = useState("");
@@ -85,6 +87,7 @@ export const Purchasing: React.FC = () => {
 
     let productId = poSelectedProduct;
     let productName = "";
+    let buyingPrice = 0;
 
     if (poSelectedProduct) {
       const product = products.find(
@@ -92,6 +95,7 @@ export const Purchasing: React.FC = () => {
       );
       if (!product) return;
       productName = product.productName || product.name;
+      buyingPrice = product.buyingPrice;
     } else {
       // New product - generate ID
       productId = `new-${Date.now()}-${Math.random()
@@ -104,7 +108,7 @@ export const Purchasing: React.FC = () => {
       productId,
       name: productName,
       qty: poQty,
-      costPrice: 0,
+      costPrice: buyingPrice,
       note: poItemNote,
     };
 
@@ -126,6 +130,7 @@ export const Purchasing: React.FC = () => {
       (sum, item) => sum + item.qty * item.costPrice,
       0
     );
+    console.log("totalAmount", totalAmount);
 
     const payload = {
       products: poItems.map((item) => ({
@@ -353,11 +358,8 @@ export const Purchasing: React.FC = () => {
             onClose={() => setIsCreateModalOpen(false)}
             title="Create Purchase Order"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
               <div className="bg-white p-6 rounded-xl shadow-sm border">
-                <h2 className="font-bold text-lg mb-4">
-                  Create Purchase Order
-                </h2>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">
@@ -447,6 +449,8 @@ export const Purchasing: React.FC = () => {
                       <tr className="border-b">
                         <th className="py-2 px-1">Item</th>
                         <th className="py-2 px-1">Qty</th>
+                        <th className="py-2 px-1">Unit Price</th>
+                        <th className="py-2 px-1">Cost Price</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -454,6 +458,12 @@ export const Purchasing: React.FC = () => {
                         <tr key={i} className="border-b">
                           <td className="py-2">{item.name}</td>
                           <td className="py-2">{item.qty}</td>
+                          <td className="py-2">
+                            {item.costPrice.toLocaleString()}
+                          </td>
+                          <td className="py-2">
+                            {(item.costPrice * item.qty).toLocaleString()}
+                          </td>
                         </tr>
                       ))}
                       {poItems.length === 0 && (
@@ -466,6 +476,19 @@ export const Purchasing: React.FC = () => {
                           </td>
                         </tr>
                       )}
+                      <tr>
+                        <td colSpan={4} className="text-right py-2">
+                          Total:{" "}
+                          {poItems
+                            .reduce(
+                              (total, item) =>
+                                total + item.costPrice * item.qty,
+                              0
+                            )
+                            .toLocaleString()}{" "}
+                          MMK
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
