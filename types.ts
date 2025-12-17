@@ -25,7 +25,9 @@ export enum ProductCategory {
 
 export interface Product {
   id: string;
+  _id?: string;
   name: string;
+  productName?: string;
   category: ProductCategory;
   stockWarehouse: number;
   stockShop: number;
