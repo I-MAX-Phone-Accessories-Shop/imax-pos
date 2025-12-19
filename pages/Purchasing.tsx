@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useApp } from "../context/AppContext";
 import { ShoppingBag, FileText, PackageCheck } from "lucide-react";
 import { Supplier, Product, ApiPurchaseOrder } from "../types";
 import { fetchSuppliers } from "../services/Supplier/fetchSuppliers";
@@ -13,7 +12,6 @@ import { GRNManager } from "../components/Purchasing/GRNManager";
 type TabType = "po" | "grn";
 
 export const Purchasing: React.FC = () => {
-  const { purchaseOrders = [] } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>("po");
 
   // Shared State
@@ -115,7 +113,13 @@ export const Purchasing: React.FC = () => {
       )}
 
       {/* GRN Tab */}
-      {activeTab === "grn" && <GRNManager purchaseOrders={purchaseOrders} />}
+      {activeTab === "grn" && (
+        <GRNManager
+          purchaseOrders={poList}
+          suppliers={suppliers}
+          onSuccess={loadPurchases}
+        />
+      )}
     </div>
   );
 };

@@ -1,37 +1,59 @@
 import React, { useState } from "react";
-import { PurchaseOrder, GRNItem } from "../../types";
-import { useApp } from "../../context/AppContext";
+import { ApiPurchaseOrder, GRNItem, Supplier } from "../../types";
 import { toast } from "sonner";
+import { createGRN } from "../../services/Purchase/createGRN";
 
-interface GRNManagerProps {
-  purchaseOrders: PurchaseOrder[];
+interface ExtendedGRNItem extends GRNItem {
+  productCode: string;
 }
 
-export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
-  const { createGRN } = useApp();
+interface GRNManagerProps {
+  purchaseOrders: ApiPurchaseOrder[];
+  suppliers: Supplier[];
+  onSuccess?: () => void;
+}
+
+export const GRNManager: React.FC<GRNManagerProps> = ({
+  purchaseOrders,
+  suppliers,
+  onSuccess,
+}) => {
   const [selectedPOId, setSelectedPOId] = useState("");
-  const [grnItems, setGRNItems] = useState<GRNItem[]>([]);
+  const [grnItems, setGRNItems] = useState<ExtendedGRNItem[]>([]);
   const [grnNote, setGRNNote] = useState("");
-
-  const pendingPOs = purchaseOrders.filter(
-    (p) => p.status === "PENDING" || p.status === "PARTIALLY_RECEIVED"
+  const [grnDate, setGrnDate] = useState(
+    new Date().toISOString().split("T")[0]
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectedPO = purchaseOrders.find((p) => p.id === selectedPOId);
+  const pendingPOs = purchaseOrders.filter((p) => {
+    const status = p.status?.toLowerCase();
+    return status === "arrived";
+  });
+
+  const selectedPO = purchaseOrders.find((p) => p._id === selectedPOId);
+
+  const getSupplierName = (supplierId: string) => {
+    const supplier = suppliers.find(
+      (s) => s.id === supplierId || s._id === supplierId
+    );
+    return supplier ? supplier.supplierName : "Unknown Supplier";
+  };
 
   const loadPOItems = () => {
     if (!selectedPOId) return;
-    const po = purchaseOrders.find((p) => p.id === selectedPOId);
+    const po = purchaseOrders.find((p) => p._id === selectedPOId);
     if (!po) return;
 
-    const grnItemsForPO: GRNItem[] = po.items.map((item) => ({
-      productId: item.productId,
-      name: item.name,
-      qtyOrdered: item.qty,
-      qtyReceived: item.qty, // Default to ordered quantity
-      qtyGood: item.qty, // Default all as good
+    const grnItemsForPO: ExtendedGRNItem[] = po.products.map((item) => ({
+      productId: item.inventoryId,
+      productCode: item.productCode || "",
+      name: item.productName,
+      qtyOrdered: item.purchaseQuantity,
+      qtyReceived: item.purchaseQuantity, // Default to ordered quantity
+      qtyGood: item.purchaseQuantity, // Default all as good
       qtyBad: 0, // Default no bad items
-      costPrice: item.costPrice,
+      costPrice: item.buyingPrice,
     }));
 
     setGRNItems(grnItemsForPO);
@@ -39,7 +61,7 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
 
   const updateGRNItem = (
     index: number,
-    field: keyof GRNItem,
+    field: keyof ExtendedGRNItem,
     value: number
   ) => {
     setGRNItems((prev) => {
@@ -66,7 +88,7 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
     });
   };
 
-  const submitGRN = () => {
+  const submitGRN = async () => {
     if (!selectedPOId) {
       toast.error("Please select a Purchase Order");
       return;
@@ -87,16 +109,36 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
       }
     }
 
-    const result = createGRN(selectedPOId, grnItems, grnNote);
-    if (result.success) {
-      setSelectedPOId("");
-      setGRNItems([]);
-      setGRNNote("");
-      toast.success(
-        "GRN Created! Only good items have been added to warehouse."
-      );
-    } else {
-      toast.error(result.message || "Failed to create GRN");
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        purchasingId: selectedPOId,
+        lineItems: grnItems.map((item) => ({
+          productCode: item.productCode,
+          goodQuantity: item.qtyGood,
+          badQuantity: item.qtyBad,
+        })),
+        grnDate: grnDate,
+        notes: grnNote,
+      };
+
+      const result = await createGRN(payload);
+
+      if (result.success) {
+        setSelectedPOId("");
+        setGRNItems([]);
+        setGRNNote("");
+        toast.success("GRN Created Successfully!");
+        if (onSuccess) onSuccess();
+      } else {
+        toast.error(result.message || "Failed to create GRN");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while creating GRN");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,26 +161,24 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
             >
               <option value="">Select PO...</option>
               {pendingPOs.map((po) => (
-                <option key={po.id} value={po.id}>
-                  {po.poNumber} - {po.supplierName} (
-                  {po.status === "PARTIALLY_RECEIVED"
-                    ? "Partially Received"
-                    : "Pending"}
-                  )
+                <option key={po._id} value={po._id}>
+                  PO-{po.createdAt.split("T")[0]} -{" "}
+                  {getSupplierName(po.supplierId)} ({po.status})
                 </option>
               ))}
             </select>
             {selectedPO && (
               <div className="mt-2 p-3 bg-slate-50 rounded text-sm">
                 <div>
-                  <strong>PO:</strong> {selectedPO.poNumber}
-                </div>
-                <div>
-                  <strong>Supplier:</strong> {selectedPO.supplierName}
+                  <strong>Supplier:</strong>{" "}
+                  {getSupplierName(selectedPO.supplierId)}
                 </div>
                 <div>
                   <strong>Date:</strong>{" "}
-                  {new Date(selectedPO.date).toLocaleDateString()}
+                  {new Date(selectedPO.createdAt).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong> {selectedPO.totalAmount}
                 </div>
                 <button
                   onClick={loadPOItems}
@@ -148,6 +188,18 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
                 </button>
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1">
+              GRN Date
+            </label>
+            <input
+              type="date"
+              className="w-full border rounded p-2 text-sm"
+              value={grnDate}
+              onChange={(e) => setGrnDate(e.target.value)}
+            />
           </div>
 
           <div className="border-t pt-4 mt-4">
@@ -178,7 +230,12 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
             <div className="space-y-4">
               {grnItems.map((item, index) => (
                 <div key={index} className="border rounded p-3 bg-slate-50">
-                  <div className="font-semibold mb-2">{item.name}</div>
+                  <div className="font-semibold mb-2">
+                    {item.name}{" "}
+                    <span className="text-xs text-gray-500">
+                      ({item.productCode})
+                    </span>
+                  </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <label className="text-xs text-slate-500">Ordered:</label>
@@ -264,13 +321,13 @@ export const GRNManager: React.FC<GRNManagerProps> = ({ purchaseOrders }) => {
         </div>
         <button
           onClick={submitGRN}
-          disabled={grnItems.length === 0 || !selectedPOId}
-          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:opacity-50"
+          disabled={grnItems.length === 0 || !selectedPOId || isSubmitting}
+          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 flex justify-center items-center"
         >
-          Create GRN (Only Good Items to Warehouse)
+          {isSubmitting ? "Creating..." : "Create GRN"}
         </button>
         <p className="text-xs text-slate-500 mt-2">
-          Only good items will be added to Warehouse 1. Bad items are logged but
+          Only good items will be added to Warehouse. Bad items are logged but
           not added to stock.
         </p>
       </div>
