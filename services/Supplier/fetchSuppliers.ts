@@ -1,5 +1,4 @@
-/// <reference types="vite/client" />
-import axios from "axios";
+import axios from "../axios";
 import { Supplier } from "../../types";
 
 interface FetchSuppliersResponse {
@@ -14,15 +13,7 @@ interface FetchSuppliersResponse {
  */
 export const fetchSuppliers = async (): Promise<FetchSuppliersResponse> => {
   try {
-    // Get API base URL from environment or use relative path
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-    const url = `${API_BASE_URL}/supplier-profile`;
-
-    const response = await axios.get(url, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get("/supplier-profile");
 
     return response.data;
   } catch (error) {

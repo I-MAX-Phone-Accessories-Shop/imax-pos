@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../axios";
 
 interface GRNLineItem {
   productCode: string;
@@ -23,14 +23,7 @@ export const createGRN = async (
   data: CreateGRNRequest
 ): Promise<CreateGRNResponse> => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-    const url = `${API_BASE_URL}/grn`;
-
-    const response = await axios.post(url, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.post("/grn", data);
 
     return response.data;
   } catch (error: any) {

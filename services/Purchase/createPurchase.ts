@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../axios";
 
 export interface PurchaseProductPayload {
   inventoryId: string;
@@ -27,14 +27,7 @@ export const createPurchase = async (
   payload: CreatePurchasePayload
 ): Promise<CreatePurchaseResponse> => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-    const url = `${API_BASE_URL}/purchase`;
-
-    const response = await axios.post(url, payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.post("/purchase", payload);
 
     return response.data;
   } catch (error) {

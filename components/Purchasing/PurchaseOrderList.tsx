@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Eye } from "lucide-react";
 import { ApiPurchaseOrder, Supplier } from "../../types";
 import { updatePurchaseStatus } from "../../services/Purchase/updatePurchaseStatus";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ interface PurchaseOrderListProps {
   suppliers: Supplier[];
   setIsCreateModalOpen: (isOpen: boolean) => void;
   loadPurchases: () => Promise<void>;
+  onViewPO?: (po: ApiPurchaseOrder) => void;
 }
 
 export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
@@ -16,6 +17,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   suppliers,
   setIsCreateModalOpen,
   loadPurchases,
+  onViewPO,
 }) => {
   const [poFilter, setPoFilter] = useState<"pending" | "arrived">("pending");
 
@@ -135,14 +137,24 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                       {po.note}
                     </td>
                     <td className="p-4">
-                      {po.status === "pending" && (
+                      <div className="flex items-center gap-2">
+                        {po.status === "pending" && (
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(po._id, "arrived")
+                            }
+                            className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors"
+                          >
+                            Mark Arrived
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleUpdateStatus(po._id, "arrived")}
-                          className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors"
+                          onClick={() => onViewPO?.(po)}
+                          className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                         >
-                          Mark Arrived
+                          <Eye className="w-3 h-3" /> View
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 );

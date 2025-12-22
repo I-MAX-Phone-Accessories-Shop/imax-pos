@@ -1,5 +1,4 @@
-/// <reference types="vite/client" />
-import axios from "axios";
+import axios from "../axios";
 
 export interface CreateSupplierPayload {
   supplierName: string;
@@ -13,15 +12,7 @@ export interface CreateSupplierPayload {
  */
 export const createSupplier = async (supplierData: CreateSupplierPayload) => {
   try {
-    // Get API base URL from environment or use relative path
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-    const url = `${API_BASE_URL}/supplier-profile`;
-
-    const response = await axios.post(url, supplierData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.post("/supplier-profile", supplierData);
 
     return response.data;
   } catch (error) {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useApp } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
 import {
-  ArrowRightLeft,
   Package,
   Plus,
   X,
@@ -10,6 +9,7 @@ import {
   MapPin,
   User,
   Mail,
+  ChevronRight,
 } from "lucide-react";
 import { createWarehouseProfile } from "../services/Warehouse/createWarehouseProfile";
 import { fetchWarehouseProfiles } from "../services/Warehouse/fetchWarehouseProfiles";
@@ -29,12 +29,10 @@ interface WarehouseProfileFormData {
 }
 
 export const Warehouse: React.FC = () => {
-  const { products, transferStock } = useApp();
+  const navigate = useNavigate();
   const [warehouseProfiles, setWarehouseProfiles] = useState<
     WarehouseProfile[]
   >([]);
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
 
   // Modal State
@@ -67,18 +65,9 @@ export const Warehouse: React.FC = () => {
     } catch (error) {
       console.log(error);
       console.error("Failed to load warehouse profiles:", error);
-      // toast.error("Failed to load warehouse profiles");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleTransfer = () => {
-    if (!selectedProduct) return;
-    transferStock(selectedProduct, qty);
-    setQty(1);
-    setSelectedProduct("");
-    alert("Transfer Successful!");
   };
 
   const handleCreateProfile = async (e: React.FormEvent) => {
@@ -113,10 +102,6 @@ export const Warehouse: React.FC = () => {
       };
 
       await createWarehouseProfile(payload);
-
-      // Update local state
-      // We should ideally reload from API to get the server-generated fields (id, timestamps)
-      // But for immediate feedback we can add it to the list, or just trigger a reload
       loadWarehouseProfiles();
 
       toast.success("Warehouse profile created successfully!");
@@ -154,87 +139,49 @@ export const Warehouse: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Transfer Form */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <ArrowRightLeft className="w-5 h-5 mr-2 text-slate-500" />
-            Transfer to Shop
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">
-                Select Product
-              </label>
-              <select
-                className="w-full border rounded-lg p-2"
-                value={selectedProduct}
-                onChange={(e) => setSelectedProduct(e.target.value)}
-              >
-                <option value="">-- Choose Product --</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} (Wh: {p.stockWarehouse})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">
-                Quantity
-              </label>
-              <input
-                type="number"
-                min="1"
-                className="w-full border rounded-lg p-2"
-                value={qty}
-                onChange={(e) => setQty(Number(e.target.value))}
-              />
-            </div>
-
-            <button
-              onClick={handleTransfer}
-              disabled={!selectedProduct}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors disabled:opacity-50"
-            >
-              Confirm Transfer
-            </button>
+      {/* Warehouse Profiles List */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-slate-500" />
+          Warehouse Profiles
+        </h2>
+        {loading ? (
+          <div className="text-center py-8 text-slate-500">
+            Loading profiles...
           </div>
-        </div>
-
-        {/* Warehouse Profiles List */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold mb-4">Warehouse Profiles</h2>
-          {loading ? (
-            <div className="text-center py-8 text-slate-500">
-              Loading profiles...
-            </div>
-          ) : warehouseProfiles.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              No warehouse profiles found.
-            </div>
-          ) : (
-            <div className="space-y-4 max-h-[400px] overflow-y-auto">
-              {warehouseProfiles.map((profile) => (
-                <div
-                  key={profile.id || profile._id}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-                        {profile.warehouseName}
-                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                          {profile.warehouseCode}
-                        </span>
-                      </h3>
-                      <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
-                        <MapPin className="w-3 h-3" />
-                        {profile.warehouseAddress}
-                      </div>
+        ) : warehouseProfiles.length === 0 ? (
+          <div className="text-center py-8 text-slate-500">
+            No warehouse profiles found. Click "Add Warehouse" to create one.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {warehouseProfiles.map((profile) => (
+              <div
+                key={profile.id || profile._id}
+                onClick={() =>
+                  navigate(`/warehouse/${profile.id || profile._id}`, {
+                    state: {
+                      warehouseName: profile.warehouseName,
+                      warehouseCode: profile.warehouseCode,
+                    },
+                  })
+                }
+                className="border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer hover:border-blue-300 group"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-semibold text-slate-800 flex items-center gap-2 group-hover:text-blue-600 transition-colors">
+                      {profile.warehouseName}
+                      <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                        {profile.warehouseCode}
+                      </span>
+                    </h3>
+                    <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
+                      <MapPin className="w-3 h-3" />
+                      {profile.warehouseAddress}
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         profile.status === "active"
@@ -244,31 +191,36 @@ export const Warehouse: React.FC = () => {
                     >
                       {profile.status}
                     </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 mt-3 pt-3 border-t">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3 h-3" />
-                      {profile.warehousePhone}
-                    </div>
-                    {profile.managerName && (
-                      <div className="flex items-center gap-2">
-                        <User className="w-3 h-3" />
-                        {profile.managerName}
-                      </div>
-                    )}
-                    {profile.warehouseEmail && (
-                      <div className="flex items-center gap-2 col-span-2">
-                        <Mail className="w-3 h-3" />
-                        {profile.warehouseEmail}
-                      </div>
-                    )}
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+
+                <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 mt-3 pt-3 border-t">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3 h-3" />
+                    {profile.warehousePhone}
+                  </div>
+                  {profile.managerName && (
+                    <div className="flex items-center gap-2">
+                      <User className="w-3 h-3" />
+                      {profile.managerName}
+                    </div>
+                  )}
+                  {profile.warehouseEmail && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3 h-3" />
+                      {profile.warehouseEmail}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 pt-3 border-t text-xs text-blue-600 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  View Stock Items <ChevronRight className="w-3 h-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add Warehouse Modal */}

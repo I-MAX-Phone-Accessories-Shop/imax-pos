@@ -1,5 +1,4 @@
-/// <reference types="vite/client" />
-import axios from "axios";
+import axios from "../axios";
 
 /**
  * Fetch all warehouse profiles from API
@@ -7,15 +6,7 @@ import axios from "axios";
  */
 export const fetchWarehouseProfiles = async () => {
   try {
-    // Get API base URL from environment or use relative path
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-    const url = `${API_BASE_URL}/warehouse-profile`;
-
-    const response = await axios.get(url, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get("/warehouse-profile");
 
     return response.data;
   } catch (error) {

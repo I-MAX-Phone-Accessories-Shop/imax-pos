@@ -1,17 +1,36 @@
 import axios from "../axios";
 
+export interface CreateProductPayload {
+  productName: string;
+  productCode: string;
+  SKU?: string;
+  category?: string;
+  buyingPrice: number;
+  sellingPrice: number;
+  quantity?: number;
+  description?: string;
+}
+
+interface CreateProductResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
 /**
- * Create a new warehouse profile via API
- * @param {Object} profileData - Warehouse profile data matching API schema
- * @returns {Promise<Object>} Response from API
+ * Create a new product via API
+ * @param {CreateProductPayload} productData - Product data matching API schema
+ * @returns {Promise<CreateProductResponse>} Response from API
  */
-export const createWarehouseProfile = async (profileData) => {
+export const createProduct = async (
+  productData: CreateProductPayload
+): Promise<CreateProductResponse> => {
   try {
-    const response = await axios.post("/warehouse-profile", profileData);
+    const response = await axios.post("/inventory", productData);
 
     return response.data;
   } catch (error) {
-    console.error("Error creating warehouse profile:", error);
+    console.error("Error creating product:", error);
 
     if (axios.isAxiosError(error)) {
       if (

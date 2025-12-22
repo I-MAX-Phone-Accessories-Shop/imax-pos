@@ -1,17 +1,23 @@
 import axios from "../axios";
+import { Product } from "../../types";
+
+interface FetchProductsResponse {
+  success: boolean;
+  message: string;
+  data: Product[];
+}
 
 /**
- * Create a new warehouse profile via API
- * @param {Object} profileData - Warehouse profile data matching API schema
- * @returns {Promise<Object>} Response from API
+ * Fetch products from API
+ * @returns {Promise<FetchProductsResponse>} Response from API with products data
  */
-export const createWarehouseProfile = async (profileData) => {
+export const fetchProducts = async (): Promise<FetchProductsResponse> => {
   try {
-    const response = await axios.post("/warehouse-profile", profileData);
+    const response = await axios.get("/inventory");
 
     return response.data;
   } catch (error) {
-    console.error("Error creating warehouse profile:", error);
+    console.error("Error fetching products:", error);
 
     if (axios.isAxiosError(error)) {
       if (

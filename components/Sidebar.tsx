@@ -1,4 +1,5 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -12,23 +13,18 @@ import {
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
-interface SidebarProps {
-  currentPage: string;
-  setPage: (page: string) => void;
-}
-
-export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
+export const Sidebar: React.FC = () => {
   const { currentUser } = useApp();
 
   const menuItems = [
-    { id: "pos", label: "Checkout (POS)", icon: ShoppingCart },
-    { id: "inventory", label: "Inventory", icon: Package },
-    { id: "warehouse", label: "Warehouse", icon: Truck },
-    { id: "suppliers", label: "Suppliers", icon: Users },
-    { id: "purchasing", label: "Purchasing", icon: ShoppingBag },
-    { id: "credits", label: "Credit Sales", icon: CreditCard },
-    { id: "expenses", label: "Expenses", icon: PieChart },
-    { id: "reports", label: "Reports", icon: LayoutDashboard },
+    { path: "/pos", label: "Checkout (POS)", icon: ShoppingCart },
+    { path: "/inventory", label: "Inventory", icon: Package },
+    { path: "/warehouse", label: "Warehouse", icon: Truck },
+    { path: "/suppliers", label: "Suppliers", icon: Users },
+    { path: "/purchasing", label: "Purchasing", icon: ShoppingBag },
+    { path: "/credits", label: "Credit Sales", icon: CreditCard },
+    { path: "/expenses", label: "Expenses", icon: PieChart },
+    { path: "/reports", label: "Reports", icon: LayoutDashboard },
   ];
 
   return (
@@ -43,25 +39,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
       <nav className="flex-1 px-2 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentPage === item.id;
 
           // Simple permission check: Staff cannot purchase
-          if (item.id === "purchasing" && currentUser.role !== "ADMIN")
+          if (item.path === "/purchasing" && currentUser.role !== "ADMIN")
             return null;
 
           return (
-            <button
-              key={item.id}
-              onClick={() => setPage(item.id)}
-              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150 ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
-              }`}
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150 ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`
+              }
             >
               <Icon className="w-5 h-5 mr-3" />
               {item.label}
-            </button>
+            </NavLink>
           );
         })}
       </nav>
@@ -73,12 +70,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
             <p className="text-xs text-slate-400">{currentUser.role}</p>
           </div>
         </div>
-        <button
-          onClick={() => setPage("settings")}
-          className="mt-4 flex items-center text-xs text-slate-400 hover:text-white transition-colors"
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `mt-4 flex items-center text-xs transition-colors ${
+              isActive ? "text-white" : "text-slate-400 hover:text-white"
+            }`
+          }
         >
           <Settings className="w-3 h-3 mr-1" /> Settings
-        </button>
+        </NavLink>
       </div>
     </div>
   );

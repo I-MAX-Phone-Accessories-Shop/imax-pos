@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../axios";
 
 interface UpdatePurchaseStatusResponse {
   success: boolean;
@@ -17,18 +17,7 @@ export const updatePurchaseStatus = async (
   status: string
 ): Promise<UpdatePurchaseStatusResponse> => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-    const url = `${API_BASE_URL}/purchase/${id}/status`;
-
-    const response = await axios.patch(
-      url,
-      { status },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.patch(`/purchase/${id}/status`, { status });
 
     return response.data;
   } catch (error) {
