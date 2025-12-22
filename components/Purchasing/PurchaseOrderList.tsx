@@ -53,7 +53,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         </h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+          className="bg-btn-primary text-dark px-4 py-2 rounded-lg hover:bg-btn-primary-hover flex items-center gap-2"
         >
           <Plus className="w-5 h-5" /> Create New PO
         </button>
@@ -75,7 +75,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
           onClick={() => setPoFilter("arrived")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             poFilter === "arrived"
-              ? "bg-green-600 text-white"
+              ? "bg-btn-primary text-dark"
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >
@@ -150,7 +150,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                         )}
                         <button
                           onClick={() => onViewPO?.(po)}
-                          className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                          className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                         >
                           <Eye className="w-3 h-3" /> View
                         </button>

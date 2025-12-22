@@ -78,7 +78,7 @@ export const GRNList: React.FC<GRNListProps> = ({
         </h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+          className="bg-btn-primary text-dark px-4 py-2 rounded-lg hover:bg-btn-primary-hover flex items-center gap-2"
         >
           <Plus className="w-5 h-5" /> Create New GRN
         </button>
@@ -100,7 +100,7 @@ export const GRNList: React.FC<GRNListProps> = ({
           onClick={() => setGrnFilter("completed")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             grnFilter === "completed"
-              ? "bg-green-600 text-white"
+              ? "bg-btn-primary text-dark"
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >
@@ -195,7 +195,7 @@ export const GRNList: React.FC<GRNListProps> = ({
                       )}
                       <button
                         onClick={() => onViewGRN?.(grn)}
-                        className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                        className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                       >
                         <Eye className="w-3 h-3" /> View
                       </button>

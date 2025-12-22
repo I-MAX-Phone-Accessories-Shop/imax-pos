@@ -40,7 +40,7 @@ export const Reports: React.FC = () => {
         <h1 className="text-2xl font-bold text-slate-800">Financial Reports</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-xl shadow border border-blue-100">
+            <div className="bg-white p-4 rounded-xl shadow border border-primary/20">
                 <p className="text-slate-500 text-xs uppercase font-bold">Total Sales</p>
                 <p className="text-2xl font-bold text-slate-900">{totalSales.toLocaleString()} MMK</p>
             </div>

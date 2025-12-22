@@ -1,54 +1,171 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Search, Trash2, Plus, Minus, Printer, X } from "lucide-react";
-import { useApp } from "../context/AppContext";
-import { Product, ProductCategory, PaymentMethod, Role } from "../types";
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Trash2,
+  Plus,
+  Minus,
+  Printer,
+  X,
+  Store,
+  RefreshCw,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  fetchStorefrontStock,
+  StorefrontStockItem,
+} from "../services/Storefront/fetchStorefrontStock";
+import {
+  fetchStorefrontProfiles,
+  StorefrontProfile,
+} from "../services/Storefront/fetchStorefrontProfiles";
+
+// Payment methods
+enum PaymentMethod {
+  CASH = "Cash",
+  KBZ_PAY = "KBZPay",
+  WAVE_PAY = "WavePay",
+  AYA_PAY = "AYA Pay",
+  UAB_PAY = "UAB Pay",
+  BANK_TRANSFER = "Bank Transfer",
+}
+
+interface CartItem {
+  stockItem: StorefrontStockItem;
+  qty: number;
+}
 
 export const POS: React.FC = () => {
-  const { products, processSale, customers } = useApp();
-  const [cart, setCart] = useState<{ product: Product; qty: number }[]>([]);
+  // Data State
+  const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
+  const [selectedStorefrontId, setSelectedStorefrontId] = useState<string>("");
+  const [allStockItems, setAllStockItems] = useState<StorefrontStockItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Cart State
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     PaymentMethod.CASH
   );
   const [discount, setDiscount] = useState(0);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
-  const [showReceipt, setShowReceipt] = useState<any>(null); // Stores sale object for receipt
+  const [showReceipt, setShowReceipt] = useState<any>(null);
   const [note, setNote] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
 
-  const filteredProducts = products.filter(
-    (p) =>
-      (selectedCategory === "All" || p.category === selectedCategory) &&
-      p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Load storefronts and stock on mount
+  useEffect(() => {
+    loadInitialData();
+  }, []);
 
-  const addToCart = (product: Product) => {
-    if (product.stockShop <= 0) {
-      alert("Out of stock in Shop! Transfer from Warehouse first.");
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      // Load storefronts
+      const sfResponse = await fetchStorefrontProfiles();
+      if (sfResponse.success && sfResponse.data) {
+        const activeStorefronts = sfResponse.data.filter(
+          (sf) => sf.status === "active"
+        );
+        setStorefronts(activeStorefronts);
+
+        // Auto-select first storefront
+        if (activeStorefronts.length > 0) {
+          setSelectedStorefrontId(
+            activeStorefronts[0].id || activeStorefronts[0]._id || ""
+          );
+        }
+      }
+
+      // Load stock items
+      await loadStockItems();
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStockItems = async () => {
+    try {
+      const response = await fetchStorefrontStock();
+      if (response.success && response.data) {
+        setAllStockItems(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading stock items:", error);
+      toast.error("Failed to load products");
+    }
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await loadStockItems();
+    setLoading(false);
+    toast.success("Products refreshed");
+  };
+
+  // Filter products by selected storefront and search
+  const filteredProducts = allStockItems.filter((item) => {
+    const matchesStorefront = item.storefrontId?.id === selectedStorefrontId;
+    const matchesSearch = item.inventoryId?.productName
+      ?.toLowerCase()
+      .includes(search.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" ||
+      item.inventoryId?.category === selectedCategory;
+
+    return matchesStorefront && matchesSearch && matchesCategory;
+  });
+
+  // Get unique categories from current storefront products
+  const categories = [
+    ...new Set(
+      allStockItems
+        .filter((item) => item.storefrontId?.id === selectedStorefrontId)
+        .map((item) => item.inventoryId?.category)
+        .filter(Boolean)
+    ),
+  ].sort();
+
+  const addToCart = (stockItem: StorefrontStockItem) => {
+    if (stockItem.availableQuantity <= 0) {
+      toast.error("Out of stock!");
       return;
     }
 
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find(
+        (item) => item.stockItem._id === stockItem._id
+      );
       if (existing) {
-        if (existing.qty + 1 > product.stockShop) {
-          alert("Cannot exceed shop stock.");
+        if (existing.qty + 1 > stockItem.availableQuantity) {
+          toast.error("Cannot exceed available stock");
           return prev;
         }
         return prev.map((item) =>
-          item.product.id === product.id ? { ...item, qty: item.qty + 1 } : item
+          item.stockItem._id === stockItem._id
+            ? { ...item, qty: item.qty + 1 }
+            : item
         );
       }
-      return [...prev, { product, qty: 1 }];
+      return [...prev, { stockItem, qty: 1 }];
     });
   };
 
   const updateQty = (id: string, delta: number) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.product.id === id) {
+        if (item.stockItem._id === id) {
           const newQty = item.qty + delta;
-          if (newQty > item.product.stockShop) return item; // Block logic
+          if (newQty > item.stockItem.availableQuantity) {
+            toast.error("Cannot exceed available stock");
+            return item;
+          }
           if (newQty < 1) return item;
           return { ...item, qty: newQty };
         }
@@ -58,39 +175,45 @@ export const POS: React.FC = () => {
   };
 
   const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== id));
+    setCart((prev) => prev.filter((item) => item.stockItem._id !== id));
+  };
+
+  // Calculate totals (assuming sellingPrice would come from inventory - using placeholder)
+  const getItemPrice = (item: StorefrontStockItem) => {
+    // For now, use a placeholder price since API doesn't include sellingPrice
+    // In production, you'd fetch this from the inventory API
+    return 10000; // Placeholder price in MMK
   };
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + item.product.sellingPrice * item.qty,
+    (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
     0
   );
   const total = subtotal * (1 - discount / 100);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
-    if (paymentMethod === PaymentMethod.CREDIT && !selectedCustomerId) {
-      alert("Please select a customer for credit sales.");
-      return;
-    }
 
-    const result = processSale(
-      cart.map((i) => ({ ...i.product, qty: i.qty })),
-      discount,
-      paymentMethod,
-      selectedCustomerId || undefined,
-      note
-    );
+    setIsProcessing(true);
 
-    if (result.success) {
-      // Generate a temp receipt object for display
+    // Simulate checkout process
+    // In production, you would call a sales API here
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const selectedStorefront = storefronts.find(
+        (sf) => (sf.id || sf._id) === selectedStorefrontId
+      );
+
       const receiptData = {
         date: new Date().toISOString(),
-        invoiceNumber: "Generating...", // In real app, get from response
+        invoiceNumber: `INV-${Date.now()}`,
+        storefrontName: selectedStorefront?.storefrontName || "Store",
         items: cart.map((i) => ({
-          name: i.product.name,
+          name: i.stockItem.inventoryId.productName,
+          code: i.stockItem.inventoryId.productCode,
           qty: i.qty,
-          price: i.product.sellingPrice,
+          price: getItemPrice(i.stockItem),
         })),
         subtotal,
         discountPercent: discount,
@@ -98,113 +221,250 @@ export const POS: React.FC = () => {
         paymentMethod,
         note,
       };
+
       setShowReceipt(receiptData);
       setCart([]);
       setDiscount(0);
       setNote("");
       setPaymentMethod(PaymentMethod.CASH);
-      setSelectedCustomerId("");
-    } else {
-      alert(result.message);
+
+      toast.success("Sale completed!");
+
+      // Refresh stock after sale
+      await loadStockItems();
+    } catch (error) {
+      toast.error("Failed to process sale");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  // Handle storefront change
+  const handleStorefrontChange = (storefrontId: string) => {
+    setSelectedStorefrontId(storefrontId);
+    setCart([]); // Clear cart when switching storefronts
+    setSelectedCategory("All");
+  };
+
+  if (loading && storefronts.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-dark-100">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-dark-600">Loading POS...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
       {/* Product Grid */}
-      <div className="flex-1 flex flex-col p-6 overflow-hidden">
-        <div className="mb-4 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      <div className="flex-1 flex flex-col px-6 py-4 overflow-hidden">
+        {/* Search Bar with Storefront Badge */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full pl-10 pr-4 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            {/* Category Selector */}
+            <select
+              className="border border-dark-200 rounded-xl px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none shadow-sm"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="All">All</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+
+            {/* Storefront Settings Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
+                className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
+              >
+                <Store className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium max-w-[120px] truncate">
+                  {storefronts.find(
+                    (sf) => (sf.id || sf._id) === selectedStorefrontId
+                  )?.storefrontName || "Store"}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
+                    showStorefrontMenu ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {showStorefrontMenu && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowStorefrontMenu(false)}
+                  />
+                  {/* Menu */}
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl border border-dark-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="p-3 bg-dark-50 border-b border-dark-200">
+                      <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider">
+                        Select Storefront
+                      </p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {storefronts.map((sf) => (
+                        <button
+                          key={sf.id || sf._id}
+                          onClick={() => {
+                            handleStorefrontChange(sf.id || sf._id || "");
+                            setShowStorefrontMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
+                            (sf.id || sf._id) === selectedStorefrontId
+                              ? "bg-primary/20 border-l-4 border-primary"
+                              : ""
+                          }`}
+                        >
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              (sf.id || sf._id) === selectedStorefrontId
+                                ? "bg-primary text-dark"
+                                : "bg-dark-100 text-dark-500"
+                            }`}
+                          >
+                            <Store className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-dark-800 truncate">
+                              {sf.storefrontName}
+                            </p>
+                            <p className="text-xs text-dark-400">
+                              {sf.storefrontCode}
+                            </p>
+                          </div>
+                          {(sf.id || sf._id) === selectedStorefrontId && (
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-2 border-t border-dark-200 bg-dark-50">
+                      <button
+                        onClick={() => {
+                          handleRefresh();
+                          setShowStorefrontMenu(false);
+                        }}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-dark-600 hover:bg-dark-100 rounded-lg transition-colors"
+                      >
+                        <RefreshCw
+                          className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                        />
+                        Refresh Products
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-          <select
-            className="border rounded-lg px-4 py-2 bg-white"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="All">All Categories</option>
-            {Object.values(ProductCategory).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => addToCart(product)}
-              className={`bg-white p-4 rounded-xl shadow-sm border cursor-pointer transition-all hover:shadow-md hover:border-blue-300 flex flex-col ${
-                product.stockShop === 0
-                  ? "opacity-50 grayscale pointer-events-none"
-                  : ""
-              }`}
-            >
-              <div className="flex-1">
-                <h3 className="font-medium text-slate-800 text-sm line-clamp-2">
-                  {product.name}
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  {product.category}
-                </p>
-              </div>
-              <div className="mt-4 flex justify-between items-end">
-                <span className="font-bold text-blue-600">
-                  {product.sellingPrice.toLocaleString()} MMK
-                </span>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    product.stockShop < product.lowStockThreshold
-                      ? "bg-red-100 text-red-600"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {product.stockShop} in Stock
-                </span>
-              </div>
+        {/* Product Count */}
+        <div className="mb-2 text-sm text-gray-600">
+          Showing {filteredProducts.length} products
+        </div>
+
+        {/* Product Grid */}
+        <div className="flex overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 pb-20">
+          {filteredProducts.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-gray-400">
+              {selectedStorefrontId
+                ? "No products found in this storefront"
+                : "Please select a storefront"}
             </div>
-          ))}
+          ) : (
+            filteredProducts.map((stockItem) => (
+              <div
+                key={stockItem._id}
+                onClick={() => addToCart(stockItem)}
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
+                  stockItem.availableQuantity === 0
+                    ? "opacity-50 grayscale pointer-events-none"
+                    : ""
+                }`}
+              >
+                <div className="">
+                  <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
+                    {stockItem.inventoryId.productName}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1 font-mono">
+                    {stockItem.inventoryId.productCode}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {stockItem.inventoryId.category}
+                  </p>
+                </div>
+                <div className="mt-4 flex justify-between items-end">
+                  <span className="font-bold text-primary-600">
+                    {getItemPrice(stockItem).toLocaleString()} MMK
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       {/* Cart Sidebar */}
-      <div className="w-96 bg-white flex flex-col border-l shadow-lg h-[calc(100vh-4rem)] fixed right-0 bottom-0 top-10 lg:relative lg:top-0 lg:h-auto">
-        <div className="p-4 border-b bg-slate-50">
-          <h2 className="font-bold text-lg text-slate-700">Current Sale</h2>
+      <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
+        <div className="p-4 border-b">
+          <h2 className="font-bold text-lg">Current Sale</h2>
+          {selectedStorefrontId && (
+            <p className="text-xs text-gray-400 mt-1">
+              {
+                storefronts.find(
+                  (sf) => (sf.id || sf._id) === selectedStorefrontId
+                )?.storefrontName
+              }
+            </p>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {cart.length === 0 ? (
-            <div className="text-center text-slate-400 mt-10">
-              Cart is empty
-            </div>
+            <div className="text-center text-gray-400 mt-10">Cart is empty</div>
           ) : (
             cart.map((item) => (
               <div
-                key={item.product.id}
-                className="flex justify-between items-start border-b pb-4"
+                key={item.stockItem._id}
+                className="flex justify-between items-start border-b border-gray-200 pb-4"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-800">
-                    {item.product.name}
+                  <p className="text-sm font-medium text-gray-800">
+                    {item.stockItem.inventoryId.productName}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    {item.product.sellingPrice.toLocaleString()} x {item.qty}
+                  <p className="text-xs text-gray-500">
+                    {getItemPrice(item.stockItem).toLocaleString()} x {item.qty}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-2">
                   <button
-                    onClick={() => updateQty(item.product.id, -1)}
-                    className="p-1 bg-slate-100 rounded hover:bg-slate-200"
+                    onClick={() => updateQty(item.stockItem._id, -1)}
+                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
@@ -212,14 +472,14 @@ export const POS: React.FC = () => {
                     {item.qty}
                   </span>
                   <button
-                    onClick={() => updateQty(item.product.id, 1)}
-                    className="p-1 bg-slate-100 rounded hover:bg-slate-200"
+                    onClick={() => updateQty(item.stockItem._id, 1)}
+                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                   >
                     <Plus className="w-3 h-3" />
                   </button>
                   <button
-                    onClick={() => removeFromCart(item.product.id)}
-                    className="p-1 text-red-500 hover:bg-red-50 rounded ml-2"
+                    onClick={() => removeFromCart(item.stockItem._id)}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded ml-2 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -229,13 +489,13 @@ export const POS: React.FC = () => {
           )}
         </div>
 
-        <div className="p-4 border-t bg-slate-50 space-y-3">
+        <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-gray-600 mb-1">
               Payment Method
             </label>
             <select
-              className="w-full border rounded p-2 text-sm"
+              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               value={paymentMethod}
               onChange={(e) =>
                 setPaymentMethod(e.target.value as PaymentMethod)
@@ -249,65 +509,45 @@ export const POS: React.FC = () => {
             </select>
           </div>
 
-          {paymentMethod === PaymentMethod.CREDIT && (
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">
-                Customer
-              </label>
-              <select
-                className="w-full border rounded p-2 text-sm"
-                value={selectedCustomerId}
-                onChange={(e) => setSelectedCustomerId(e.target.value)}
-              >
-                <option value="">Select Customer...</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-gray-600 mb-1">
               Discount (%)
             </label>
             <input
               type="number"
               min="0"
               max="100"
-              className="w-full border rounded p-2 text-sm"
+              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               value={discount}
               onChange={(e) => setDiscount(Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-gray-600 mb-1">
               Note (Optional)
             </label>
             <input
               type="text"
-              className="w-full border rounded p-2 text-sm"
+              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Serial number, backdate reason..."
+              placeholder="Serial number, note..."
             />
           </div>
 
           <div className="pt-2 space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Subtotal</span>
+              <span className="text-gray-600">Subtotal</span>
               <span>{subtotal.toLocaleString()} MMK</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Discount</span>
+              <span className="text-gray-600">Discount</span>
               <span className="text-green-600">
                 -{((subtotal * discount) / 100).toLocaleString()} MMK
               </span>
             </div>
-            <div className="flex justify-between text-xl font-bold text-slate-900 mt-2">
+            <div className="flex justify-between text-xl font-bold text-gray-900 mt-2">
               <span>Total</span>
               <span>{total.toLocaleString()} MMK</span>
             </div>
@@ -315,40 +555,48 @@ export const POS: React.FC = () => {
 
           <button
             onClick={handleCheckout}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={cart.length === 0}
+            disabled={cart.length === 0 || isProcessing}
+            className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Charge {total.toLocaleString()} MMK
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+              </>
+            ) : (
+              <>Charge {total.toLocaleString()} MMK</>
+            )}
           </button>
         </div>
       </div>
 
       {/* Receipt Modal */}
       {showReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-200">
             <div className="flex justify-between items-center mb-4 no-print">
-              <h3 className="font-bold">Receipt Preview</h3>
-              <button onClick={() => setShowReceipt(null)}>
-                <X className="w-5 h-5" />
+              <h3 className="font-bold text-gray-800">Receipt Preview</h3>
+              <button
+                onClick={() => setShowReceipt(null)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
             {/* Thermal Receipt Layout */}
             <div
               id="receipt-content"
-              className="font-mono text-xs p-2 border border-gray-200 bg-gray-50"
+              className="font-mono text-xs p-4 border border-gray-200 bg-gray-50 rounded-lg"
             >
               <div className="text-center mb-4">
-                <h1 className="font-bold text-lg uppercase">
-                  MobileAx Accessories
+                <h1 className="font-bold text-lg uppercase text-gray-800">
+                  {showReceipt.storefrontName}
                 </h1>
-                <p>123 Tech Street, Yangon</p>
-                <p>Ph: 09-123456789</p>
+                <p className="text-gray-500">IMAS POS System</p>
               </div>
               <div className="border-b border-dashed border-gray-400 my-2"></div>
-              <p>Inv: {showReceipt.invoiceNumber || "PENDING"}</p>
-              <p>Date: {new Date().toLocaleString()}</p>
+              <p>Inv: {showReceipt.invoiceNumber}</p>
+              <p>Date: {new Date(showReceipt.date).toLocaleString()}</p>
               <div className="border-b border-dashed border-gray-400 my-2"></div>
               <table className="w-full text-left">
                 <thead>
@@ -384,7 +632,14 @@ export const POS: React.FC = () => {
                 <span>TOTAL</span>
                 <span>{showReceipt.total.toLocaleString()}</span>
               </div>
-              <div className="text-center mt-4 text-[10px]">
+              <div className="flex justify-between mt-1">
+                <span>Payment</span>
+                <span>{showReceipt.paymentMethod}</span>
+              </div>
+              {showReceipt.note && (
+                <div className="mt-2 text-[10px]">Note: {showReceipt.note}</div>
+              )}
+              <div className="text-center mt-4 text-[10px] text-gray-500">
                 Thank you for shopping!
                 <br />
                 No refund, exchange within 3 days.
@@ -396,7 +651,7 @@ export const POS: React.FC = () => {
                 window.print();
                 setShowReceipt(null);
               }}
-              className="w-full mt-4 bg-slate-800 text-white py-2 rounded flex justify-center items-center gap-2 hover:bg-slate-700 no-print"
+              className="w-full mt-4 bg-btn-secondary hover:bg-btn-secondary-hover text-primary py-2 rounded-lg flex justify-center items-center gap-2 transition-colors no-print font-medium"
             >
               <Printer className="w-4 h-4" /> Print Receipt
             </button>

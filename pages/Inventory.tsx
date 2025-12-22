@@ -413,7 +413,7 @@ export const Inventory: React.FC = () => {
               resetForm();
               setIsModalOpen(true);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-btn-primary text-dark px-4 py-2 rounded hover:bg-btn-primary-hover"
           >
             + Add Product
           </button>
@@ -433,7 +433,7 @@ export const Inventory: React.FC = () => {
             Filter by Category:
           </label>
           <select
-            className="border rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-primary outline-none"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
@@ -505,7 +505,7 @@ export const Inventory: React.FC = () => {
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => openEdit(p)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-primary hover:text-primary-600"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
@@ -628,7 +628,7 @@ export const Inventory: React.FC = () => {
                       ).map((category) => (
                         <div
                           key={category}
-                          className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                          className="px-4 py-2 hover:bg-primary/10 cursor-pointer"
                           onMouseDown={(e) => {
                             e.preventDefault();
                             setFormData({ ...formData, category });
@@ -679,7 +679,7 @@ export const Inventory: React.FC = () => {
                       ).map((subCategory) => (
                         <div
                           key={subCategory}
-                          className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                          className="px-4 py-2 hover:bg-primary/10 cursor-pointer"
                           onMouseDown={(e) => {
                             e.preventDefault();
                             setFormData({ ...formData, subCategory });
@@ -886,12 +886,12 @@ export const Inventory: React.FC = () => {
                   {formData.tags?.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm flex items-center gap-1"
+                      className="px-2 py-1 bg-primary/20 text-primary-700 rounded text-sm flex items-center gap-1"
                     >
                       {tag}
                       <button
                         onClick={() => removeTag(tag)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-primary hover:text-primary-600"
                       >
                         ×
                       </button>
@@ -914,7 +914,7 @@ export const Inventory: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-btn-primary text-dark rounded hover:bg-btn-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Saving..." : "Save Product"}
               </button>

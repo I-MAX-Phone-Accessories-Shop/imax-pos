@@ -1,49 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Package,
+  Store,
   Plus,
   X,
-  Building2,
   Phone,
   MapPin,
   User,
   Mail,
   ChevronRight,
 } from "lucide-react";
-import { createWarehouseProfile } from "../services/Warehouse/createWarehouseProfile";
-import { fetchWarehouseProfiles } from "../services/Warehouse/fetchWarehouseProfiles";
+import {
+  fetchStorefrontProfiles,
+  StorefrontProfile,
+} from "../services/Storefront/fetchStorefrontProfiles";
+import { createStorefrontProfile } from "../services/Storefront/createStorefrontProfile";
 import { toast } from "sonner";
-import { WarehouseProfile } from "../types";
 
-interface WarehouseProfileFormData {
-  warehouseCode: string;
-  warehouseName: string;
-  warehouseAddress: string;
-  warehousePhone: string;
-  warehouseEmail: string;
+interface StorefrontProfileFormData {
+  storefrontCode: string;
+  storefrontName: string;
+  storefrontAddress: string;
+  storefrontPhone: string;
+  storefrontEmail: string;
   managerName: string;
   status: "active" | "inactive";
   description: string;
   notes: string;
 }
 
-export const Warehouse: React.FC = () => {
+export const Storefront: React.FC = () => {
   const navigate = useNavigate();
-  const [warehouseProfiles, setWarehouseProfiles] = useState<
-    WarehouseProfile[]
+  const [storefrontProfiles, setStorefrontProfiles] = useState<
+    StorefrontProfile[]
   >([]);
   const [loading, setLoading] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<WarehouseProfileFormData>({
-    warehouseCode: "",
-    warehouseName: "",
-    warehouseAddress: "",
-    warehousePhone: "",
-    warehouseEmail: "",
+  const [formData, setFormData] = useState<StorefrontProfileFormData>({
+    storefrontCode: "",
+    storefrontName: "",
+    storefrontAddress: "",
+    storefrontPhone: "",
+    storefrontEmail: "",
     managerName: "",
     status: "active",
     description: "",
@@ -51,20 +52,20 @@ export const Warehouse: React.FC = () => {
   });
 
   useEffect(() => {
-    loadWarehouseProfiles();
+    loadStorefrontProfiles();
   }, []);
 
-  const loadWarehouseProfiles = async () => {
+  const loadStorefrontProfiles = async () => {
     setLoading(true);
     try {
-      const response = await fetchWarehouseProfiles();
+      const response = await fetchStorefrontProfiles();
       console.log(response);
       if (response.success && response.data) {
-        setWarehouseProfiles(response.data);
+        setStorefrontProfiles(response.data);
       }
     } catch (error) {
       console.log(error);
-      console.error("Failed to load warehouse profiles:", error);
+      console.error("Failed to load storefront profiles:", error);
     } finally {
       setLoading(false);
     }
@@ -75,10 +76,10 @@ export const Warehouse: React.FC = () => {
 
     // Basic validation
     if (
-      !formData.warehouseCode ||
-      !formData.warehouseName ||
-      !formData.warehouseAddress ||
-      !formData.warehousePhone
+      !formData.storefrontCode ||
+      !formData.storefrontName ||
+      !formData.storefrontAddress ||
+      !formData.storefrontPhone
     ) {
       toast.error("Please fill in all required fields");
       return;
@@ -88,12 +89,12 @@ export const Warehouse: React.FC = () => {
     try {
       // Prepare payload (handle optional fields and formatting)
       const payload = {
-        warehouseCode: formData.warehouseCode.toUpperCase(),
-        warehouseName: formData.warehouseName,
-        warehouseAddress: formData.warehouseAddress,
-        warehousePhone: formData.warehousePhone,
-        ...(formData.warehouseEmail && {
-          warehouseEmail: formData.warehouseEmail.toLowerCase(),
+        storefrontCode: formData.storefrontCode.toUpperCase(),
+        storefrontName: formData.storefrontName,
+        storefrontAddress: formData.storefrontAddress,
+        storefrontPhone: formData.storefrontPhone,
+        ...(formData.storefrontEmail && {
+          storefrontEmail: formData.storefrontEmail.toLowerCase(),
         }),
         ...(formData.managerName && { managerName: formData.managerName }),
         status: formData.status,
@@ -101,25 +102,25 @@ export const Warehouse: React.FC = () => {
         ...(formData.notes && { notes: formData.notes }),
       };
 
-      await createWarehouseProfile(payload);
-      loadWarehouseProfiles();
+      await createStorefrontProfile(payload);
+      loadStorefrontProfiles();
 
-      toast.success("Warehouse profile created successfully!");
+      toast.success("Storefront profile created successfully!");
       setIsModalOpen(false);
       // Reset form
       setFormData({
-        warehouseCode: "",
-        warehouseName: "",
-        warehouseAddress: "",
-        warehousePhone: "",
-        warehouseEmail: "",
+        storefrontCode: "",
+        storefrontName: "",
+        storefrontAddress: "",
+        storefrontPhone: "",
+        storefrontEmail: "",
         managerName: "",
         status: "active",
         description: "",
         notes: "",
       });
     } catch (error: any) {
-      toast.error(error.message || "Failed to create warehouse profile");
+      toast.error(error.message || "Failed to create storefront profile");
     } finally {
       setIsSubmitting(false);
     }
@@ -129,40 +130,40 @@ export const Warehouse: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          Warehouse Management
+          Storefront Management
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Add Warehouse
+          <Plus className="w-4 h-4" /> Add Storefront
         </button>
       </div>
 
-      {/* Warehouse Profiles List */}
+      {/* Storefront Profiles List */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-slate-500" />
-          Warehouse Profiles
+          <Store className="w-5 h-5 text-slate-500" />
+          Storefront Profiles
         </h2>
         {loading ? (
           <div className="text-center py-8 text-slate-500">
             Loading profiles...
           </div>
-        ) : warehouseProfiles.length === 0 ? (
+        ) : storefrontProfiles.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            No warehouse profiles found. Click "Add Warehouse" to create one.
+            No storefront profiles found. Click "Add Storefront" to create one.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {warehouseProfiles.map((profile) => (
+            {storefrontProfiles.map((profile) => (
               <div
                 key={profile.id || profile._id}
                 onClick={() =>
-                  navigate(`/warehouse/${profile.id || profile._id}`, {
+                  navigate(`/storefront/${profile.id || profile._id}`, {
                     state: {
-                      warehouseName: profile.warehouseName,
-                      warehouseCode: profile.warehouseCode,
+                      storefrontName: profile.storefrontName,
+                      storefrontCode: profile.storefrontCode,
                     },
                   })
                 }
@@ -171,14 +172,14 @@ export const Warehouse: React.FC = () => {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-semibold text-slate-800 flex items-center gap-2 group-hover:text-primary transition-colors">
-                      {profile.warehouseName}
+                      {profile.storefrontName}
                       <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary-700 rounded-full">
-                        {profile.warehouseCode}
+                        {profile.storefrontCode}
                       </span>
                     </h3>
                     <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
                       <MapPin className="w-3 h-3" />
-                      {profile.warehouseAddress}
+                      {profile.storefrontAddress}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -198,7 +199,7 @@ export const Warehouse: React.FC = () => {
                 <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 mt-3 pt-3 border-t">
                   <div className="flex items-center gap-2">
                     <Phone className="w-3 h-3" />
-                    {profile.warehousePhone}
+                    {profile.storefrontPhone}
                   </div>
                   {profile.managerName && (
                     <div className="flex items-center gap-2">
@@ -206,10 +207,10 @@ export const Warehouse: React.FC = () => {
                       {profile.managerName}
                     </div>
                   )}
-                  {profile.warehouseEmail && (
+                  {profile.storefrontEmail && (
                     <div className="flex items-center gap-2">
                       <Mail className="w-3 h-3" />
-                      {profile.warehouseEmail}
+                      {profile.storefrontEmail}
                     </div>
                   )}
                 </div>
@@ -223,14 +224,14 @@ export const Warehouse: React.FC = () => {
         )}
       </div>
 
-      {/* Add Warehouse Modal */}
+      {/* Add Storefront Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-primary" />
-                New Warehouse Profile
+                <Store className="w-5 h-5 text-primary" />
+                New Storefront Profile
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -245,19 +246,19 @@ export const Warehouse: React.FC = () => {
                 {/* Required Fields */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Warehouse Code <span className="text-red-500">*</span>
+                    Storefront Code <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     maxLength={50}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none uppercase"
-                    placeholder="WH001"
-                    value={formData.warehouseCode}
+                    placeholder="SF-001"
+                    value={formData.storefrontCode}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        warehouseCode: e.target.value.toUpperCase(),
+                        storefrontCode: e.target.value.toUpperCase(),
                       })
                     }
                   />
@@ -284,19 +285,19 @@ export const Warehouse: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Warehouse Name <span className="text-red-500">*</span>
+                    Storefront Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="Main Warehouse"
-                    value={formData.warehouseName}
+                    placeholder="Main Store"
+                    value={formData.storefrontName}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        warehouseName: e.target.value,
+                        storefrontName: e.target.value,
                       })
                     }
                   />
@@ -312,11 +313,11 @@ export const Warehouse: React.FC = () => {
                     rows={2}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
                     placeholder="123 Main Street..."
-                    value={formData.warehouseAddress}
+                    value={formData.storefrontAddress}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        warehouseAddress: e.target.value,
+                        storefrontAddress: e.target.value,
                       })
                     }
                   />
@@ -332,11 +333,11 @@ export const Warehouse: React.FC = () => {
                     maxLength={20}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
                     placeholder="09..."
-                    value={formData.warehousePhone}
+                    value={formData.storefrontPhone}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        warehousePhone: e.target.value,
+                        storefrontPhone: e.target.value,
                       })
                     }
                   />
@@ -350,12 +351,12 @@ export const Warehouse: React.FC = () => {
                     type="email"
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="warehouse@example.com"
-                    value={formData.warehouseEmail}
+                    placeholder="store@example.com"
+                    value={formData.storefrontEmail}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        warehouseEmail: e.target.value,
+                        storefrontEmail: e.target.value,
                       })
                     }
                   />
@@ -386,7 +387,7 @@ export const Warehouse: React.FC = () => {
                   maxLength={1000}
                   rows={2}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Main storage facility..."
+                  placeholder="Main retail location..."
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
@@ -421,9 +422,9 @@ export const Warehouse: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSubmitting ? "Creating..." : "Create Warehouse"}
+                  {isSubmitting ? "Creating..." : "Create Storefront"}
                 </button>
               </div>
             </form>

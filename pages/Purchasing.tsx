@@ -155,7 +155,7 @@ export const Purchasing: React.FC = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-800">
-        <ShoppingBag className="w-6 h-6 text-green-600" /> Purchasing Module
+        <ShoppingBag className="w-6 h-6" /> Purchasing Module
       </h1>
 
       {/* Tabs */}
@@ -164,7 +164,7 @@ export const Purchasing: React.FC = () => {
           onClick={() => setActiveTab("po")}
           className={`px-4 py-2 font-semibold flex items-center gap-2 ${
             activeTab === "po"
-              ? "border-b-2 border-green-600 text-green-600"
+              ? "border-b-2 border-yellow-800 text-yellow-800"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -174,7 +174,7 @@ export const Purchasing: React.FC = () => {
           onClick={() => setActiveTab("grn")}
           className={`px-4 py-2 font-semibold flex items-center gap-2 ${
             activeTab === "grn"
-              ? "border-b-2 border-green-600 text-green-600"
+              ? "border-b-2 border-yellow-800 text-yellow-800"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -184,7 +184,7 @@ export const Purchasing: React.FC = () => {
           onClick={() => setActiveTab("transfer")}
           className={`px-4 py-2 font-semibold flex items-center gap-2 ${
             activeTab === "transfer"
-              ? "border-b-2 border-green-600 text-green-600"
+              ? "border-b-2 border-yellow-800 text-yellow-800"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >

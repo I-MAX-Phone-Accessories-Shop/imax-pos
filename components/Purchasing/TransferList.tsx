@@ -55,7 +55,7 @@ export const TransferList: React.FC<TransferListProps> = ({
       case "completed":
         return "bg-green-100 text-green-700";
       case "received":
-        return "bg-blue-100 text-blue-700";
+        return "bg-primary/20 text-primary-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -65,7 +65,7 @@ export const TransferList: React.FC<TransferListProps> = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
         <h2 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-          <Truck className="w-5 h-5 text-green-600" />
+          <Truck className="w-5 h-5 text-status-success" />
           Transfer List
         </h2>
       </div>
@@ -117,7 +117,7 @@ export const TransferList: React.FC<TransferListProps> = ({
             ) : (
               filteredTransfers.map((transfer) => (
                 <tr key={transfer._id} className="hover:bg-slate-50">
-                  <td className="p-4 font-medium text-blue-600">
+                  <td className="p-4 font-medium text-primary">
                     {transfer.transferNumber}
                   </td>
                   <td className="p-4">
@@ -149,7 +149,7 @@ export const TransferList: React.FC<TransferListProps> = ({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onViewTransfer?.(transfer)}
-                        className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                        className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                       >
                         <Eye className="w-3 h-3" /> View
                       </button>
@@ -157,7 +157,7 @@ export const TransferList: React.FC<TransferListProps> = ({
                         <button
                           onClick={() => handleMarkCompleted(transfer)}
                           disabled={updatingId === transfer._id}
-                          className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="text-xs bg-green-50 text-status-success px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {updatingId === transfer._id ? (
                             <>

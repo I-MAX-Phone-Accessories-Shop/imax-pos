@@ -12,7 +12,7 @@ export const Settings: React.FC = () => {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
         <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <Shield className="w-5 h-5 mr-2 text-blue-600" /> Role Simulation
+            <Shield className="w-5 h-5 mr-2 text-primary" /> Role Simulation
         </h2>
         <p className="text-slate-600 mb-4 text-sm">
             Toggle your active role to test permissions. <br/>
@@ -22,13 +22,13 @@ export const Settings: React.FC = () => {
         <div className="flex gap-4">
             <button 
                 onClick={() => setUserRole(Role.ADMIN)}
-                className={`px-4 py-2 rounded-lg border-2 transition-all ${currentUser.role === Role.ADMIN ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200 text-slate-600'}`}
+                className={`px-4 py-2 rounded-lg border-2 transition-all ${currentUser.role === Role.ADMIN ? 'border-primary bg-primary/10 text-primary-700 font-bold' : 'border-slate-200 text-slate-600'}`}
             >
                 Admin (Owner)
             </button>
             <button 
                 onClick={() => setUserRole(Role.STAFF)}
-                className={`px-4 py-2 rounded-lg border-2 transition-all ${currentUser.role === Role.STAFF ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200 text-slate-600'}`}
+                className={`px-4 py-2 rounded-lg border-2 transition-all ${currentUser.role === Role.STAFF ? 'border-primary bg-primary/10 text-primary-700 font-bold' : 'border-slate-200 text-slate-600'}`}
             >
                 Staff
             </button>
@@ -47,7 +47,7 @@ export const Settings: React.FC = () => {
                         <span className="text-xs text-slate-500">{new Date(log.timestamp).toLocaleString()}</span>
                     </div>
                     <p className="text-slate-600">{log.details}</p>
-                    <p className="text-xs text-blue-500 mt-1">User: {log.user}</p>
+                    <p className="text-xs text-primary mt-1">User: {log.user}</p>
                 </div>
             ))}
         </div>

@@ -71,11 +71,11 @@ export const Suppliers: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <Users className="w-6 h-6 text-blue-600" /> Supplier Management
+          Supplier Management
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus className="w-4 h-4" /> Add Supplier
         </button>
@@ -85,7 +85,7 @@ export const Suppliers: React.FC = () => {
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Registered Suppliers</h2>
-          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          <span className="bg-primary/20 text-primary-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
             Total: {suppliers.length}
           </span>
         </div>
@@ -112,7 +112,7 @@ export const Suppliers: React.FC = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                       <User className="w-5 h-5" />
                     </div>
                     <div>
@@ -153,7 +153,7 @@ export const Suppliers: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
+                <Users className="w-5 h-5 text-primary" />
                 Add New Supplier
               </h2>
               <button
@@ -174,7 +174,7 @@ export const Suppliers: React.FC = () => {
                   <input
                     type="text"
                     required
-                    className="w-full border rounded-lg pl-10 p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full border rounded-lg pl-10 p-2 focus:ring-2 focus:ring-primary outline-none"
                     placeholder="Enter supplier name"
                     value={formData.supplierName}
                     onChange={(e) =>
@@ -193,7 +193,7 @@ export const Suppliers: React.FC = () => {
                   <input
                     type="tel"
                     required
-                    className="w-full border rounded-lg pl-10 p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full border rounded-lg pl-10 p-2 focus:ring-2 focus:ring-primary outline-none"
                     placeholder="Enter contact number"
                     value={formData.contactNumber}
                     onChange={(e) =>
@@ -217,7 +217,7 @@ export const Suppliers: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-btn-primary text-dark rounded-lg hover:bg-btn-primary-hover transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
