@@ -130,6 +130,7 @@ export const TransferWarehouseModal: React.FC<TransferWarehouseModalProps> = ({
 
     try {
       const payload = {
+        sourceType: "GRN" as const,
         grnId,
         destinationWarehouseId: selectedWarehouseId,
         lineItems: itemsToTransfer.map((item) => ({
@@ -270,14 +271,14 @@ export const TransferWarehouseModal: React.FC<TransferWarehouseModalProps> = ({
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                         <div className="bg-green-50 p-2 rounded border border-green-200">
-                          <label className="text-xs text-green-600">
+                          <label className="text-xs text-green-600 mb-5">
                             Available:
                           </label>
-                          <div className="font-semibold text-green-700">
+                          <div className="font-semibold text-green-700 mt-3">
                             {item.availableQuantity}
                           </div>
                         </div>
-                        <div>
+                        <div className="bg-green-50 p-2 rounded border border-green-200">
                           <label className="text-xs text-slate-500 block mb-1">
                             Transfer Qty:
                           </label>
