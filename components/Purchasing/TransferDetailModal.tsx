@@ -229,7 +229,9 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                         className="p-3 font-mono text-xs truncate max-w-xs"
                         title={item.grnLineItemId}
                       >
-                        {item.grnLineItemId.substring(0, 12)}...
+                        {item.grnLineItemId
+                          ? item?.grnLineItemId?.substring(0, 12).concat("...")
+                          : "-"}
                       </td>
                       <td className="p-3 text-slate-500">
                         {item.notes || "-"}
