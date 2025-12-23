@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Users,
   X,
+  Receipt,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/storefront", label: "Storefront", icon: Store },
     { path: "/suppliers", label: "Suppliers", icon: Users },
     { path: "/purchasing", label: "Purchasing", icon: ShoppingBag },
+    { path: "/orders", label: "Orders", icon: Receipt },
     { path: "/credits", label: "Credit Sales", icon: CreditCard },
     { path: "/expenses", label: "Expenses", icon: PieChart },
     { path: "/reports", label: "Reports", icon: LayoutDashboard },

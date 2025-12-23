@@ -20,6 +20,7 @@ import {
   fetchStorefrontProfiles,
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
+import { createOrder } from "../services/Order/createOrder";
 
 // Payment methods
 enum PaymentMethod {
@@ -55,6 +56,7 @@ export const POS: React.FC = () => {
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
+  const [paidAmount, setPaidAmount] = useState<number>(0);
 
   // Load storefronts and stock on mount
   useEffect(() => {
@@ -194,45 +196,81 @@ export const POS: React.FC = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
+    if (paidAmount < total) {
+      toast.error("Paid amount must be at least equal to total amount");
+      return;
+    }
+
     setIsProcessing(true);
 
-    // Simulate checkout process
-    // In production, you would call a sales API here
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const selectedStorefront = storefronts.find(
-        (sf) => (sf.id || sf._id) === selectedStorefrontId
-      );
-
-      const receiptData = {
-        date: new Date().toISOString(),
-        invoiceNumber: `INV-${Date.now()}`,
-        storefrontName: selectedStorefront?.storefrontName || "Store",
-        items: cart.map((i) => ({
-          name: i.stockItem.inventoryId.productName,
-          code: i.stockItem.inventoryId.productCode,
-          qty: i.qty,
-          price: getItemPrice(i.stockItem),
-        })),
-        subtotal,
-        discountPercent: discount,
-        total,
-        paymentMethod,
-        note,
+      // Map payment method to API format
+      const paymentTypeMap: Record<PaymentMethod, string> = {
+        [PaymentMethod.CASH]: "cash",
+        [PaymentMethod.KBZ_PAY]: "kbzpay",
+        [PaymentMethod.WAVE_PAY]: "wavepay",
+        [PaymentMethod.AYA_PAY]: "ayapay",
+        [PaymentMethod.UAB_PAY]: "uabpay",
+        [PaymentMethod.BANK_TRANSFER]: "bank_transfer",
       };
 
-      setShowReceipt(receiptData);
-      setCart([]);
-      setDiscount(0);
-      setNote("");
-      setPaymentMethod(PaymentMethod.CASH);
+      const discountAmount = (subtotal * discount) / 100;
 
-      toast.success("Sale completed!");
+      const orderPayload = {
+        storefrontId: selectedStorefrontId,
+        ordersProducts: cart.map((item) => ({
+          inventoryId: item.stockItem.inventoryId._id,
+          quantity: item.qty,
+        })),
+        subTotal: subtotal,
+        discount: discountAmount,
+        finalAmount: total,
+        paidAmount: paidAmount,
+        paymentType: paymentTypeMap[paymentMethod],
+      };
 
-      // Refresh stock after sale
-      await loadStockItems();
+      const result = await createOrder(orderPayload);
+
+      if (result.success) {
+        const selectedStorefront = storefronts.find(
+          (sf) => (sf.id || sf._id) === selectedStorefrontId
+        );
+
+        const receiptData = {
+          date: new Date().toISOString(),
+          invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
+          storefrontName: selectedStorefront?.storefrontName || "Store",
+          items: cart.map((i) => ({
+            name: i.stockItem.inventoryId.productName,
+            code: i.stockItem.inventoryId.productCode,
+            qty: i.qty,
+            price: getItemPrice(i.stockItem),
+          })),
+          subtotal,
+          discountPercent: discount,
+          total,
+          paidAmount,
+          change: paidAmount - total,
+          paymentMethod,
+          note,
+        };
+
+        setShowReceipt(receiptData);
+        setCart([]);
+        setDiscount(0);
+        setNote("");
+        setPaidAmount(0);
+        setPaymentMethod(PaymentMethod.CASH);
+
+        toast.success("Sale completed!");
+
+        // Refresh stock after sale
+        await loadStockItems();
+      } else {
+        toast.error(result.message || "Failed to process sale");
+      }
     } catch (error) {
+      console.error("Checkout error:", error);
       toast.error("Failed to process sale");
     } finally {
       setIsProcessing(false);
@@ -525,6 +563,20 @@ export const POS: React.FC = () => {
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
+              Paid Amount (MMK) *
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              value={paidAmount || ""}
+              onChange={(e) => setPaidAmount(Number(e.target.value))}
+              placeholder="Enter paid amount..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
               Note (Optional)
             </label>
             <input
@@ -551,11 +603,17 @@ export const POS: React.FC = () => {
               <span>Total</span>
               <span>{total.toLocaleString()} MMK</span>
             </div>
+            {paidAmount > 0 && paidAmount >= total && (
+              <div className="flex justify-between text-sm text-green-600 font-medium">
+                <span>Change</span>
+                <span>{(paidAmount - total).toLocaleString()} MMK</span>
+              </div>
+            )}
           </div>
 
           <button
             onClick={handleCheckout}
-            disabled={cart.length === 0 || isProcessing}
+            disabled={cart.length === 0 || isProcessing || paidAmount < total}
             className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isProcessing ? (
@@ -636,6 +694,18 @@ export const POS: React.FC = () => {
                 <span>Payment</span>
                 <span>{showReceipt.paymentMethod}</span>
               </div>
+              {showReceipt.paidAmount && (
+                <div className="flex justify-between mt-1">
+                  <span>Paid</span>
+                  <span>{showReceipt.paidAmount.toLocaleString()}</span>
+                </div>
+              )}
+              {showReceipt.change > 0 && (
+                <div className="flex justify-between mt-1 font-bold">
+                  <span>Change</span>
+                  <span>{showReceipt.change.toLocaleString()}</span>
+                </div>
+              )}
               {showReceipt.note && (
                 <div className="mt-2 text-[10px]">Note: {showReceipt.note}</div>
               )}

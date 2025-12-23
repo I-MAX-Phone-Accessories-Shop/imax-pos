@@ -16,6 +16,7 @@ import { Purchasing } from "./pages/Purchasing";
 import { Credits } from "./pages/Credits";
 import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
+import { Orders } from "./pages/Orders";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,6 +61,7 @@ const AppLayout: React.FC = () => {
           <Route path="/storefront/:id" element={<StorefrontDetail />} />
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/purchasing" element={<Purchasing />} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/reports" element={<Reports />} />
