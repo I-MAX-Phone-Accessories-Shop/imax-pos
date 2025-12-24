@@ -11,6 +11,8 @@ import {
   Package,
   Receipt,
   Filter,
+  UserPlus,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchOrders, Order } from "../services/Order/fetchOrders";
@@ -20,6 +22,11 @@ import {
   fetchStorefrontProfiles,
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
+import {
+  fetchCreditPersonas,
+  CreditPersona,
+} from "../services/Credit/fetchCreditPersonas";
+import { assignCreditPerson } from "../services/Order/assignCreditPerson";
 
 export const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -29,7 +36,15 @@ export const Orders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
-  const [selectedStorefrontId, setSelectedStorefrontId] = useState<string>("all");
+  const [selectedStorefrontId, setSelectedStorefrontId] =
+    useState<string>("all");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>("all");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
+  const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
+  const [showCreditPersonModal, setShowCreditPersonModal] = useState(false);
+  const [selectedOrderForCredit, setSelectedOrderForCredit] =
+    useState<Order | null>(null);
+  const [assigningCreditPerson, setAssigningCreditPerson] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -48,6 +63,16 @@ export const Orders: React.FC = () => {
       }
     } catch (error) {
       console.error("Error loading storefronts:", error);
+    }
+
+    // Load credit personas
+    try {
+      const cpResponse = await fetchCreditPersonas();
+      if (cpResponse.success && cpResponse.data) {
+        setCreditPersonas(cpResponse.data.filter((p) => !p.blacklist));
+      }
+    } catch (error) {
+      console.error("Error loading credit personas:", error);
     }
   };
 
@@ -96,14 +121,34 @@ export const Orders: React.FC = () => {
 
   const getPaymentTypeLabel = (paymentType: string) => {
     const labels: Record<string, string> = {
+      paid: "Paid",
+      credit: "Credit",
+    };
+    return labels[paymentType?.toLowerCase()] || paymentType;
+  };
+
+  const getPaymentMethodLabel = (paymentMethod: string) => {
+    const labels: Record<string, string> = {
       cash: "Cash",
+      kpay: "KBZ Pay",
       kbzpay: "KBZ Pay",
       wavepay: "Wave Pay",
       ayapay: "AYA Pay",
       uabpay: "UAB Pay",
       bank_transfer: "Bank Transfer",
     };
-    return labels[paymentType?.toLowerCase()] || paymentType;
+    return labels[paymentMethod?.toLowerCase()] || paymentMethod;
+  };
+
+  const getPaymentTypeColor = (paymentType: string) => {
+    switch (paymentType?.toLowerCase()) {
+      case "paid":
+        return "bg-green-100 text-green-700";
+      case "credit":
+        return "bg-orange-100 text-orange-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -125,10 +170,24 @@ export const Orders: React.FC = () => {
     const matchesStatus =
       statusFilter === "all" ||
       order.orderStatus?.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+    const matchesPaymentType =
+      paymentTypeFilter === "all" ||
+      order.paymentType?.toLowerCase() === paymentTypeFilter.toLowerCase();
+    const matchesPaymentMethod =
+      paymentMethodFilter === "all" ||
+      order.paymentMethod?.toLowerCase() === paymentMethodFilter.toLowerCase();
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesPaymentType &&
+      matchesPaymentMethod
+    );
   });
 
-  const uniqueStatuses = [...new Set(orders.map((o) => o.orderStatus))];
+  const uniqueStatuses = Array.from(new Set(orders.map((o) => o.orderStatus)));
+  const uniquePaymentMethods = Array.from(
+    new Set(orders.map((o) => o.paymentMethod).filter(Boolean))
+  );
 
   const handleViewOrder = async (orderId: string) => {
     setLoadingDetail(true);
@@ -145,6 +204,37 @@ export const Orders: React.FC = () => {
       toast.error("Failed to load order details");
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  const handleOpenCreditPersonModal = (order: Order) => {
+    setSelectedOrderForCredit(order);
+    setShowCreditPersonModal(true);
+  };
+
+  const handleAssignCreditPerson = async (creditPersonId: string) => {
+    if (!selectedOrderForCredit) return;
+
+    setAssigningCreditPerson(true);
+    try {
+      const response = await assignCreditPerson(
+        selectedOrderForCredit._id,
+        creditPersonId
+      );
+      if (response.success) {
+        toast.success("Credit person assigned successfully");
+        setShowCreditPersonModal(false);
+        setSelectedOrderForCredit(null);
+        // Refresh orders
+        await loadOrders();
+      } else {
+        toast.error(response.message || "Failed to assign credit person");
+      }
+    } catch (error) {
+      console.error("Error assigning credit person:", error);
+      toast.error("Failed to assign credit person");
+    } finally {
+      setAssigningCreditPerson(false);
     }
   };
 
@@ -188,7 +278,7 @@ export const Orders: React.FC = () => {
 
           {/* Storefront Filter */}
           <div className="flex items-center gap-2">
-            <Store className="w-4 h-4 text-slate-400" />
+            {/* <Store className="w-4 h-4 text-slate-400" /> */}
             <select
               className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               value={selectedStorefrontId}
@@ -204,7 +294,7 @@ export const Orders: React.FC = () => {
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-400" />
             <select
               className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
@@ -213,8 +303,39 @@ export const Orders: React.FC = () => {
             >
               <option value="all">All Status</option>
               {uniqueStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                <option key={String(status)} value={String(status)}>
+                  {String(status).charAt(0).toUpperCase() +
+                    String(status).slice(1)}
+                </option>
+              ))}
+            </select>
+          </div> */}
+
+          {/* Payment Type Filter */}
+          <div className="flex items-center gap-2">
+            <select
+              className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              value={paymentTypeFilter}
+              onChange={(e) => setPaymentTypeFilter(e.target.value)}
+            >
+              <option value="all">All Types</option>
+              <option value="paid">Paid</option>
+              <option value="credit">Credit</option>
+            </select>
+          </div>
+
+          {/* Payment Method Filter */}
+          <div className="flex items-center gap-2">
+            {/* <CreditCard className="w-4 h-4 text-slate-400" /> */}
+            <select
+              className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              value={paymentMethodFilter}
+              onChange={(e) => setPaymentMethodFilter(e.target.value)}
+            >
+              <option value="all">All Methods</option>
+              {uniquePaymentMethods.map((method) => (
+                <option key={String(method)} value={String(method)}>
+                  {getPaymentMethodLabel(String(method))}
                 </option>
               ))}
             </select>
@@ -254,7 +375,8 @@ export const Orders: React.FC = () => {
                 <th className="p-4 font-semibold text-slate-600 text-right">
                   Paid
                 </th>
-                <th className="p-4 font-semibold text-slate-600">Payment</th>
+                <th className="p-4 font-semibold text-slate-600">Type</th>
+                <th className="p-4 font-semibold text-slate-600">Method</th>
                 <th className="p-4 font-semibold text-slate-600">Status</th>
                 <th className="p-4 font-semibold text-slate-600">Date</th>
                 <th className="p-4 font-semibold text-slate-600">Actions</th>
@@ -284,9 +406,18 @@ export const Orders: React.FC = () => {
                     {order.paidAmount?.toLocaleString()} MMK
                   </td>
                   <td className="p-4">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-bold ${getPaymentTypeColor(
+                        order.paymentType
+                      )}`}
+                    >
+                      {getPaymentTypeLabel(order.paymentType)}
+                    </span>
+                  </td>
+                  <td className="p-4">
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-slate-400" />
-                      <span>{getPaymentTypeLabel(order.paymentType)}</span>
+                      <span>{getPaymentMethodLabel(order.paymentMethod)}</span>
                     </div>
                   </td>
                   <td className="p-4">
@@ -302,12 +433,29 @@ export const Orders: React.FC = () => {
                     {formatDate(order.createdAt)}
                   </td>
                   <td className="p-4">
-                    <button
-                      onClick={() => handleViewOrder(order._id)}
-                      className="text-xs bg-primary/20 text-yellow-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
-                    >
-                      <Eye className="w-3 h-3" /> View
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleViewOrder(order._id)}
+                        className="text-xs bg-primary/20 text-yellow-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
+                      >
+                        <Eye className="w-3 h-3" /> View
+                      </button>
+                      {order.paymentType?.toLowerCase() === "credit" &&
+                        !order.creditPersonId && (
+                          <button
+                            onClick={() => handleOpenCreditPersonModal(order)}
+                            className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-200 border border-orange-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <UserPlus className="w-3 h-3" /> Add Person
+                          </button>
+                        )}
+                      {order.paymentType?.toLowerCase() === "credit" &&
+                        order.creditPersonId && (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded flex items-center gap-1">
+                            <User className="w-3 h-3" /> Assigned
+                          </span>
+                        )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -346,154 +494,270 @@ export const Orders: React.FC = () => {
                 </div>
               ) : selectedOrder ? (
                 <>
-              {/* Order Info */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <p className="text-xs text-blue-600 font-medium mb-1">
-                    Order Number
-                  </p>
-                  <p className="font-bold text-blue-800">
-                    {selectedOrder.orderNumber}
-                  </p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <p className="text-xs text-green-600 font-medium mb-1">
-                    Status
-                  </p>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                      selectedOrder.orderStatus
-                    )}`}
-                  >
-                    {selectedOrder.orderStatus?.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Store & Date Info */}
-              <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Store className="w-4 h-4" />
-                  <span>
-                    {selectedOrder.storefrontId?.storefrontName || "-"}
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    ({selectedOrder.storefrontId?.storefrontCode})
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Calendar className="w-4 h-4" />
-                  <span>{formatDate(selectedOrder.createdAt)}</span>
-                </div>
-              </div>
-
-              {/* Products */}
-              <div className="mb-6">
-                <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <Package className="w-4 h-4" />
-                  Order Items
-                </h4>
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="p-3 text-left font-medium text-slate-600">
-                          Product
-                        </th>
-                        <th className="p-3 text-center font-medium text-slate-600">
-                          Qty
-                        </th>
-                        <th className="p-3 text-right font-medium text-slate-600">
-                          Unit Price
-                        </th>
-                        <th className="p-3 text-right font-medium text-slate-600">
-                          Subtotal
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {selectedOrder.ordersProducts?.map((item, index) => (
-                        <tr key={item._id || index}>
-                          <td className="p-3">
-                            <div>
-                              <p className="font-medium text-slate-800">
-                                {item.inventoryId?.productName || "Unknown"}
-                              </p>
-                              <p className="text-xs text-slate-400">
-                                {item.inventoryId?.productCode}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="p-3 text-center font-medium">
-                            {item.quantity}
-                          </td>
-                          <td className="p-3 text-right text-slate-600">
-                            {item.unitPrice?.toLocaleString()} MMK
-                          </td>
-                          <td className="p-3 text-right font-medium text-slate-800">
-                            {(
-                              item.quantity * (item.unitPrice || 0)
-                            ).toLocaleString()}{" "}
-                            MMK
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Payment Summary */}
-              <div className="bg-slate-50 p-4 rounded-lg border">
-                <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
-                  Payment Summary
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Subtotal</span>
-                    <span>{selectedOrder.subTotal?.toLocaleString()} MMK</span>
-                  </div>
-                  {selectedOrder.tax > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Tax</span>
-                      <span>{selectedOrder.tax?.toLocaleString()} MMK</span>
+                  {/* Order Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="text-xs text-blue-600 font-medium mb-1">
+                        Order Number
+                      </p>
+                      <p className="font-bold text-blue-800">
+                        {selectedOrder.orderNumber}
+                      </p>
                     </div>
-                  )}
-                  {selectedOrder.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>
-                        -{selectedOrder.discount?.toLocaleString()} MMK
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <p className="text-xs text-green-600 font-medium mb-1">
+                        Status
+                      </p>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
+                          selectedOrder.orderStatus
+                        )}`}
+                      >
+                        {selectedOrder.orderStatus?.toUpperCase()}
                       </span>
                     </div>
-                  )}
-                  <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                    <span>Final Amount</span>
-                    <span>{selectedOrder.finalAmount?.toLocaleString()} MMK</span>
                   </div>
-                  <div className="flex justify-between text-green-600">
-                    <span>Paid Amount</span>
-                    <span>{selectedOrder.paidAmount?.toLocaleString()} MMK</span>
-                  </div>
-                  {selectedOrder.extraChange > 0 && (
-                    <div className="flex justify-between text-blue-600 font-medium">
-                      <span>Change</span>
+
+                  {/* Store & Date Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Store className="w-4 h-4" />
                       <span>
-                        {selectedOrder.extraChange?.toLocaleString()} MMK
+                        {selectedOrder.storefrontId?.storefrontName || "-"}
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        ({selectedOrder.storefrontId?.storefrontCode})
                       </span>
                     </div>
-                  )}
-                  <div className="flex justify-between pt-2 border-t">
-                    <span className="text-slate-500">Payment Method</span>
-                    <span className="font-medium">
-                      {getPaymentTypeLabel(selectedOrder.paymentType)}
-                    </span>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Calendar className="w-4 h-4" />
+                      <span>{formatDate(selectedOrder.createdAt)}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-              </>
+
+                  {/* Products */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Order Items
+                    </h4>
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50">
+                          <tr>
+                            <th className="p-3 text-left font-medium text-slate-600">
+                              Product
+                            </th>
+                            <th className="p-3 text-center font-medium text-slate-600">
+                              Qty
+                            </th>
+                            <th className="p-3 text-right font-medium text-slate-600">
+                              Unit Price
+                            </th>
+                            <th className="p-3 text-right font-medium text-slate-600">
+                              Subtotal
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {selectedOrder.ordersProducts?.map((item, index) => (
+                            <tr key={item._id || index}>
+                              <td className="p-3">
+                                <div>
+                                  <p className="font-medium text-slate-800">
+                                    {item.inventoryId?.productName || "Unknown"}
+                                  </p>
+                                  <p className="text-xs text-slate-400">
+                                    {item.inventoryId?.productCode}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="p-3 text-center font-medium">
+                                {item.quantity}
+                              </td>
+                              <td className="p-3 text-right text-slate-600">
+                                {item.unitPrice?.toLocaleString()} MMK
+                              </td>
+                              <td className="p-3 text-right font-medium text-slate-800">
+                                {(
+                                  item.quantity * (item.unitPrice || 0)
+                                ).toLocaleString()}{" "}
+                                MMK
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Payment Summary */}
+                  <div className="bg-slate-50 p-4 rounded-lg border">
+                    <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Payment Summary
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Subtotal</span>
+                        <span>
+                          {selectedOrder.subTotal?.toLocaleString()} MMK
+                        </span>
+                      </div>
+                      {selectedOrder.tax > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Tax</span>
+                          <span>{selectedOrder.tax?.toLocaleString()} MMK</span>
+                        </div>
+                      )}
+                      {selectedOrder.discount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Discount</span>
+                          <span>
+                            -{selectedOrder.discount?.toLocaleString()} MMK
+                          </span>
+                        </div>
+                      )}
+                      <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                        <span>Final Amount</span>
+                        <span>
+                          {selectedOrder.finalAmount?.toLocaleString()} MMK
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-green-600">
+                        <span>Paid Amount</span>
+                        <span>
+                          {selectedOrder.paidAmount?.toLocaleString()} MMK
+                        </span>
+                      </div>
+                      {selectedOrder.extraChange > 0 && (
+                        <div className="flex justify-between text-blue-600 font-medium">
+                          <span>Change</span>
+                          <span>
+                            {selectedOrder.extraChange?.toLocaleString()} MMK
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between pt-2 border-t">
+                        <span className="text-slate-500">Payment Type</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-bold ${getPaymentTypeColor(
+                            selectedOrder.paymentType
+                          )}`}
+                        >
+                          {getPaymentTypeLabel(selectedOrder.paymentType)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Payment Method</span>
+                        <span className="font-medium">
+                          {getPaymentMethodLabel(selectedOrder.paymentMethod)}
+                        </span>
+                      </div>
+                      {selectedOrder.remainingBalance !== undefined &&
+                        selectedOrder.remainingBalance > 0 && (
+                          <div className="flex justify-between text-orange-600 font-medium">
+                            <span>Remaining Balance</span>
+                            <span>
+                              {selectedOrder.remainingBalance?.toLocaleString()}{" "}
+                              MMK
+                            </span>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                </>
               ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Credit Person Selection Modal */}
+      {showCreditPersonModal && selectedOrderForCredit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-4 border-b bg-orange-50">
+              <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-orange-600" />
+                Assign Credit Person
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCreditPersonModal(false);
+                  setSelectedOrderForCredit(null);
+                }}
+                className="p-1 hover:bg-orange-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4">
+              <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-600">
+                  Order:{" "}
+                  <span className="font-bold text-blue-600">
+                    {selectedOrderForCredit.orderNumber}
+                  </span>
+                </p>
+                <p className="text-sm text-slate-600">
+                  Amount:{" "}
+                  <span className="font-bold">
+                    {selectedOrderForCredit.finalAmount?.toLocaleString()} MMK
+                  </span>
+                </p>
+              </div>
+
+              <p className="text-sm text-slate-500 mb-3">
+                Select a credit person to assign to this order:
+              </p>
+
+              {creditPersonas.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <User className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p>No credit persons available</p>
+                </div>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {creditPersonas.map((persona) => (
+                    <button
+                      key={persona._id}
+                      onClick={() => handleAssignCreditPerson(persona._id)}
+                      disabled={assigningCreditPerson}
+                      className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors text-left disabled:opacity-50"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <User className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-slate-800">
+                          {persona.name}
+                        </p>
+                        <p className="text-sm text-slate-500">
+                          {persona.phone}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t bg-slate-50">
+              <button
+                onClick={() => {
+                  setShowCreditPersonModal(false);
+                  setSelectedOrderForCredit(null);
+                }}
+                disabled={assigningCreditPerson}
+                className="w-full py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -501,4 +765,3 @@ export const Orders: React.FC = () => {
     </div>
   );
 };
-

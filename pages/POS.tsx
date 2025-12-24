@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Loader2,
   ChevronDown,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -21,6 +22,10 @@ import {
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
 import { createOrder } from "../services/Order/createOrder";
+import {
+  fetchCreditPersonas,
+  CreditPersona,
+} from "../services/Credit/fetchCreditPersonas";
 
 // Payment methods
 enum PaymentMethod {
@@ -57,6 +62,10 @@ export const POS: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
   const [paidAmount, setPaidAmount] = useState<number>(0);
+  const [paymentType, setPaymentType] = useState<"paid" | "credit">("paid");
+  const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
+  const [selectedCreditPersonId, setSelectedCreditPersonId] =
+    useState<string>("");
 
   // Load storefronts and stock on mount
   useEffect(() => {
@@ -89,6 +98,23 @@ export const POS: React.FC = () => {
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
+    }
+
+    // Load credit personas separately
+    loadCreditPersonas();
+  };
+
+  const loadCreditPersonas = async () => {
+    try {
+      const cpResponse = await fetchCreditPersonas();
+      console.log("Credit personas response:", cpResponse);
+      if (cpResponse.success && cpResponse.data) {
+        const activePersonas = cpResponse.data.filter((p) => !p.blacklist);
+        console.log("Active credit personas:", activePersonas);
+        setCreditPersonas(activePersonas);
+      }
+    } catch (error) {
+      console.error("Error loading credit personas:", error);
     }
   };
 
@@ -196,7 +222,8 @@ export const POS: React.FC = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    if (paidAmount < total) {
+    // Only validate paid amount for "paid" payment type, not for "credit"
+    if (paymentType === "paid" && paidAmount < total) {
       toast.error("Paid amount must be at least equal to total amount");
       return;
     }
@@ -205,9 +232,9 @@ export const POS: React.FC = () => {
 
     try {
       // Map payment method to API format
-      const paymentTypeMap: Record<PaymentMethod, string> = {
+      const paymentMethodMap: Record<PaymentMethod, string> = {
         [PaymentMethod.CASH]: "cash",
-        [PaymentMethod.KBZ_PAY]: "kbzpay",
+        [PaymentMethod.KBZ_PAY]: "kpay",
         [PaymentMethod.WAVE_PAY]: "wavepay",
         [PaymentMethod.AYA_PAY]: "ayapay",
         [PaymentMethod.UAB_PAY]: "uabpay",
@@ -226,7 +253,11 @@ export const POS: React.FC = () => {
         discount: discountAmount,
         finalAmount: total,
         paidAmount: paidAmount,
-        paymentType: paymentTypeMap[paymentMethod],
+        paymentType: paymentType,
+        paymentMethod: paymentMethodMap[paymentMethod],
+        ...(paymentType === "credit" && selectedCreditPersonId
+          ? { creditPersonId: selectedCreditPersonId }
+          : {}),
       };
 
       const result = await createOrder(orderPayload);
@@ -261,6 +292,8 @@ export const POS: React.FC = () => {
         setNote("");
         setPaidAmount(0);
         setPaymentMethod(PaymentMethod.CASH);
+        setPaymentType("paid");
+        setSelectedCreditPersonId("");
 
         toast.success("Sale completed!");
 
@@ -470,15 +503,62 @@ export const POS: React.FC = () => {
       {/* Cart Sidebar */}
       <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
         <div className="p-4 border-b">
-          <h2 className="font-bold text-lg">Current Sale</h2>
-          {selectedStorefrontId && (
-            <p className="text-xs text-gray-400 mt-1">
-              {
-                storefronts.find(
-                  (sf) => (sf.id || sf._id) === selectedStorefrontId
-                )?.storefrontName
-              }
-            </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="font-bold text-lg">Current Sale</h2>
+              {selectedStorefrontId && (
+                <p className="text-xs text-gray-400 mt-1">
+                  {
+                    storefronts.find(
+                      (sf) => (sf.id || sf._id) === selectedStorefrontId
+                    )?.storefrontName
+                  }
+                </p>
+              )}
+            </div>
+
+            {/* Payment Type */}
+            <div>
+              <select
+                className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                value={paymentType}
+                onChange={(e) => {
+                  setPaymentType(e.target.value as "paid" | "credit");
+                  if (e.target.value === "paid") {
+                    setSelectedCreditPersonId("");
+                  }
+                }}
+              >
+                <option value="paid">Paid</option>
+                <option value="credit">Credit</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Credit Person Selector - Only show when paymentType is credit */}
+          {paymentType === "credit" && (
+            <div className="px-4 mt-2">
+              <div className="flex items-center justify-between mb-1"></div>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <select
+                  className="w-full pl-9 pr-4 py-2 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
+                  value={selectedCreditPersonId}
+                  onChange={(e) => setSelectedCreditPersonId(e.target.value)}
+                >
+                  <option value="">
+                    {creditPersonas.length === 0
+                      ? "-- No Credit Persons Available --"
+                      : "-- Select Credit Person (Optional) --"}
+                  </option>
+                  {creditPersonas.map((persona) => (
+                    <option key={persona._id} value={persona._id}>
+                      {persona.name} - {persona.phone}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           )}
         </div>
 
@@ -613,7 +693,11 @@ export const POS: React.FC = () => {
 
           <button
             onClick={handleCheckout}
-            disabled={cart.length === 0 || isProcessing || paidAmount < total}
+            disabled={
+              cart.length === 0 ||
+              isProcessing ||
+              (paymentType === "paid" && paidAmount < total)
+            }
             className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isProcessing ? (

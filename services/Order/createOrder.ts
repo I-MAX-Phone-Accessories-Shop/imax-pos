@@ -13,7 +13,9 @@ interface CreateOrderRequest {
   discount?: number;
   finalAmount?: number;
   paidAmount: number;
-  paymentType: string;
+  paymentType: "credit" | "paid";
+  paymentMethod: string;
+  creditPersonId?: string;
 }
 
 interface CreateOrderResponse {

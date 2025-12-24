@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   UserPlus,
   RefreshCw,
@@ -10,6 +11,7 @@ import {
   Ban,
   Loader2,
   X,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -19,6 +21,7 @@ import {
 import { createCreditPersona } from "../services/Credit/createCreditPersona";
 
 export const Credits: React.FC = () => {
+  const navigate = useNavigate();
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -96,6 +99,12 @@ export const Credits: React.FC = () => {
     }
   };
 
+  const handleViewPersona = (persona: CreditPersona) => {
+    navigate(`/credits/${persona._id}`, {
+      state: { name: persona.name, phone: persona.phone },
+    });
+  };
+
   // Filter personas by search
   const filteredPersonas = creditPersonas.filter((persona) => {
     const searchLower = search.toLowerCase();
@@ -150,7 +159,9 @@ export const Credits: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-slate-500">Total Profiles</p>
-              <p className="text-2xl font-bold text-slate-800">{totalPersonas}</p>
+              <p className="text-2xl font-bold text-slate-800">
+                {totalPersonas}
+              </p>
             </div>
           </div>
         </div>
@@ -174,7 +185,9 @@ export const Credits: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-slate-500">Blacklisted</p>
-              <p className="text-2xl font-bold text-slate-800">{blacklistedCount}</p>
+              <p className="text-2xl font-bold text-slate-800">
+                {blacklistedCount}
+              </p>
             </div>
           </div>
         </div>
@@ -274,8 +287,11 @@ export const Credits: React.FC = () => {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded hover:bg-slate-200 border border-slate-200 font-medium transition-colors">
-                        View
+                      <button
+                        onClick={() => handleViewPersona(persona)}
+                        className="text-xs bg-primary/20 text-yellow-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
+                      >
+                        <Eye className="w-3 h-3" /> View
                       </button>
                       {!persona.blacklist && (
                         <button className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors">

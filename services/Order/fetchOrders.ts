@@ -16,9 +16,10 @@ export interface OrderProduct {
 }
 
 export interface OrderStorefront {
+  _id: string;
   storefrontCode: string;
   storefrontName: string;
-  id: string;
+  id?: string;
 }
 
 export interface Order {
@@ -26,6 +27,7 @@ export interface Order {
   orderNumber: string;
   storefrontId: OrderStorefront;
   ordersProducts: OrderProduct[];
+  creditPersonId: string | null;
   subTotal: number;
   tax: number;
   discount: number;
@@ -35,10 +37,13 @@ export interface Order {
   orderStatus: string;
   isDeleted: boolean;
   deletedAt: string | null;
-  paymentType: string;
+  paymentType: "paid" | "credit" | string;
+  paymentMethod: string;
   createdAt: string;
   updatedAt: string;
-  id: string;
+  totalPaidAmount?: Record<string, unknown>;
+  remainingBalance?: number;
+  id?: string;
 }
 
 interface FetchOrdersResponse {

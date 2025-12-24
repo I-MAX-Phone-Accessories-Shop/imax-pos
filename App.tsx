@@ -14,6 +14,7 @@ import { Settings } from "./pages/Settings";
 import { Inventory } from "./pages/Inventory";
 import { Purchasing } from "./pages/Purchasing";
 import { Credits } from "./pages/Credits";
+import { CreditDetail } from "./pages/CreditDetail";
 import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
@@ -63,6 +64,7 @@ const AppLayout: React.FC = () => {
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/credits" element={<Credits />} />
+          <Route path="/credits/:id" element={<CreditDetail />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
