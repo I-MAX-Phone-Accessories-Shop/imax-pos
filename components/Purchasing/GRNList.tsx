@@ -173,6 +173,12 @@ export const GRNList: React.FC<GRNListProps> = ({
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => onViewGRN?.(grn)}
+                        className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                      >
+                        <Eye className="w-3 h-3" /> View
+                      </button>
                       {grn.status?.toLowerCase() === "pending" && (
                         <button
                           onClick={() =>
@@ -185,20 +191,17 @@ export const GRNList: React.FC<GRNListProps> = ({
                           {updatingId === grn._id ? "..." : "Verify"}
                         </button>
                       )}
-                      {grn.status?.toLowerCase() === "verified" && (
-                        <button
-                          onClick={() => onTransferGRN?.(grn)}
-                          className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                        >
-                          <Warehouse className="w-3 h-3" /> Transfer
-                        </button>
-                      )}
-                      <button
-                        onClick={() => onViewGRN?.(grn)}
-                        className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
-                      >
-                        <Eye className="w-3 h-3" /> View
-                      </button>
+                      {grn.status?.toLowerCase() === "verified" &&
+                        grn.lineItems.some(
+                          (item) => item.availableQuantity > 0
+                        ) && (
+                          <button
+                            onClick={() => onTransferGRN?.(grn)}
+                            className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Warehouse className="w-3 h-3" /> Transfer
+                          </button>
+                        )}
                     </div>
                   </td>
                 </tr>
