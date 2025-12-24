@@ -42,10 +42,11 @@ export const StorefrontDetail: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetchStorefrontStock();
+      console.log(response);
       if (response.success && response.data) {
         // Filter items by storefront ID
         const filteredItems = response.data.filter(
-          (item) => item.storefrontId?.id === id
+          (item) => item.storefrontId?._id === id
         );
         setStockItems(filteredItems);
 
@@ -246,4 +247,3 @@ export const StorefrontDetail: React.FC = () => {
     </div>
   );
 };
-

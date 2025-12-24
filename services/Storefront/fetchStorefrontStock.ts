@@ -8,13 +8,12 @@ export interface StorefrontStockInventory {
   category: string;
   profitMargin: number | null;
   profitAmount: number | null;
-  id: string;
 }
 
 export interface StorefrontStockStorefront {
+  _id: string;
   storefrontCode: string;
   storefrontName: string;
-  id: string;
 }
 
 export interface StorefrontStockItem {
@@ -27,7 +26,6 @@ export interface StorefrontStockItem {
   createdAt: string;
   updatedAt: string;
   availableQuantity: number;
-  id: string;
 }
 
 interface FetchStorefrontStockResponse {

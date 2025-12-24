@@ -8,13 +8,12 @@ export interface WarehouseStockInventory {
   category: string;
   profitMargin: number | null;
   profitAmount: number | null;
-  id: string;
 }
 
 export interface WarehouseStockWarehouse {
+  _id: string;
   warehouseCode: string;
   warehouseName: string;
-  id: string;
 }
 
 export interface WarehouseStockItem {
@@ -27,7 +26,6 @@ export interface WarehouseStockItem {
   createdAt: string;
   updatedAt: string;
   availableQuantity: number;
-  id: string;
 }
 
 interface FetchWarehouseStockResponse {

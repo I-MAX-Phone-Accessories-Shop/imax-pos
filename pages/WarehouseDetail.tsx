@@ -77,7 +77,7 @@ export const WarehouseDetail: React.FC = () => {
       if (response.success && response.data) {
         // Filter items by warehouse ID
         const filteredItems = response.data.filter(
-          (item) => item.warehouseId.id === id
+          (item) => item.warehouseId._id === id
         );
         setStockItems(filteredItems);
 

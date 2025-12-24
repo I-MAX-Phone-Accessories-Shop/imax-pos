@@ -90,7 +90,7 @@ export const Purchasing: React.FC = () => {
     try {
       const res = await fetchPurchases();
       if (res.success) {
-        setPOList(res.data);
+        setPOList(res.data.reverse());
       }
     } catch (error) {
       console.error("Failed to load POs", error);

@@ -209,11 +209,17 @@ export const TransferWarehouseModal: React.FC<TransferWarehouseModalProps> = ({
                 onChange={(e) => setSelectedWarehouseId(e.target.value)}
               >
                 <option value="">Select Warehouse...</option>
-                {warehouses.map((wh) => (
-                  <option key={wh.id} value={wh.id}>
-                    {wh.warehouseName} {wh.location ? `(${wh.location})` : ""}
-                  </option>
-                ))}
+                {warehouses.map(
+                  (wh) => (
+                    console.log(wh),
+                    (
+                      <option key={wh._id} value={wh._id}>
+                        {wh.warehouseName}{" "}
+                        {wh.location ? `(${wh.location})` : ""}
+                      </option>
+                    )
+                  )
+                )}
               </select>
             </div>
 

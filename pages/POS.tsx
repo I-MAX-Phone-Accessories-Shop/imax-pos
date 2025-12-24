@@ -113,7 +113,7 @@ export const POS: React.FC = () => {
 
   // Filter products by selected storefront and search
   const filteredProducts = allStockItems.filter((item) => {
-    const matchesStorefront = item.storefrontId?.id === selectedStorefrontId;
+    const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
     const matchesSearch = item.inventoryId?.productName
       ?.toLowerCase()
       .includes(search.toLowerCase());
@@ -128,7 +128,7 @@ export const POS: React.FC = () => {
   const categories = [
     ...new Set(
       allStockItems
-        .filter((item) => item.storefrontId?.id === selectedStorefrontId)
+        .filter((item) => item.storefrontId?._id === selectedStorefrontId)
         .map((item) => item.inventoryId?.category)
         .filter(Boolean)
     ),
