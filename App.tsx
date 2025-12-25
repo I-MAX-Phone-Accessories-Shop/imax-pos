@@ -19,58 +19,178 @@ import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
 import { AccountManagement } from "./pages/AccountManagement";
+import { Login } from "./pages/Login";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const token = localStorage.getItem("authToken");
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Toaster position="top-right" richColors />
 
-      {/* Header */}
-      <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
-        <div className="flex items-center h-14 px-4">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6 text-primary" />
-          </button>
-          {/* <img
+      {/* Only show header and sidebar if authenticated */}
+      {token && (
+        <>
+          {/* Header */}
+          <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
+            <div className="flex items-center h-14 px-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
+                aria-label="Open menu"
+              >
+                <Menu className="w-6 h-6 text-primary" />
+              </button>
+              {/* <img
             src="/imaslogo.jpg"
             alt="IMAS Logo"
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
-          <h1 className="text-lg font-bold text-primary tracking-wide">
-            IMAS POS
-          </h1>
-        </div>
-      </header>
+              <h1 className="text-lg font-bold text-primary tracking-wide">
+                IMAS POS
+              </h1>
+            </div>
+          </header>
 
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          {/* Sidebar */}
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        </>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden">
         <Routes>
-          <Route path="/" element={<Navigate to="/pos" replace />} />
-          <Route path="/pos" element={<POS />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/warehouse" element={<Warehouse />} />
-          <Route path="/warehouse/:id" element={<WarehouseDetail />} />
-          <Route path="/storefront" element={<Storefront />} />
-          <Route path="/storefront/:id" element={<StorefrontDetail />} />
-          <Route path="/suppliers" element={<Suppliers />} />
-          <Route path="/purchasing" element={<Purchasing />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/credits" element={<Credits />} />
-          <Route path="/credits/:id" element={<CreditDetail />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/accounts" element={<AccountManagement />} />
-          <Route path="*" element={<Navigate to="/pos" replace />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Navigate to="/pos" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pos"
+            element={
+              <ProtectedRoute>
+                <POS />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute>
+                <Inventory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/warehouse"
+            element={
+              <ProtectedRoute>
+                <Warehouse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/warehouse/:id"
+            element={
+              <ProtectedRoute>
+                <WarehouseDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/storefront"
+            element={
+              <ProtectedRoute>
+                <Storefront />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/storefront/:id"
+            element={
+              <ProtectedRoute>
+                <StorefrontDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/suppliers"
+            element={
+              <ProtectedRoute>
+                <Suppliers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/purchasing"
+            element={
+              <ProtectedRoute>
+                <Purchasing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/credits"
+            element={
+              <ProtectedRoute>
+                <Credits />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/credits/:id"
+            element={
+              <ProtectedRoute>
+                <CreditDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/expenses"
+            element={
+              <ProtectedRoute>
+                <Expenses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accounts"
+            element={
+              <ProtectedRoute>
+                <AccountManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
     </div>
@@ -81,7 +201,10 @@ const App: React.FC = () => {
   return (
     <AppProvider>
       <BrowserRouter>
-        <AppLayout />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<AppLayout />} />
+        </Routes>
       </BrowserRouter>
     </AppProvider>
   );

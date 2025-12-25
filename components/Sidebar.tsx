@@ -1,5 +1,5 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -14,8 +14,11 @@ import {
   X,
   Receipt,
   Shield,
+  LogOut,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { removeAuthToken } from "../services/axios";
+import { toast } from "sonner";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,6 +27,28 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { currentUser } = useApp();
+  const navigate = useNavigate();
+  const [adminData, setAdminData] = useState<any>(null);
+
+  useEffect(() => {
+    // Get admin data from localStorage
+    const storedAdmin = localStorage.getItem("adminData");
+    if (storedAdmin) {
+      try {
+        setAdminData(JSON.parse(storedAdmin));
+      } catch (error) {
+        console.error("Error parsing admin data:", error);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    removeAuthToken();
+    localStorage.removeItem("adminData");
+    toast.success("Logged out successfully");
+    navigate("/login");
+    onClose();
+  };
 
   const menuItems = [
     { path: "/pos", label: "Checkout (POS)", icon: ShoppingCart },
@@ -84,11 +109,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             const Icon = item.icon;
 
             // Simple permission check: Staff cannot purchase
-            if (item.path === "/purchasing" && currentUser.role !== "ADMIN")
+            const userRole = adminData?.role || currentUser.role;
+            if (item.path === "/purchasing" && userRole !== "owner" && userRole !== "ADMIN")
               return null;
             
-            // Account Management only for admins
-            if (item.path === "/accounts" && currentUser.role !== "ADMIN")
+            // Account Management only for owners/admins
+            if (item.path === "/accounts" && userRole !== "owner" && userRole !== "ADMIN")
               return null;
 
             return (
@@ -120,20 +146,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-primary/20 bg-dark-950/50">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-dark font-bold text-sm">
-              {currentUser.name.charAt(0).toUpperCase()}
+              {(adminData?.name || currentUser.name).charAt(0).toUpperCase()}
             </div>
             <div>
               <p className="text-sm font-medium text-white">
-                {currentUser.name}
+                {adminData?.name || currentUser.name}
               </p>
-              <p className="text-xs text-dark-500">{currentUser.role}</p>
+              <p className="text-xs text-dark-500">
+                {adminData?.role || currentUser.role}
+              </p>
             </div>
           </div>
           <NavLink
             to="/settings"
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors ${
+              `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${
                 isActive
                   ? "bg-primary text-dark"
                   : "text-dark-400 hover:text-primary hover:bg-primary/10"
@@ -142,6 +170,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           >
             <Settings className="w-4 h-4" /> Settings
           </NavLink>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          >
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
         </div>
       </div>
     </>
