@@ -18,6 +18,7 @@ import { CreditDetail } from "./pages/CreditDetail";
 import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
+import { AccountManagement } from "./pages/AccountManagement";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,6 +69,7 @@ const AppLayout: React.FC = () => {
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/accounts" element={<AccountManagement />} />
           <Route path="*" element={<Navigate to="/pos" replace />} />
         </Routes>
       </main>

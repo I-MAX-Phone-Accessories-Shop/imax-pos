@@ -1,13 +1,13 @@
 import axios from "../axios";
 
 export interface StorefrontProfile {
-  id: string;
-  _id?: string;
-  storefrontCode: string;
-  storefrontName: string;
-  storefrontAddress: string;
-  storefrontPhone: string;
-  storefrontEmail?: string | null;
+  _id: string;
+  type: string;
+  locationCode: string;
+  locationName: string;
+  locationAddress: string;
+  locationPhone: string;
+  locationEmail?: string | null;
   managerName?: string | null;
   status: "active" | "inactive";
   description?: string;

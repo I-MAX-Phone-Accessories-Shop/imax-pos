@@ -86,9 +86,7 @@ export const POS: React.FC = () => {
 
         // Auto-select first storefront
         if (activeStorefronts.length > 0) {
-          setSelectedStorefrontId(
-            activeStorefronts[0].id || activeStorefronts[0]._id || ""
-          );
+          setSelectedStorefrontId(activeStorefronts[0]._id);
         }
       }
 
@@ -265,13 +263,13 @@ export const POS: React.FC = () => {
 
       if (result.success) {
         const selectedStorefront = storefronts.find(
-          (sf) => (sf.id || sf._id) === selectedStorefrontId
+          (sf) => sf._id === selectedStorefrontId
         );
 
         const receiptData = {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
-          storefrontName: selectedStorefront?.storefrontName || "Store",
+          storefrontName: selectedStorefront?.locationName || "Store",
           items: cart.map((i) => ({
             name: i.stockItem.inventoryId.productName,
             code: i.stockItem.inventoryId.productCode,
@@ -370,9 +368,8 @@ export const POS: React.FC = () => {
               >
                 <Store className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium max-w-[120px] truncate">
-                  {storefronts.find(
-                    (sf) => (sf.id || sf._id) === selectedStorefrontId
-                  )?.storefrontName || "Store"}
+                  {storefronts.find((sf) => sf._id === selectedStorefrontId)
+                    ?.locationName || "Store"}
                 </span>
                 <ChevronDown
                   className={`w-4 h-4 text-primary transition-transform duration-200 ${
@@ -399,20 +396,20 @@ export const POS: React.FC = () => {
                     <div className="max-h-64 overflow-y-auto">
                       {storefronts.map((sf) => (
                         <button
-                          key={sf.id || sf._id}
+                          key={sf._id}
                           onClick={() => {
-                            handleStorefrontChange(sf.id || sf._id || "");
+                            handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
-                            (sf.id || sf._id) === selectedStorefrontId
+                            sf._id === selectedStorefrontId
                               ? "bg-primary/20 border-l-4 border-primary"
                               : ""
                           }`}
                         >
                           <div
                             className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              (sf.id || sf._id) === selectedStorefrontId
+                              sf._id === selectedStorefrontId
                                 ? "bg-primary text-dark"
                                 : "bg-dark-100 text-dark-500"
                             }`}
@@ -421,13 +418,13 @@ export const POS: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-dark-800 truncate">
-                              {sf.storefrontName}
+                              {sf.locationName}
                             </p>
                             <p className="text-xs text-dark-400">
-                              {sf.storefrontCode}
+                              {sf.locationCode}
                             </p>
                           </div>
-                          {(sf.id || sf._id) === selectedStorefrontId && (
+                          {sf._id === selectedStorefrontId && (
                             <div className="w-2 h-2 rounded-full bg-primary" />
                           )}
                         </button>
@@ -508,9 +505,8 @@ export const POS: React.FC = () => {
           {selectedStorefrontId && (
             <p className="text-xs text-gray-400 mt-1">
               {
-                storefronts.find(
-                  (sf) => (sf.id || sf._id) === selectedStorefrontId
-                )?.storefrontName
+                storefronts.find((sf) => sf._id === selectedStorefrontId)
+                  ?.locationName
               }
             </p>
           )}

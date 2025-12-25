@@ -13,6 +13,7 @@ import {
   Users,
   X,
   Receipt,
+  Shield,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
@@ -35,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/credits", label: "Credit Sales", icon: CreditCard },
     { path: "/expenses", label: "Expenses", icon: PieChart },
     { path: "/reports", label: "Reports", icon: LayoutDashboard },
+    { path: "/accounts", label: "Account Management", icon: Shield },
   ];
 
   return (
@@ -83,6 +85,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
             // Simple permission check: Staff cannot purchase
             if (item.path === "/purchasing" && currentUser.role !== "ADMIN")
+              return null;
+            
+            // Account Management only for admins
+            if (item.path === "/accounts" && currentUser.role !== "ADMIN")
               return null;
 
             return (

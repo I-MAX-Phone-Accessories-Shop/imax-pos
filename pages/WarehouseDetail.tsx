@@ -77,7 +77,7 @@ export const WarehouseDetail: React.FC = () => {
       if (response.success && response.data) {
         // Filter items by warehouse ID
         const filteredItems = response.data.filter(
-          (item) => item.warehouseId._id === id
+          (item) => item.warehouseId !== null && item.warehouseId._id === id
         );
         setStockItems(filteredItems);
 
@@ -496,8 +496,8 @@ export const WarehouseDetail: React.FC = () => {
                 >
                   <option value="">Select Storefront...</option>
                   {storefronts.map((sf) => (
-                    <option key={sf.id || sf._id} value={sf.id || sf._id}>
-                      {sf.storefrontName} ({sf.storefrontCode})
+                    <option key={sf._id} value={sf._id}>
+                      {sf.locationName} ({sf.locationCode})
                     </option>
                   ))}
                 </select>

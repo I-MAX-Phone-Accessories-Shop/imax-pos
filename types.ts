@@ -155,18 +155,19 @@ export interface GoodsReceivedNote {
 }
 
 export interface WarehouseProfile {
-  id?: string;
-  _id?: string;
-  warehouseCode: string;
-  warehouseName: string;
-  warehouseAddress: string;
-  warehousePhone: string;
-  warehouseEmail?: string;
+  _id: string;
+  type: string;
+  locationCode: string;
+  locationName: string;
+  locationAddress: string;
+  locationPhone: string;
+  locationEmail?: string;
   managerName?: string;
   status?: "active" | "inactive";
   description?: string;
   notes?: string;
   isDeleted?: boolean;
+  deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

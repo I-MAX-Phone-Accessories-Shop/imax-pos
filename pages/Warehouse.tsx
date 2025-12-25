@@ -157,12 +157,12 @@ export const Warehouse: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {warehouseProfiles.map((profile) => (
               <div
-                key={profile.id || profile._id}
+                key={profile._id}
                 onClick={() =>
-                  navigate(`/warehouse/${profile.id || profile._id}`, {
+                  navigate(`/warehouse/${profile._id}`, {
                     state: {
-                      warehouseName: profile.warehouseName,
-                      warehouseCode: profile.warehouseCode,
+                      warehouseName: profile.locationName,
+                      warehouseCode: profile.locationCode,
                     },
                   })
                 }
@@ -171,14 +171,14 @@ export const Warehouse: React.FC = () => {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-semibold text-slate-800 flex items-center gap-2 group-hover:text-primary transition-colors">
-                      {profile.warehouseName}
+                      {profile.locationName}
                       <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary-700 rounded-full">
-                        {profile.warehouseCode}
+                        {profile.locationCode}
                       </span>
                     </h3>
                     <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
                       <MapPin className="w-3 h-3" />
-                      {profile.warehouseAddress}
+                      {profile.locationAddress}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export const Warehouse: React.FC = () => {
                 <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 mt-3 pt-3 border-t">
                   <div className="flex items-center gap-2">
                     <Phone className="w-3 h-3" />
-                    {profile.warehousePhone}
+                    {profile.locationPhone}
                   </div>
                   {profile.managerName && (
                     <div className="flex items-center gap-2">
@@ -206,10 +206,10 @@ export const Warehouse: React.FC = () => {
                       {profile.managerName}
                     </div>
                   )}
-                  {profile.warehouseEmail && (
+                  {profile.locationEmail && (
                     <div className="flex items-center gap-2">
                       <Mail className="w-3 h-3" />
-                      {profile.warehouseEmail}
+                      {profile.locationEmail}
                     </div>
                   )}
                 </div>

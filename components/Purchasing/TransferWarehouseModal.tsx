@@ -9,9 +9,8 @@ import { Warehouse, Package } from "lucide-react";
 
 interface WarehouseProfile {
   _id: string;
-  warehouseName: string;
-  location?: string;
-  id?: string;
+  locationName: string;
+  locationCode: string;
 }
 
 interface TransferItem {
@@ -209,17 +208,11 @@ export const TransferWarehouseModal: React.FC<TransferWarehouseModalProps> = ({
                 onChange={(e) => setSelectedWarehouseId(e.target.value)}
               >
                 <option value="">Select Warehouse...</option>
-                {warehouses.map(
-                  (wh) => (
-                    console.log(wh),
-                    (
-                      <option key={wh._id} value={wh._id}>
-                        {wh.warehouseName}{" "}
-                        {wh.location ? `(${wh.location})` : ""}
-                      </option>
-                    )
-                  )
-                )}
+                {warehouses.map((wh) => (
+                  <option key={wh._id} value={wh._id}>
+                    {wh.locationName} ({wh.locationCode})
+                  </option>
+                ))}
               </select>
             </div>
 

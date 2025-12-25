@@ -83,7 +83,7 @@ export const Orders: React.FC = () => {
         // Fetch all orders
         const response = await fetchOrders();
         if (response.success && response.data) {
-          setOrders(response.data);
+          setOrders(response.data.reverse());
         } else {
           toast.error(response.message || "Failed to load orders");
         }
@@ -91,7 +91,7 @@ export const Orders: React.FC = () => {
         // Fetch orders by storefront
         const response = await fetchOrdersByStorefront(selectedStorefrontId);
         if (response.success && response.data) {
-          setOrders(response.data.orders);
+          setOrders(response.data.orders.reverse());
         } else {
           toast.error(response.message || "Failed to load orders");
         }
@@ -164,7 +164,7 @@ export const Orders: React.FC = () => {
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.orderNumber?.toLowerCase().includes(search.toLowerCase()) ||
-      order.storefrontId?.storefrontName
+      order.storefrontId?.locationName
         ?.toLowerCase()
         .includes(search.toLowerCase());
     const matchesStatus =
@@ -286,8 +286,8 @@ export const Orders: React.FC = () => {
             >
               <option value="all">All Storefronts</option>
               {storefronts.map((sf) => (
-                <option key={sf.id} value={sf.id}>
-                  {sf.storefrontName}
+                <option key={sf._id} value={sf._id}>
+                  {sf.locationName}
                 </option>
               ))}
             </select>
@@ -391,7 +391,7 @@ export const Orders: React.FC = () => {
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <Store className="w-4 h-4 text-slate-400" />
-                      <span>{order.storefrontId?.storefrontName || "-"}</span>
+                      <span>{order.storefrontId?.locationName || "-"}</span>
                     </div>
                   </td>
                   <td className="p-4">
@@ -523,10 +523,10 @@ export const Orders: React.FC = () => {
                     <div className="flex items-center gap-2 text-slate-600">
                       <Store className="w-4 h-4" />
                       <span>
-                        {selectedOrder.storefrontId?.storefrontName || "-"}
+                        {selectedOrder.storefrontId?.locationName || "-"}
                       </span>
                       <span className="text-xs text-slate-400">
-                        ({selectedOrder.storefrontId?.storefrontCode})
+                        ({selectedOrder.storefrontId?.locationCode})
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-600">
