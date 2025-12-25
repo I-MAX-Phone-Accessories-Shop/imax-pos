@@ -66,6 +66,7 @@ export const POS: React.FC = () => {
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [selectedCreditPersonId, setSelectedCreditPersonId] =
     useState<string>("");
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   // Load storefronts and stock on mount
   useEffect(() => {
@@ -503,62 +504,15 @@ export const POS: React.FC = () => {
       {/* Cart Sidebar */}
       <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
         <div className="p-4 border-b">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="font-bold text-lg">Current Sale</h2>
-              {selectedStorefrontId && (
-                <p className="text-xs text-gray-400 mt-1">
-                  {
-                    storefronts.find(
-                      (sf) => (sf.id || sf._id) === selectedStorefrontId
-                    )?.storefrontName
-                  }
-                </p>
-              )}
-            </div>
-
-            {/* Payment Type */}
-            <div>
-              <select
-                className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                value={paymentType}
-                onChange={(e) => {
-                  setPaymentType(e.target.value as "paid" | "credit");
-                  if (e.target.value === "paid") {
-                    setSelectedCreditPersonId("");
-                  }
-                }}
-              >
-                <option value="paid">Paid</option>
-                <option value="credit">Credit</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Credit Person Selector - Only show when paymentType is credit */}
-          {paymentType === "credit" && (
-            <div className="px-4 mt-2">
-              <div className="flex items-center justify-between mb-1"></div>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                <select
-                  className="w-full pl-9 pr-4 py-2 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
-                  value={selectedCreditPersonId}
-                  onChange={(e) => setSelectedCreditPersonId(e.target.value)}
-                >
-                  <option value="">
-                    {creditPersonas.length === 0
-                      ? "-- No Credit Persons Available --"
-                      : "-- Select Credit Person (Optional) --"}
-                  </option>
-                  {creditPersonas.map((persona) => (
-                    <option key={persona._id} value={persona._id}>
-                      {persona.name} - {persona.phone}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+          <h2 className="font-bold text-lg">Current Sale</h2>
+          {selectedStorefrontId && (
+            <p className="text-xs text-gray-400 mt-1">
+              {
+                storefronts.find(
+                  (sf) => (sf.id || sf._id) === selectedStorefrontId
+                )?.storefrontName
+              }
+            </p>
           )}
         </div>
 
@@ -607,109 +561,230 @@ export const POS: React.FC = () => {
           )}
         </div>
 
+        {/* Cart Summary & Checkout Button */}
         <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Payment Method
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              value={paymentMethod}
-              onChange={(e) =>
-                setPaymentMethod(e.target.value as PaymentMethod)
-              }
-            >
-              {Object.values(PaymentMethod).map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Discount (%)
-            </label>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              value={discount}
-              onChange={(e) => setDiscount(Number(e.target.value))}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Paid Amount (MMK) *
-            </label>
-            <input
-              type="number"
-              min="0"
-              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              value={paidAmount || ""}
-              onChange={(e) => setPaidAmount(Number(e.target.value))}
-              placeholder="Enter paid amount..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Note (Optional)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Serial number, note..."
-            />
-          </div>
-
-          <div className="pt-2 space-y-1">
+          <div className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal</span>
+              <span className="text-gray-600">Items</span>
+              <span>{cart.reduce((sum, item) => sum + item.qty, 0)} items</span>
+            </div>
+            <div className="flex justify-between text-xl font-bold text-gray-900">
+              <span>Total</span>
               <span>{subtotal.toLocaleString()} MMK</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Discount</span>
-              <span className="text-green-600">
-                -{((subtotal * discount) / 100).toLocaleString()} MMK
-              </span>
-            </div>
-            <div className="flex justify-between text-xl font-bold text-gray-900 mt-2">
-              <span>Total</span>
-              <span>{total.toLocaleString()} MMK</span>
-            </div>
-            {paidAmount > 0 && paidAmount >= total && (
-              <div className="flex justify-between text-sm text-green-600 font-medium">
-                <span>Change</span>
-                <span>{(paidAmount - total).toLocaleString()} MMK</span>
-              </div>
-            )}
           </div>
 
           <button
-            onClick={handleCheckout}
-            disabled={
-              cart.length === 0 ||
-              isProcessing ||
-              (paymentType === "paid" && paidAmount < total)
-            }
+            onClick={() => setShowCheckoutModal(true)}
+            disabled={cart.length === 0}
             className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
-              </>
-            ) : (
-              <>Charge {total.toLocaleString()} MMK</>
-            )}
+            Proceed to Checkout
           </button>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 border-b bg-primary/10">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-lg text-gray-800">Checkout</h3>
+                <button
+                  onClick={() => setShowCheckoutModal(false)}
+                  className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                {cart.reduce((sum, item) => sum + item.qty, 0)} items •{" "}
+                {subtotal.toLocaleString()} MMK
+              </p>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Payment Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Payment Type
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={paymentType}
+                  onChange={(e) => {
+                    setPaymentType(e.target.value as "paid" | "credit");
+                    if (e.target.value === "paid") {
+                      setSelectedCreditPersonId("");
+                    }
+                  }}
+                >
+                  <option value="paid">Paid</option>
+                  <option value="credit">Credit</option>
+                </select>
+              </div>
+
+              {/* Credit Person Selector - Only show when paymentType is credit */}
+              {paymentType === "credit" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Credit Person
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <select
+                      className="w-full pl-9 pr-4 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
+                      value={selectedCreditPersonId}
+                      onChange={(e) =>
+                        setSelectedCreditPersonId(e.target.value)
+                      }
+                    >
+                      <option value="">
+                        {creditPersonas.length === 0
+                          ? "-- No Credit Persons Available --"
+                          : "-- Select Credit Person (Optional) --"}
+                      </option>
+                      {creditPersonas.map((persona) => (
+                        <option key={persona._id} value={persona._id}>
+                          {persona.name} - {persona.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Method */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Payment Method
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={paymentMethod}
+                  onChange={(e) =>
+                    setPaymentMethod(e.target.value as PaymentMethod)
+                  }
+                >
+                  {Object.values(PaymentMethod).map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Discount */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Discount (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={discount}
+                  onChange={(e) => setDiscount(Number(e.target.value))}
+                />
+              </div>
+
+              {/* Paid Amount */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Paid Amount (MMK){" "}
+                  {paymentType === "paid" && (
+                    <span className="text-red-500">*</span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={paidAmount || ""}
+                  onChange={(e) => setPaidAmount(Number(e.target.value))}
+                  placeholder="Enter paid amount..."
+                />
+              </div>
+
+              {/* Note */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Note (Optional)
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Serial number, note..."
+                />
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg border space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>{subtotal.toLocaleString()} MMK</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount ({discount}%)</span>
+                    <span>
+                      -{((subtotal * discount) / 100).toLocaleString()} MMK
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
+                  <span>Total</span>
+                  <span>{total.toLocaleString()} MMK</span>
+                </div>
+                {paidAmount > 0 &&
+                  paidAmount >= total &&
+                  paymentType === "paid" && (
+                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                      <span>Change</span>
+                      <span>{(paidAmount - total).toLocaleString()} MMK</span>
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t bg-gray-50 space-y-2">
+              <button
+                onClick={() => {
+                  handleCheckout();
+                  setShowCheckoutModal(false);
+                }}
+                disabled={
+                  cart.length === 0 ||
+                  isProcessing ||
+                  (paymentType === "paid" && paidAmount < total)
+                }
+                className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  <>Complete Sale • {total.toLocaleString()} MMK</>
+                )}
+              </button>
+              <button
+                onClick={() => setShowCheckoutModal(false)}
+                className="w-full py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Receipt Modal */}
       {showReceipt && (
