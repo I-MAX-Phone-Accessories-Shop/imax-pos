@@ -328,7 +328,7 @@ export const Inventory: React.FC = () => {
     // Map existing product to form data
     setFormData({
       productName: p.name,
-      productCode: p.id, // Using id as productCode for existing products
+      productCode: apiProduct?.productCode || "", // Using id as productCode for existing products
       saleCode: apiProduct?.saleCode || "",
       SKU: apiProduct?.SKU || "",
       barcode: apiProduct?.barcode || "",
