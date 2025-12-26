@@ -12,8 +12,10 @@ import {
 import { toast } from "sonner";
 import { fetchExpenses, Expense } from "../services/Expense/fetchExpenses";
 import { createExpense } from "../services/Expense/createExpense";
+import { useLanguage } from "../context/LanguageContext";
 
 export const Expenses: React.FC = () => {
+  const { t } = useLanguage();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,11 +40,11 @@ export const Expenses: React.FC = () => {
       if (response.success && response.data) {
         setExpenses(response.data);
       } else {
-        toast.error(response.message || "Failed to load expenses");
+        toast.error(response.message || t("expenses.failedToLoad"));
       }
     } catch (error) {
       console.error("Error loading expenses:", error);
-      toast.error("Failed to load expenses");
+      toast.error(t("expenses.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export const Expenses: React.FC = () => {
     e.preventDefault();
 
     if (!formData.category || formData.amount <= 0 || !formData.date) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("expenses.fillRequiredFields"));
       return;
     }
 
@@ -68,7 +70,7 @@ export const Expenses: React.FC = () => {
       const response = await createExpense(payload);
 
       if (response.success) {
-        toast.success("Expense created successfully!");
+        toast.success(t("expenses.expenseCreated"));
         setIsModalOpen(false);
         // Reset form
         setFormData({
@@ -80,11 +82,11 @@ export const Expenses: React.FC = () => {
         // Refresh expenses list
         loadExpenses();
       } else {
-        toast.error(response.message || "Failed to create expense");
+        toast.error(response.message || t("expenses.failedToCreate"));
       }
     } catch (error: any) {
       console.error("Error creating expense:", error);
-      toast.error(error.message || "Failed to create expense");
+      toast.error(error.message || t("expenses.failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -109,14 +111,14 @@ export const Expenses: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
           <PieChart className="w-7 h-7 text-primary" />
-          Shop Expenses
+          {t("expenses.title")}
         </h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Expense
+            <Plus className="w-4 h-4" /> {t("expenses.addExpense")}
           </button>
           <button
             onClick={loadExpenses}
@@ -124,7 +126,7 @@ export const Expenses: React.FC = () => {
             className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            {t("common.refresh")}
           </button>
         </div>
       </div>
@@ -136,7 +138,7 @@ export const Expenses: React.FC = () => {
             <PieChart className="w-5 h-5 text-red-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">Total Expenses</p>
+            <p className="text-sm text-slate-500">{t("expenses.totalExpenses")}</p>
             <p className="text-2xl font-bold text-slate-800">
               {totalExpenses.toLocaleString()} MMK
             </p>
@@ -148,32 +150,32 @@ export const Expenses: React.FC = () => {
         {loading ? (
           <div className="p-8 text-center text-slate-500">
             <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
-            <p>Loading expenses...</p>
+            <p>{t("expenses.loading")}</p>
           </div>
         ) : expenses.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             <PieChart className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p>No expenses found</p>
+            <p>{t("expenses.noExpenses")}</p>
           </div>
         ) : (
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b">
               <tr>
-                <th className="px-4 py-3 font-semibold text-slate-600">Date</th>
+                <th className="px-4 py-3 font-semibold text-slate-600">{t("expenses.date")}</th>
                 <th className="px-4 py-3 font-semibold text-slate-600">
-                  Category
+                  {t("expenses.category")}
                 </th>
                 <th className="px-4 py-3 font-semibold text-slate-600">
-                  Location
+                  {t("expenses.location")}
                 </th>
                 <th className="px-4 py-3 font-semibold text-slate-600">
-                  Notes
+                  {t("expenses.notes")}
                 </th>
                 <th className="px-4 py-3 font-semibold text-slate-600">
-                  Recorded By
+                  {t("expenses.recordedBy")}
                 </th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-right">
-                  Amount
+                  {t("expenses.amount")}
                 </th>
               </tr>
             </thead>
@@ -208,7 +210,7 @@ export const Expenses: React.FC = () => {
                       </div>
                     ) : (
                       <span className="text-slate-400 italic text-xs">
-                        No location
+                        {t("expenses.noLocation")}
                       </span>
                     )}
                   </td>
@@ -251,7 +253,7 @@ export const Expenses: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-primary" />
-                New Expense
+                {t("expenses.newExpense")}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -264,7 +266,7 @@ export const Expenses: React.FC = () => {
             <form onSubmit={handleCreateExpense} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Category <span className="text-red-500">*</span>
+                  {t("expenses.category")} <span className="text-red-500">*</span>
                 </label>
                 <select
                   required
@@ -274,19 +276,19 @@ export const Expenses: React.FC = () => {
                     setFormData({ ...formData, category: e.target.value })
                   }
                 >
-                  <option value="electricity">Electricity</option>
-                  <option value="water">Water</option>
-                  <option value="utilities">Utilities</option>
-                  <option value="salary">Salary</option>
-                  <option value="maintenance">Maintenance</option>
-                  <option value="rent">Rent</option>
-                  <option value="other">Other</option>
+                  <option value="electricity">{t("expenses.electricity")}</option>
+                  <option value="water">{t("expenses.water")}</option>
+                  <option value="utilities">{t("expenses.utilities")}</option>
+                  <option value="salary">{t("expenses.salary")}</option>
+                  <option value="maintenance">{t("expenses.maintenance")}</option>
+                  <option value="rent">{t("expenses.rent")}</option>
+                  <option value="other">{t("expenses.other")}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Amount (MMK) <span className="text-red-500">*</span>
+                  {t("expenses.amount")} (MMK) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -307,7 +309,7 @@ export const Expenses: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Date <span className="text-red-500">*</span>
+                  {t("expenses.date")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -322,13 +324,13 @@ export const Expenses: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Notes (Optional)
+                  {t("expenses.notesOptional")}
                 </label>
                 <textarea
                   rows={3}
                   maxLength={500}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  placeholder="Enter expense notes..."
+                  placeholder={t("expenses.notesPlaceholder")}
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
@@ -342,7 +344,7 @@ export const Expenses: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
@@ -351,11 +353,11 @@ export const Expenses: React.FC = () => {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Creating...
+                      <Loader2 className="w-4 h-4 animate-spin" /> {t("expenses.creating")}
                     </>
                   ) : (
                     <>
-                      <Plus className="w-4 h-4" /> Create Expense
+                      <Plus className="w-4 h-4" /> {t("expenses.createExpense")}
                     </>
                   )}
                 </button>

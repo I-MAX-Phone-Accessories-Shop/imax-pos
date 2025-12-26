@@ -10,6 +10,7 @@ import {
   TransferData,
 } from "../services/Purchase/fetchTransfers";
 import { toast } from "sonner";
+import { useLanguage } from "../context/LanguageContext";
 import { PurchaseOrderList } from "../components/Purchasing/PurchaseOrderList";
 import { CreatePOModal } from "../components/Purchasing/CreatePOModal";
 import { GRNList } from "../components/Purchasing/GRNList";
@@ -23,6 +24,7 @@ import { TransferDetailModal } from "../components/Purchasing/TransferDetailModa
 type TabType = "po" | "grn" | "transfer";
 
 export const Purchasing: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("po");
 
   // Shared State
@@ -94,7 +96,7 @@ export const Purchasing: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to load POs", error);
-      toast.error("Failed to load Purchase Orders");
+      toast.error(t("purchasing.failedToLoadPO"));
     }
   };
 
@@ -106,7 +108,7 @@ export const Purchasing: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to load GRNs", error);
-      toast.error("Failed to load GRNs");
+      toast.error(t("purchasing.failedToLoadGRN"));
     }
   };
 
@@ -118,7 +120,7 @@ export const Purchasing: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to load transfers", error);
-      toast.error("Failed to load Transfers");
+      toast.error(t("purchasing.failedToLoadTransfer"));
     }
   };
 
@@ -155,7 +157,7 @@ export const Purchasing: React.FC = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-800">
-        <ShoppingBag className="w-6 h-6" /> Purchasing Module
+        <ShoppingBag className="w-6 h-6" /> {t("purchasing.title")}
       </h1>
 
       {/* Tabs */}
@@ -168,7 +170,7 @@ export const Purchasing: React.FC = () => {
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <FileText className="w-4 h-4" /> Purchase Order (PO)
+          <FileText className="w-4 h-4" /> {t("purchasing.purchaseOrder")}
         </button>
         <button
           onClick={() => setActiveTab("grn")}
@@ -178,7 +180,7 @@ export const Purchasing: React.FC = () => {
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <PackageCheck className="w-4 h-4" /> Goods Received Note (GRN)
+          <PackageCheck className="w-4 h-4" /> {t("purchasing.goodsReceivedNote")}
         </button>
         <button
           onClick={() => setActiveTab("transfer")}
@@ -188,7 +190,7 @@ export const Purchasing: React.FC = () => {
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <Truck className="w-4 h-4" /> Transfer
+          <Truck className="w-4 h-4" /> {t("purchasing.transfer")}
         </button>
       </div>
 

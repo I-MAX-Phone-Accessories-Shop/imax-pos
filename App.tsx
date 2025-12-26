@@ -3,7 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Menu } from "lucide-react";
 import { AppProvider } from "./context/AppContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { Sidebar } from "./components/Sidebar";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { POS } from "./pages/POS";
 import { Warehouse } from "./pages/Warehouse";
 import { WarehouseDetail } from "./pages/WarehouseDetail";
@@ -35,22 +37,25 @@ const AppLayout: React.FC = () => {
         <>
       {/* Header */}
       <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
-        <div className="flex items-center h-14 px-4">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6 text-primary" />
-          </button>
-          {/* <img
-            src="/imaslogo.jpg"
-            alt="IMAS Logo"
-            className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
-          /> */}
-          <h1 className="text-lg font-bold text-primary tracking-wide">
-            IMAS POS
-          </h1>
+        <div className="flex items-center justify-between h-14 px-4">
+          <div className="flex items-center">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6 text-primary" />
+            </button>
+            {/* <img
+              src="/imaslogo.jpg"
+              alt="IMAS Logo"
+              className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
+            /> */}
+            <h1 className="text-lg font-bold text-primary tracking-wide">
+              IMAS POS
+            </h1>
+          </div>
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -199,14 +204,16 @@ const AppLayout: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<AppLayout />} />
-        </Routes>
-      </BrowserRouter>
-    </AppProvider>
+    <LanguageProvider>
+      <AppProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<AppLayout />} />
+          </Routes>
+        </BrowserRouter>
+      </AppProvider>
+    </LanguageProvider>
   );
 };
 

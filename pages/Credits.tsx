@@ -19,9 +19,11 @@ import {
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
 import { createCreditPersona } from "../services/Credit/createCreditPersona";
+import { useLanguage } from "../context/LanguageContext";
 
 export const Credits: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -42,11 +44,11 @@ export const Credits: React.FC = () => {
       if (response.success && response.data) {
         setCreditPersonas(response.data);
       } else {
-        toast.error(response.message || "Failed to load credit personas");
+        toast.error(response.message || t("credits.failedToLoad"));
       }
     } catch (error) {
       console.error("Error loading credit personas:", error);
-      toast.error("Failed to load credit personas");
+      toast.error(t("credits.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ export const Credits: React.FC = () => {
 
   const handleRefresh = async () => {
     await loadCreditPersonas();
-    toast.success("Credit personas refreshed");
+    toast.success(t("credits.refreshed"));
   };
 
   const handleOpenAddModal = () => {
@@ -69,11 +71,11 @@ export const Credits: React.FC = () => {
 
   const handleAddProfile = async () => {
     if (!formData.name.trim()) {
-      toast.error("Name is required");
+      toast.error(t("credits.nameRequired"));
       return;
     }
     if (!formData.phone.trim()) {
-      toast.error("Phone is required");
+      toast.error(t("credits.phoneRequired"));
       return;
     }
 
@@ -85,15 +87,15 @@ export const Credits: React.FC = () => {
       });
 
       if (response.success) {
-        toast.success("Credit profile created successfully");
+        toast.success(t("credits.profileCreated"));
         handleCloseAddModal();
         loadCreditPersonas(); // Refresh the list
       } else {
-        toast.error(response.message || "Failed to create credit profile");
+        toast.error(response.message || t("credits.failedToCreate"));
       }
     } catch (error) {
       console.error("Error creating credit profile:", error);
-      toast.error("Failed to create credit profile");
+      toast.error(t("credits.failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -126,10 +128,10 @@ export const Credits: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <User className="w-6 h-6 text-primary" />
-            Credit Profiles
+            {t("credits.title")}
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Manage credit customers and their status
+            {t("credits.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -139,13 +141,13 @@ export const Credits: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            {t("common.refresh")}
           </button>
           <button
             onClick={handleOpenAddModal}
             className="bg-btn-primary text-dark px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-btn-primary-hover transition-colors font-medium"
           >
-            <UserPlus className="w-4 h-4" /> Add Credit Profile
+            <UserPlus className="w-4 h-4" /> {t("credits.addProfile")}
           </button>
         </div>
       </div>
@@ -158,7 +160,7 @@ export const Credits: React.FC = () => {
               <User className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Total Profiles</p>
+              <p className="text-sm text-slate-500">{t("credits.totalProfiles")}</p>
               <p className="text-2xl font-bold text-slate-800">
                 {totalPersonas}
               </p>
@@ -172,7 +174,7 @@ export const Credits: React.FC = () => {
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Active</p>
+              <p className="text-sm text-slate-500">{t("credits.active")}</p>
               <p className="text-2xl font-bold text-slate-800">{activeCount}</p>
             </div>
           </div>
@@ -184,7 +186,7 @@ export const Credits: React.FC = () => {
               <Ban className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Blacklisted</p>
+              <p className="text-sm text-slate-500">{t("credits.blacklisted")}</p>
               <p className="text-2xl font-bold text-slate-800">
                 {blacklistedCount}
               </p>
@@ -199,7 +201,7 @@ export const Credits: React.FC = () => {
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name or phone..."
+            placeholder={t("credits.searchPlaceholder")}
             className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -211,31 +213,31 @@ export const Credits: React.FC = () => {
       <div className="bg-white shadow-sm border rounded-xl overflow-hidden">
         <div className="p-4 border-b bg-slate-50">
           <h2 className="font-semibold text-slate-800">
-            Credit Profiles ({filteredPersonas.length})
+            {t("credits.title")} ({filteredPersonas.length})
           </h2>
         </div>
 
         {loading ? (
           <div className="p-8 text-center text-slate-500 flex items-center justify-center gap-2">
             <Loader2 className="w-5 h-5 animate-spin" />
-            Loading credit profiles...
+            {t("credits.loading")}
           </div>
         ) : filteredPersonas.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             {search
-              ? "No credit profiles found matching your search."
-              : "No credit profiles found. Add your first credit profile."}
+              ? t("credits.noResults")
+              : t("credits.noProfiles")}
           </div>
         ) : (
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-600 border-b">
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Phone</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Blacklist Reason</th>
-                <th className="px-4 py-3 font-medium">Created At</th>
-                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                <th className="px-4 py-3 font-medium">{t("credits.name")}</th>
+                <th className="px-4 py-3 font-medium">{t("credits.phone")}</th>
+                <th className="px-4 py-3 font-medium">{t("credits.status")}</th>
+                <th className="px-4 py-3 font-medium">{t("credits.blacklistReason")}</th>
+                <th className="px-4 py-3 font-medium">{t("credits.createdAt")}</th>
+                <th className="px-4 py-3 font-medium text-right">{t("credits.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -260,11 +262,11 @@ export const Credits: React.FC = () => {
                   <td className="px-4 py-3">
                     {persona.blacklist ? (
                       <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
-                        <Ban className="w-3 h-3" /> Blacklisted
+                        <Ban className="w-3 h-3" /> {t("credits.blacklisted")}
                       </span>
                     ) : (
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
-                        <CheckCircle className="w-3 h-3" /> Active
+                        <CheckCircle className="w-3 h-3" /> {t("credits.active")}
                       </span>
                     )}
                   </td>
@@ -291,11 +293,11 @@ export const Credits: React.FC = () => {
                         onClick={() => handleViewPersona(persona)}
                         className="text-xs bg-primary/20 text-yellow-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
                       >
-                        <Eye className="w-3 h-3" /> View
+                        <Eye className="w-3 h-3" /> {t("common.view")}
                       </button>
                       {!persona.blacklist && (
                         <button className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors">
-                          Blacklist
+                          {t("credits.blacklist")}
                         </button>
                       )}
                     </div>
@@ -314,7 +316,7 @@ export const Credits: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-primary" />
-                Add Credit Profile
+                {t("credits.addProfile")}
               </h2>
               <button
                 onClick={handleCloseAddModal}
@@ -327,12 +329,12 @@ export const Credits: React.FC = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Name <span className="text-red-500">*</span>
+                  {t("credits.name")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  placeholder="Enter customer name"
+                  placeholder={t("credits.namePlaceholder")}
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -342,12 +344,12 @@ export const Credits: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Phone <span className="text-red-500">*</span>
+                  {t("credits.phone")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
                   className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  placeholder="Enter phone number"
+                  placeholder={t("credits.phonePlaceholder")}
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
@@ -361,7 +363,7 @@ export const Credits: React.FC = () => {
                 onClick={handleCloseAddModal}
                 className="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleAddProfile}
@@ -370,11 +372,11 @@ export const Credits: React.FC = () => {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Creating...
+                    <Loader2 className="w-4 h-4 animate-spin" /> {t("credits.creating")}
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-4 h-4" /> Create Profile
+                    <UserPlus className="w-4 h-4" /> {t("credits.createProfile")}
                   </>
                 )}
               </button>

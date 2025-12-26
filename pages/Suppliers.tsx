@@ -4,6 +4,7 @@ import { createSupplier } from "../services/Supplier/createSupplier";
 import { fetchSuppliers } from "../services/Supplier/fetchSuppliers";
 import { toast } from "sonner";
 import { Supplier } from "../types";
+import { useLanguage } from "../context/LanguageContext";
 
 interface SupplierFormData {
   supplierName: string;
@@ -11,6 +12,7 @@ interface SupplierFormData {
 }
 
 export const Suppliers: React.FC = () => {
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,7 +34,7 @@ export const Suppliers: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to load suppliers:", error);
-      toast.error("Failed to load suppliers");
+      toast.error(t("suppliers.failedToLoad"));
     } finally {
       setIsLoading(false);
     }
@@ -42,14 +44,14 @@ export const Suppliers: React.FC = () => {
     e.preventDefault();
 
     if (!formData.supplierName || !formData.contactNumber) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("suppliers.fillRequiredFields"));
       return;
     }
 
     setIsSubmitting(true);
     try {
       await createSupplier(formData);
-      toast.success("Supplier created successfully!");
+      toast.success(t("suppliers.supplierCreated"));
 
       // Reset form
       setFormData({
@@ -61,7 +63,7 @@ export const Suppliers: React.FC = () => {
       // Reload list
       loadSuppliers();
     } catch (error: any) {
-      toast.error(error.message || "Failed to create supplier");
+      toast.error(error.message || t("suppliers.failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -71,36 +73,36 @@ export const Suppliers: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          Supplier Management
+          {t("suppliers.title")}
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Add Supplier
+          <Plus className="w-4 h-4" /> {t("suppliers.addSupplier")}
         </button>
       </div>
 
       {/* Suppliers List */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Registered Suppliers</h2>
+          <h2 className="text-lg font-semibold">{t("suppliers.registeredSuppliers")}</h2>
           <span className="bg-primary/20 text-primary-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
-            Total: {suppliers.length}
+            {t("suppliers.total")}: {suppliers.length}
           </span>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center items-center py-12 text-slate-500">
             <Loader2 className="w-6 h-6 animate-spin mr-2" />
-            Loading suppliers...
+            {t("suppliers.loading")}
           </div>
         ) : suppliers.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg border border-dashed">
             <Users className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-            <p>No suppliers found.</p>
+            <p>{t("suppliers.noSuppliers")}</p>
             <p className="text-sm mt-1">
-              Add your first supplier using the "Add Supplier" button.
+              {t("suppliers.addFirstSupplier")}
             </p>
           </div>
         ) : (
@@ -132,13 +134,13 @@ export const Suppliers: React.FC = () => {
                       }`}
                     ></span>
                     <span className="text-xs text-slate-500">
-                      {supplier.isDeleted ? "Inactive" : "Active"}
+                      {supplier.isDeleted ? t("suppliers.inactive") : t("suppliers.active")}
                     </span>
                   </div>
                 </div>
                 {supplier.createdAt && (
                   <div className="mt-3 pt-3 border-t text-xs text-slate-400">
-                    Added: {new Date(supplier.createdAt).toLocaleDateString()}
+                    {t("suppliers.added")}: {new Date(supplier.createdAt).toLocaleDateString()}
                   </div>
                 )}
               </div>
@@ -154,7 +156,7 @@ export const Suppliers: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" />
-                Add New Supplier
+                {t("suppliers.addNewSupplier")}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -167,7 +169,7 @@ export const Suppliers: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Supplier Name <span className="text-red-500">*</span>
+                  {t("suppliers.name")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
@@ -175,7 +177,7 @@ export const Suppliers: React.FC = () => {
                     type="text"
                     required
                     className="w-full border rounded-lg pl-10 p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="Enter supplier name"
+                    placeholder={t("suppliers.namePlaceholder")}
                     value={formData.supplierName}
                     onChange={(e) =>
                       setFormData({ ...formData, supplierName: e.target.value })
@@ -186,7 +188,7 @@ export const Suppliers: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Contact Number <span className="text-red-500">*</span>
+                  {t("suppliers.contact")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
@@ -194,7 +196,7 @@ export const Suppliers: React.FC = () => {
                     type="tel"
                     required
                     className="w-full border rounded-lg pl-10 p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="Enter contact number"
+                    placeholder={t("suppliers.contactPlaceholder")}
                     value={formData.contactNumber}
                     onChange={(e) =>
                       setFormData({
@@ -212,7 +214,7 @@ export const Suppliers: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
@@ -221,10 +223,10 @@ export const Suppliers: React.FC = () => {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Creating...
+                      <Loader2 className="w-4 h-4 animate-spin" /> {t("suppliers.creating")}
                     </>
                   ) : (
-                    "Create Supplier"
+                    t("suppliers.createSupplier")
                   )}
                 </button>
               </div>

@@ -19,6 +19,7 @@ import {
 import { useApp } from "../context/AppContext";
 import { removeAuthToken } from "../services/axios";
 import { toast } from "sonner";
+import { useLanguage } from "../context/LanguageContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { currentUser } = useApp();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [adminData, setAdminData] = useState<any>(null);
 
   useEffect(() => {
@@ -45,23 +47,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const handleLogout = () => {
     removeAuthToken();
     localStorage.removeItem("adminData");
-    toast.success("Logged out successfully");
+    toast.success(t("sidebar.loggedOut"));
     navigate("/login");
     onClose();
   };
 
   const menuItems = [
-    { path: "/pos", label: "Checkout (POS)", icon: ShoppingCart },
-    { path: "/inventory", label: "Inventory", icon: Package },
-    { path: "/warehouse", label: "Warehouse", icon: Truck },
-    { path: "/storefront", label: "Storefront", icon: Store },
-    { path: "/suppliers", label: "Suppliers", icon: Users },
-    { path: "/purchasing", label: "Purchasing", icon: ShoppingBag },
-    { path: "/orders", label: "Orders", icon: Receipt },
-    { path: "/credits", label: "Credit Sales", icon: CreditCard },
-    { path: "/expenses", label: "Expenses", icon: PieChart },
-    { path: "/reports", label: "Reports", icon: LayoutDashboard },
-    { path: "/accounts", label: "Account Management", icon: Shield },
+    { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
+    { path: "/inventory", label: t("sidebar.inventory"), icon: Package },
+    { path: "/warehouse", label: t("sidebar.warehouse"), icon: Truck },
+    { path: "/storefront", label: t("sidebar.storefront"), icon: Store },
+    { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
+    { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
+    { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
+    { path: "/credits", label: t("sidebar.creditSales"), icon: CreditCard },
+    { path: "/expenses", label: t("sidebar.expenses"), icon: PieChart },
+    { path: "/reports", label: t("sidebar.reports"), icon: LayoutDashboard },
+    { path: "/accounts", label: t("sidebar.accountManagement"), icon: Shield },
   ];
 
   return (
@@ -92,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <h1 className="text-xl font-bold text-primary tracking-tight">
                 IMAS
               </h1>
-              <p className="text-dark-500 text-xs">POS System</p>
+              <p className="text-dark-500 text-xs">{t("app.subtitle")}</p>
             </div>
           </div>
           <button
@@ -168,13 +170,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               }`
             }
           >
-            <Settings className="w-4 h-4" /> Settings
+            <Settings className="w-4 h-4" /> {t("sidebar.settings")}
           </NavLink>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
-            <LogOut className="w-4 h-4" /> Logout
+            <LogOut className="w-4 h-4" /> {t("sidebar.logout")}
           </button>
         </div>
       </div>

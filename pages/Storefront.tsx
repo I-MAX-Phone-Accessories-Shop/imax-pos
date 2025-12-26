@@ -16,6 +16,7 @@ import {
 } from "../services/Storefront/fetchStorefrontProfiles";
 import { createStorefrontProfile } from "../services/Storefront/createStorefrontProfile";
 import { toast } from "sonner";
+import { useLanguage } from "../context/LanguageContext";
 
 interface StorefrontProfileFormData {
   storefrontCode: string;
@@ -31,6 +32,7 @@ interface StorefrontProfileFormData {
 
 export const Storefront: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [storefrontProfiles, setStorefrontProfiles] = useState<
     StorefrontProfile[]
   >([]);
@@ -81,7 +83,7 @@ export const Storefront: React.FC = () => {
       !formData.storefrontAddress ||
       !formData.storefrontPhone
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("storefront.fillRequiredFields"));
       return;
     }
 
@@ -105,7 +107,7 @@ export const Storefront: React.FC = () => {
       await createStorefrontProfile(payload);
       loadStorefrontProfiles();
 
-      toast.success("Storefront profile created successfully!");
+      toast.success(t("storefront.profileCreated"));
       setIsModalOpen(false);
       // Reset form
       setFormData({
@@ -120,7 +122,7 @@ export const Storefront: React.FC = () => {
         notes: "",
       });
     } catch (error: any) {
-      toast.error(error.message || "Failed to create storefront profile");
+      toast.error(error.message || t("storefront.failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -130,13 +132,13 @@ export const Storefront: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          Storefront Management
+          {t("storefront.title")}
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Add Storefront
+          <Plus className="w-4 h-4" /> {t("storefront.addStorefront")}
         </button>
       </div>
 
@@ -144,15 +146,15 @@ export const Storefront: React.FC = () => {
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Store className="w-5 h-5 text-slate-500" />
-          Storefront Profiles
+          {t("storefront.profiles")}
         </h2>
         {loading ? (
           <div className="text-center py-8 text-slate-500">
-            Loading profiles...
+            {t("storefront.loading")}
           </div>
         ) : storefrontProfiles.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            No storefront profiles found. Click "Add Storefront" to create one.
+            {t("storefront.noStorefronts")}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -216,7 +218,7 @@ export const Storefront: React.FC = () => {
                 </div>
 
                 <div className="mt-3 pt-3 border-t text-xs text-primary font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  View Stock Items <ChevronRight className="w-3 h-3" />
+                  {t("storefront.viewStockItems")} <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
             ))}
@@ -231,7 +233,7 @@ export const Storefront: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Store className="w-5 h-5 text-primary" />
-                New Storefront Profile
+                {t("storefront.newProfile")}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -246,14 +248,14 @@ export const Storefront: React.FC = () => {
                 {/* Required Fields */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Storefront Code <span className="text-red-500">*</span>
+                    {t("storefront.locationCode")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     maxLength={50}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none uppercase"
-                    placeholder="SF-001"
+                    placeholder={t("storefront.codePlaceholder")}
                     value={formData.storefrontCode}
                     onChange={(e) =>
                       setFormData({
@@ -266,7 +268,7 @@ export const Storefront: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Status
+                    {t("storefront.status")}
                   </label>
                   <select
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
@@ -278,21 +280,21 @@ export const Storefront: React.FC = () => {
                       })
                     }
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="active">{t("storefront.active")}</option>
+                    <option value="inactive">{t("storefront.inactive")}</option>
                   </select>
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Storefront Name <span className="text-red-500">*</span>
+                    {t("storefront.locationName")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="Main Store"
+                    placeholder={t("storefront.namePlaceholder")}
                     value={formData.storefrontName}
                     onChange={(e) =>
                       setFormData({
@@ -305,14 +307,14 @@ export const Storefront: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Address <span className="text-red-500">*</span>
+                    {t("storefront.locationAddress")} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     required
                     maxLength={500}
                     rows={2}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="123 Main Street..."
+                    placeholder={t("storefront.addressPlaceholder")}
                     value={formData.storefrontAddress}
                     onChange={(e) =>
                       setFormData({
@@ -325,14 +327,14 @@ export const Storefront: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Phone <span className="text-red-500">*</span>
+                    {t("storefront.locationPhone")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     required
                     maxLength={20}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="09..."
+                    placeholder={t("storefront.phonePlaceholder")}
                     value={formData.storefrontPhone}
                     onChange={(e) =>
                       setFormData({
@@ -345,13 +347,13 @@ export const Storefront: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Email
+                    {t("storefront.locationEmail")}
                   </label>
                   <input
                     type="email"
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="store@example.com"
+                    placeholder={t("storefront.emailPlaceholder")}
                     value={formData.storefrontEmail}
                     onChange={(e) =>
                       setFormData({
@@ -364,13 +366,13 @@ export const Storefront: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Manager Name
+                    {t("storefront.managerName")}
                   </label>
                   <input
                     type="text"
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="John Doe"
+                    placeholder={t("storefront.managerPlaceholder")}
                     value={formData.managerName}
                     onChange={(e) =>
                       setFormData({ ...formData, managerName: e.target.value })
@@ -381,13 +383,13 @@ export const Storefront: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Description
+                  {t("storefront.description")}
                 </label>
                 <textarea
                   maxLength={1000}
                   rows={2}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Main retail location..."
+                  placeholder={t("storefront.descriptionPlaceholder")}
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
@@ -397,13 +399,13 @@ export const Storefront: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Notes
+                  {t("storefront.notes")}
                 </label>
                 <textarea
                   maxLength={500}
                   rows={2}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Operating hours..."
+                  placeholder={t("storefront.notesPlaceholder")}
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
@@ -417,14 +419,14 @@ export const Storefront: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSubmitting ? "Creating..." : "Create Storefront"}
+                  {isSubmitting ? t("storefront.creating") : t("storefront.createStorefront")}
                 </button>
               </div>
             </form>

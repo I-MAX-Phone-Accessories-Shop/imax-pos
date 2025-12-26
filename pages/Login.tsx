@@ -4,9 +4,11 @@ import { LogIn, Loader2, Shield, User, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { login } from "../services/Auth/login";
 import { setAuthToken } from "../services/axios";
+import { useLanguage } from "../context/LanguageContext";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   // Redirect if already logged in
   useEffect(() => {
@@ -26,7 +28,7 @@ export const Login: React.FC = () => {
     e.preventDefault();
 
     if (!formData.name.trim() || !formData.password.trim()) {
-      toast.error("Please fill in all fields");
+      toast.error(t("login.fillAllFields"));
       return;
     }
 
@@ -44,16 +46,16 @@ export const Login: React.FC = () => {
         // Store admin info in localStorage for context
         localStorage.setItem("adminData", JSON.stringify(response.data.admin));
 
-        toast.success(`Welcome back, ${response.data.admin.name}!`);
+        toast.success(t("login.welcomeBack").replace("{name}", response.data.admin.name));
         
         // Redirect to POS page
         navigate("/pos");
       } else {
-        toast.error(response.message || "Login failed");
+        toast.error(response.message || t("login.loginFailed"));
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Login failed. Please check your credentials.");
+      toast.error(error.message || t("login.checkCredentials"));
     } finally {
       setIsSubmitting(false);
     }
@@ -67,8 +69,8 @@ export const Login: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl mb-4 shadow-lg">
             <Shield className="w-10 h-10 text-dark" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">IMAS POS</h1>
-          <p className="text-dark-400">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t("app.title")}</h1>
+          <p className="text-dark-400">{t("login.title")}</p>
         </div>
 
         {/* Login Card */}
@@ -77,7 +79,7 @@ export const Login: React.FC = () => {
             {/* Username Field */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Username
+                {t("login.username")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -85,7 +87,7 @@ export const Login: React.FC = () => {
                   type="text"
                   required
                   className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                  placeholder="Enter your username"
+                  placeholder={t("login.enterUsername")}
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -98,7 +100,7 @@ export const Login: React.FC = () => {
             {/* Password Field */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Password
+                {t("login.password")}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -106,7 +108,7 @@ export const Login: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   required
                   className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                  placeholder="Enter your password"
+                  placeholder={t("login.enterPassword")}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -166,11 +168,11 @@ export const Login: React.FC = () => {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Signing in...
+                  <Loader2 className="w-5 h-5 animate-spin" /> {t("login.signingIn")}
                 </>
               ) : (
                 <>
-                  <LogIn className="w-5 h-5" /> Sign In
+                  <LogIn className="w-5 h-5" /> {t("login.signIn")}
                 </>
               )}
             </button>
@@ -179,7 +181,7 @@ export const Login: React.FC = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
-              © 2024 IMAS POS System. All rights reserved.
+              {t("login.copyright")}
             </p>
           </div>
         </div>

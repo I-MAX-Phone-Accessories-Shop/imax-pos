@@ -4,6 +4,7 @@ import { Edit, AlertCircle } from "lucide-react";
 import { Product, ProductCategory } from "../types";
 import { createProduct } from "../services/Inventory/createProduct";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
+import { useLanguage } from "../context/LanguageContext";
 
 // API Form Data Interface
 interface ProductFormData {
@@ -68,6 +69,8 @@ interface ApiProduct {
 }
 
 export const Inventory: React.FC = () => {
+  const { t } = useLanguage();
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [apiProducts, setApiProducts] = useState<ApiProduct[]>([]); // Store full API data for subcategories
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -136,16 +139,16 @@ export const Inventory: React.FC = () => {
         setProducts(mappedProducts);
         // Only show success toast if products were loaded (not on initial load)
         if (products.length > 0) {
-          toast.success(`Loaded ${mappedProducts.length} products`);
+          toast.success(t("inventory.loadedProducts").replace("{count}", mappedProducts.length.toString()));
         }
       } else {
-        const errorMsg = "Failed to load products: Invalid response format";
+        const errorMsg = t("inventory.failedToLoadInvalid");
         toast.error(errorMsg);
         setError(errorMsg);
       }
     } catch (err: any) {
       const errorMessage =
-        err.message || "Failed to fetch products. Please try again.";
+        err.message || t("inventory.failedToFetch");
       toast.error(errorMessage);
       setError(errorMessage);
       console.error("Error loading products:", err);
@@ -207,20 +210,16 @@ export const Inventory: React.FC = () => {
       !formData.buyingPrice ||
       !formData.sellingPrice
     ) {
-      toast.error(
-        "Product Name, Product Code, SKU, Buying Price, and Selling Price are required"
-      );
-      setError(
-        "Product Name, Product Code, SKU, Buying Price, and Selling Price are required"
-      );
+      const errorMsg = t("inventory.requiredFieldsError");
+      toast.error(errorMsg);
+      setError(errorMsg);
       return;
     }
 
     if (formData.sellingPrice < formData.buyingPrice) {
-      toast.error(
-        "Selling Price must be greater than or equal to Buying Price"
-      );
-      setError("Selling Price must be greater than or equal to Buying Price");
+      const errorMsg = t("inventory.sellingPriceError");
+      toast.error(errorMsg);
+      setError(errorMsg);
       return;
     }
 
@@ -245,9 +244,7 @@ export const Inventory: React.FC = () => {
       setEditingId(null);
       resetForm();
       // TODO: Implement PUT/PATCH API call to update product on server
-      toast.warning(
-        "Product updated (local only - API update not implemented)"
-      );
+      toast.warning(t("inventory.productUpdatedLocal"));
       return;
     }
 
@@ -292,10 +289,10 @@ export const Inventory: React.FC = () => {
       resetForm();
       // Refresh products list after creating
       await loadProducts();
-      toast.success("Product created successfully!");
+      toast.success(t("inventory.productCreated"));
     } catch (err: any) {
       const errorMessage =
-        err.message || "Failed to create product. Please try again.";
+        err.message || t("inventory.failedToCreate");
       toast.error(errorMessage);
       setError(errorMessage);
     } finally {
@@ -401,14 +398,14 @@ export const Inventory: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Product Inventory</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{t("inventory.title")}</h1>
         <div className="flex gap-2">
           <button
             onClick={loadProducts}
             disabled={isFetching}
             className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 disabled:opacity-50"
           >
-            {isFetching ? "Loading..." : "Refresh"}
+            {isFetching ? t("common.loading") : t("inventory.refresh")}
           </button>
           <button
             onClick={() => {
@@ -417,7 +414,7 @@ export const Inventory: React.FC = () => {
             }}
             className="bg-btn-primary text-dark px-4 py-2 rounded hover:bg-btn-primary-hover"
           >
-            + Add Product
+            + {t("inventory.addProduct")}
           </button>
         </div>
       </div>
@@ -432,14 +429,14 @@ export const Inventory: React.FC = () => {
       {products.length > 0 && (
         <div className="mb-4 flex items-center gap-4">
           <label className="text-sm font-medium text-slate-700">
-            Filter by Category:
+            {t("inventory.filterByCategory")}:
           </label>
           <select
             className="border rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-primary outline-none"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
-            <option value="All">All Categories</option>
+            <option value="All">{t("inventory.allCategories")}</option>
             {getUniqueCategories().map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -447,21 +444,23 @@ export const Inventory: React.FC = () => {
             ))}
           </select>
           <span className="text-sm text-slate-500">
-            Showing {filteredProducts.length} of {products.length} products
+            {t("inventory.showing")
+              .replace("{count}", filteredProducts.length.toString())
+              .replace("{total}", products.length.toString())}
           </span>
         </div>
       )}
 
       {isFetching && products.length === 0 ? (
         <div className="bg-white shadow-sm border rounded-xl p-8 text-center">
-          <p className="text-slate-500">Loading products...</p>
+          <p className="text-slate-500">{t("inventory.loadingProducts")}</p>
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white shadow-sm border rounded-xl p-8 text-center">
           <p className="text-slate-500">
             {products.length === 0
-              ? "No products found. Click 'Add Product' to create one."
-              : `No products found in category "${selectedCategory}".`}
+              ? t("inventory.noProductsFound")
+              : t("inventory.noProductsInCategory").replace("{category}", selectedCategory)}
           </p>
         </div>
       ) : (
@@ -469,13 +468,13 @@ export const Inventory: React.FC = () => {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-600 border-b">
               <tr>
-                <th className="px-4 py-3">Product Name</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3 text-right">Cost</th>
-                <th className="px-4 py-3 text-right">Price</th>
-                <th className="px-4 py-3 text-right">Whse</th>
-                <th className="px-4 py-3 text-right">Shop</th>
-                <th className="px-4 py-3 text-center">Action</th>
+                <th className="px-4 py-3">{t("inventory.productName")}</th>
+                <th className="px-4 py-3">{t("inventory.category")}</th>
+                <th className="px-4 py-3 text-right">{t("inventory.cost")}</th>
+                <th className="px-4 py-3 text-right">{t("inventory.price")}</th>
+                <th className="px-4 py-3 text-right">{t("inventory.whse")}</th>
+                <th className="px-4 py-3 text-right">{t("inventory.shop")}</th>
+                <th className="px-4 py-3 text-center">{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -523,7 +522,7 @@ export const Inventory: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white p-6 rounded-lg w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
-              {editingId ? "Edit Product" : "Add New Product"}
+              {editingId ? t("inventory.editProduct") : t("inventory.addNewProduct")}
             </h2>
 
             {error && (
@@ -536,7 +535,7 @@ export const Inventory: React.FC = () => {
               {/* Required Fields */}
               <div className="col-span-2">
                 <label className="block text-xs font-bold text-slate-500">
-                  Product Name <span className="text-red-500">*</span>
+                  {t("inventory.productName")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -549,7 +548,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Product Code <span className="text-red-500">*</span>
+                  {t("inventory.productCode")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -563,7 +562,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  SKU <span className="text-red-500">*</span>
+                  {t("inventory.sku")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -577,7 +576,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Sale Code
+                  {t("inventory.saleCode")}
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -590,7 +589,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Barcode
+                  {t("inventory.barcode")}
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -603,7 +602,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Category <span className="text-red-500">*</span>
+                  {t("inventory.category")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -621,7 +620,7 @@ export const Inventory: React.FC = () => {
                       // Delay to allow click on dropdown item
                       setTimeout(() => setCategoryShowDropdown(false), 200);
                     }}
-                    placeholder="Select or type new category"
+                    placeholder={t("inventory.categoryPlaceholder")}
                   />
                   {categoryShowDropdown && (
                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
@@ -654,7 +653,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Sub Category
+                  {t("inventory.subCategory")}
                 </label>
                 <div className="relative">
                   <input
@@ -672,7 +671,7 @@ export const Inventory: React.FC = () => {
                       // Delay to allow click on dropdown item
                       setTimeout(() => setSubCategoryShowDropdown(false), 200);
                     }}
-                    placeholder="Select or type new subcategory"
+                    placeholder={t("inventory.subCategoryPlaceholder")}
                   />
                   {subCategoryShowDropdown && (
                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
@@ -706,7 +705,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Brand
+                  {t("inventory.brand")}
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -719,7 +718,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Unit of Measure <span className="text-red-500">*</span>
+                  {t("inventory.unitOfMeasure")} <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full border rounded p-2"
@@ -738,7 +737,7 @@ export const Inventory: React.FC = () => {
 
               <div className="col-span-2">
                 <label className="block text-xs font-bold text-slate-500">
-                  Description
+                  {t("common.description")}
                 </label>
                 <textarea
                   className="w-full border rounded p-2"
@@ -752,7 +751,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Buying Price <span className="text-red-500">*</span>
+                  {t("inventory.buyingPrice")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -771,7 +770,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Selling Price <span className="text-red-500">*</span>
+                  {t("inventory.sellingPrice")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -790,7 +789,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Reorder Point
+                  {t("inventory.reorderPoint")}
                 </label>
                 <input
                   type="number"
@@ -808,7 +807,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Reorder Quantity
+                  {t("inventory.reorderQuantity")}
                 </label>
                 <input
                   type="number"
@@ -826,7 +825,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Tax Rate (%)
+                  {t("inventory.taxRate")}
                 </label>
                 <input
                   type="number"
@@ -846,7 +845,7 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  Status
+                  {t("inventory.status")}
                 </label>
                 <select
                   className="w-full border rounded p-2"
@@ -865,7 +864,7 @@ export const Inventory: React.FC = () => {
 
               <div className="col-span-2">
                 <label className="block text-xs font-bold text-slate-500 mb-2">
-                  Tags
+                  {t("inventory.tags")}
                 </label>
                 <div className="flex gap-2 mb-2">
                   <input
@@ -875,13 +874,13 @@ export const Inventory: React.FC = () => {
                     onKeyPress={(e) =>
                       e.key === "Enter" && (e.preventDefault(), addTag())
                     }
-                    placeholder="Add tag and press Enter"
+                    placeholder={t("inventory.addTagPlaceholder")}
                   />
                   <button
                     onClick={addTag}
                     className="px-3 py-2 bg-slate-200 rounded hover:bg-slate-300"
                   >
-                    Add
+                    {t("common.add")}
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -911,14 +910,14 @@ export const Inventory: React.FC = () => {
                 }}
                 className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSave}
                 disabled={isLoading}
                 className="px-4 py-2 bg-btn-primary text-dark rounded hover:bg-btn-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Saving..." : "Save Product"}
+                {isLoading ? t("inventory.saving") : t("inventory.save")}
               </button>
             </div>
           </div>

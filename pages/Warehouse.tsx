@@ -15,6 +15,7 @@ import { createWarehouseProfile } from "../services/Warehouse/createWarehousePro
 import { fetchWarehouseProfiles } from "../services/Warehouse/fetchWarehouseProfiles";
 import { toast } from "sonner";
 import { WarehouseProfile } from "../types";
+import { useLanguage } from "../context/LanguageContext";
 
 interface WarehouseProfileFormData {
   warehouseCode: string;
@@ -30,6 +31,7 @@ interface WarehouseProfileFormData {
 
 export const Warehouse: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [warehouseProfiles, setWarehouseProfiles] = useState<
     WarehouseProfile[]
   >([]);
@@ -80,7 +82,7 @@ export const Warehouse: React.FC = () => {
       !formData.warehouseAddress ||
       !formData.warehousePhone
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("warehouse.fillRequiredFields"));
       return;
     }
 
@@ -104,7 +106,7 @@ export const Warehouse: React.FC = () => {
       await createWarehouseProfile(payload);
       loadWarehouseProfiles();
 
-      toast.success("Warehouse profile created successfully!");
+      toast.success(t("warehouse.profileCreated"));
       setIsModalOpen(false);
       // Reset form
       setFormData({
@@ -119,7 +121,7 @@ export const Warehouse: React.FC = () => {
         notes: "",
       });
     } catch (error: any) {
-      toast.error(error.message || "Failed to create warehouse profile");
+      toast.error(error.message || t("warehouse.failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -129,13 +131,13 @@ export const Warehouse: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          Warehouse Management
+          {t("warehouse.title")}
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Add Warehouse
+          <Plus className="w-4 h-4" /> {t("warehouse.addWarehouse")}
         </button>
       </div>
 
@@ -143,15 +145,15 @@ export const Warehouse: React.FC = () => {
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Building2 className="w-5 h-5 text-slate-500" />
-          Warehouse Profiles
+          {t("warehouse.profiles")}
         </h2>
         {loading ? (
           <div className="text-center py-8 text-slate-500">
-            Loading profiles...
+            {t("warehouse.loading")}
           </div>
         ) : warehouseProfiles.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            No warehouse profiles found. Click "Add Warehouse" to create one.
+            {t("warehouse.noWarehouses")}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -215,7 +217,7 @@ export const Warehouse: React.FC = () => {
                 </div>
 
                 <div className="mt-3 pt-3 border-t text-xs text-primary font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  View Stock Items <ChevronRight className="w-3 h-3" />
+                  {t("warehouse.viewStockItems")} <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
             ))}
@@ -230,7 +232,7 @@ export const Warehouse: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-primary" />
-                New Warehouse Profile
+                {t("warehouse.newProfile")}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -245,14 +247,14 @@ export const Warehouse: React.FC = () => {
                 {/* Required Fields */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Warehouse Code <span className="text-red-500">*</span>
+                    {t("warehouse.locationCode")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     maxLength={50}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none uppercase"
-                    placeholder="WH001"
+                    placeholder={t("warehouse.codePlaceholder")}
                     value={formData.warehouseCode}
                     onChange={(e) =>
                       setFormData({
@@ -265,7 +267,7 @@ export const Warehouse: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Status
+                    {t("warehouse.status")}
                   </label>
                   <select
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
@@ -277,21 +279,21 @@ export const Warehouse: React.FC = () => {
                       })
                     }
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="active">{t("warehouse.active")}</option>
+                    <option value="inactive">{t("warehouse.inactive")}</option>
                   </select>
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Warehouse Name <span className="text-red-500">*</span>
+                    {t("warehouse.locationName")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="Main Warehouse"
+                    placeholder={t("warehouse.namePlaceholder")}
                     value={formData.warehouseName}
                     onChange={(e) =>
                       setFormData({
@@ -304,14 +306,14 @@ export const Warehouse: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Address <span className="text-red-500">*</span>
+                    {t("warehouse.locationAddress")} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     required
                     maxLength={500}
                     rows={2}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="123 Main Street..."
+                    placeholder={t("warehouse.addressPlaceholder")}
                     value={formData.warehouseAddress}
                     onChange={(e) =>
                       setFormData({
@@ -324,14 +326,14 @@ export const Warehouse: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Phone <span className="text-red-500">*</span>
+                    {t("warehouse.locationPhone")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     required
                     maxLength={20}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="09..."
+                    placeholder={t("warehouse.phonePlaceholder")}
                     value={formData.warehousePhone}
                     onChange={(e) =>
                       setFormData({
@@ -344,13 +346,13 @@ export const Warehouse: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Email
+                    {t("warehouse.locationEmail")}
                   </label>
                   <input
                     type="email"
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="warehouse@example.com"
+                    placeholder={t("warehouse.emailPlaceholder")}
                     value={formData.warehouseEmail}
                     onChange={(e) =>
                       setFormData({
@@ -363,13 +365,13 @@ export const Warehouse: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Manager Name
+                    {t("warehouse.managerName")}
                   </label>
                   <input
                     type="text"
                     maxLength={200}
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="John Doe"
+                    placeholder={t("warehouse.managerPlaceholder")}
                     value={formData.managerName}
                     onChange={(e) =>
                       setFormData({ ...formData, managerName: e.target.value })
@@ -380,13 +382,13 @@ export const Warehouse: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Description
+                  {t("warehouse.description")}
                 </label>
                 <textarea
                   maxLength={1000}
                   rows={2}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Main storage facility..."
+                  placeholder={t("warehouse.descriptionPlaceholder")}
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
@@ -396,13 +398,13 @@ export const Warehouse: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Notes
+                  {t("warehouse.notes")}
                 </label>
                 <textarea
                   maxLength={500}
                   rows={2}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Operating hours..."
+                  placeholder={t("warehouse.notesPlaceholder")}
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
@@ -416,14 +418,14 @@ export const Warehouse: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSubmitting ? "Creating..." : "Create Warehouse"}
+                  {isSubmitting ? t("warehouse.creating") : t("warehouse.createWarehouse")}
                 </button>
               </div>
             </form>

@@ -17,8 +17,10 @@ import { OrdersFilters } from "../components/Orders/OrdersFilters";
 import { OrdersTable } from "../components/Orders/OrdersTable";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { CreditPersonModal } from "../components/Orders/CreditPersonModal";
+import { useLanguage } from "../context/LanguageContext";
 
 export const Orders: React.FC = () => {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -74,7 +76,7 @@ export const Orders: React.FC = () => {
         if (response.success && response.data) {
           setOrders(response.data.reverse());
         } else {
-          toast.error(response.message || "Failed to load orders");
+          toast.error(response.message || t("orders.failedToLoad"));
         }
       } else {
         // Fetch orders by storefront
@@ -82,12 +84,12 @@ export const Orders: React.FC = () => {
         if (response.success && response.data) {
           setOrders(response.data.orders.reverse());
         } else {
-          toast.error(response.message || "Failed to load orders");
+          toast.error(response.message || t("orders.failedToLoad"));
         }
       }
     } catch (error) {
       console.error("Error loading orders:", error);
-      toast.error("Failed to load orders");
+      toast.error(t("orders.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -116,11 +118,11 @@ export const Orders: React.FC = () => {
       if (response.success && response.data) {
         setSelectedOrder(response.data);
       } else {
-        toast.error(response.message || "Failed to load order details");
+        toast.error(response.message || t("orders.failedToLoadDetails"));
       }
     } catch (error) {
       console.error("Error loading order details:", error);
-      toast.error("Failed to load order details");
+      toast.error(t("orders.failedToLoadDetails"));
     } finally {
       setLoadingDetail(false);
     }
@@ -141,17 +143,17 @@ export const Orders: React.FC = () => {
         creditPersonId
       );
       if (response.success) {
-        toast.success("Credit person assigned successfully");
+        toast.success(t("orders.creditPersonAssigned"));
         setShowCreditPersonModal(false);
         setSelectedOrderForCredit(null);
         // Refresh orders
         await loadOrders();
       } else {
-        toast.error(response.message || "Failed to assign credit person");
+        toast.error(response.message || t("orders.failedToAssign"));
       }
     } catch (error) {
       console.error("Error assigning credit person:", error);
-      toast.error("Failed to assign credit person");
+      toast.error(t("orders.failedToAssign"));
     } finally {
       setAssigningCreditPerson(false);
     }
@@ -164,10 +166,10 @@ export const Orders: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Receipt className="w-7 h-7 text-primary" />
-            Order Management
+            {t("orders.title")}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            View and manage all sales orders
+            {t("orders.subtitle")}
           </p>
         </div>
         <button
@@ -176,7 +178,7 @@ export const Orders: React.FC = () => {
           className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          {t("common.refresh")}
         </button>
       </div>
 

@@ -23,11 +23,13 @@ import { createCreditRecord } from "../services/Credit/createCreditRecord";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
 import { Order } from "../services/Order/fetchOrders";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
+import { useLanguage } from "../context/LanguageContext";
 
 export const CreditDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   // Get credit person info from location state if available
   const personInfo = location.state as {
@@ -132,11 +134,11 @@ export const CreditDetail: React.FC = () => {
 
   const handleAddPayment = async () => {
     if (!paymentForm.orderId) {
-      toast.error("Please select an order");
+      toast.error(t("creditDetail.selectOrder"));
       return;
     }
     if (paymentForm.paidAmount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error(t("creditDetail.enterAmount"));
       return;
     }
 
@@ -149,16 +151,16 @@ export const CreditDetail: React.FC = () => {
       });
 
       if (response.success) {
-        toast.success("Payment recorded successfully");
+        toast.success(t("creditDetail.paymentRecorded"));
         handleCloseAddPayment();
         // Refresh the credit details
         await loadCreditDetail();
       } else {
-        toast.error(response.message || "Failed to record payment");
+        toast.error(response.message || t("creditDetail.failedToRecord"));
       }
     } catch (error) {
       console.error("Error recording payment:", error);
-      toast.error("Failed to record payment");
+      toast.error(t("creditDetail.failedToRecord"));
     } finally {
       setIsSubmitting(false);
     }
@@ -210,7 +212,7 @@ export const CreditDetail: React.FC = () => {
           className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          {t("creditDetail.refresh")}
         </button>
         {personaDetail && personaDetail.orders.length > 0 && (
           <button
@@ -218,7 +220,7 @@ export const CreditDetail: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
           >
             <Plus className="w-4 h-4" />
-            Add Payment
+            {t("creditDetail.addPayment")}
           </button>
         )}
       </div>
@@ -226,7 +228,7 @@ export const CreditDetail: React.FC = () => {
       {loading ? (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
-          <p className="text-slate-500">Loading credit details...</p>
+          <p className="text-slate-500">{t("creditDetail.loading")}</p>
         </div>
       ) : personaDetail ? (
         <>
@@ -238,7 +240,9 @@ export const CreditDetail: React.FC = () => {
                   <Receipt className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Total Records</p>
+                  <p className="text-sm text-slate-500">
+                    {t("creditDetail.totalRecords")}
+                  </p>
                   <p className="text-2xl font-bold text-slate-800">
                     {personaDetail.summary.totalCreditRecords}
                   </p>
@@ -252,7 +256,9 @@ export const CreditDetail: React.FC = () => {
                   <DollarSign className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Total Paid</p>
+                  <p className="text-sm text-slate-500">
+                    {t("creditDetail.totalPaid")}
+                  </p>
                   <p className="text-2xl font-bold text-green-600">
                     {personaDetail?.summary?.totalPaidViaCreditRecords?.toLocaleString()}{" "}
                     MMK
@@ -267,7 +273,9 @@ export const CreditDetail: React.FC = () => {
                   <AlertTriangle className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Outstanding</p>
+                  <p className="text-sm text-slate-500">
+                    {t("creditDetail.outstanding")}
+                  </p>
                   <p className="text-2xl font-bold text-orange-600">
                     {personaDetail.summary.totalOutstandingAmount.toLocaleString()}{" "}
                     MMK
@@ -282,13 +290,14 @@ export const CreditDetail: React.FC = () => {
             <div className="p-4 border-b bg-slate-50">
               <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-primary" />
-                Associated Orders ({personaDetail.orders.length})
+                {t("creditDetail.associatedOrders")} (
+                {personaDetail.orders.length})
               </h2>
             </div>
             <div className="p-4">
               {personaDetail.orders.length === 0 ? (
                 <p className="text-slate-400 text-sm text-center py-4">
-                  No orders associated
+                  {t("creditDetail.noOrders")}
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -311,30 +320,39 @@ export const CreditDetail: React.FC = () => {
             <div className="p-4 border-b bg-slate-50">
               <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-primary" />
-                Payment Records ({personaDetail.creditRecords.count})
+                {t("creditDetail.paymentRecords")} (
+                {personaDetail.creditRecords.count})
               </h2>
             </div>
             {personaDetail.creditRecords.records.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
-                No payment records found
+                {t("creditDetail.noRecords")}
               </div>
             ) : (
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50 text-slate-600 border-b">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Order</th>
-                    <th className="px-4 py-3 font-medium">Payment Date</th>
-                    <th className="px-4 py-3 font-medium">Method</th>
-                    <th className="px-4 py-3 font-medium text-right">
-                      Order Amount
+                    <th className="px-4 py-3 font-medium">
+                      {t("creditDetail.order")}
+                    </th>
+                    <th className="px-4 py-3 font-medium">
+                      {t("creditDetail.paymentDate")}
+                    </th>
+                    <th className="px-4 py-3 font-medium">
+                      {t("common.method")}
                     </th>
                     <th className="px-4 py-3 font-medium text-right">
-                      Amount Paid
+                      {t("creditDetail.orderAmount")}
                     </th>
                     <th className="px-4 py-3 font-medium text-right">
-                      Remaining
+                      {t("creditDetail.amountPaid")}
                     </th>
-                    <th className="px-4 py-3 font-medium">Notes</th>
+                    <th className="px-4 py-3 font-medium text-right">
+                      {t("creditDetail.remaining")}
+                    </th>
+                    <th className="px-4 py-3 font-medium">
+                      {t("common.notes")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -403,7 +421,7 @@ export const CreditDetail: React.FC = () => {
             <div className="p-4 border-b flex justify-between items-center bg-green-50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-green-600" />
-                Record Payment
+                {t("creditDetail.recordPayment")}
               </h2>
               <button
                 onClick={handleCloseAddPayment}
@@ -417,7 +435,8 @@ export const CreditDetail: React.FC = () => {
               {/* Order Selection */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Select Order <span className="text-red-500">*</span>
+                  {t("creditDetail.selectOrder")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
@@ -426,7 +445,9 @@ export const CreditDetail: React.FC = () => {
                     setPaymentForm({ ...paymentForm, orderId: e.target.value })
                   }
                 >
-                  <option value="">-- Select Order --</option>
+                  <option value="">
+                    -- {t("creditDetail.selectOrder")} --
+                  </option>
                   {personaDetail?.orders.map((order) => (
                     <option key={order._id} value={order._id}>
                       {order.orderNumber}
@@ -438,13 +459,14 @@ export const CreditDetail: React.FC = () => {
               {/* Amount */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Amount (MMK) <span className="text-red-500">*</span>
+                  {t("creditDetail.amount")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   min="0"
                   className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                  placeholder="Enter payment amount"
+                  placeholder={t("creditDetail.enterAmount")}
                   value={paymentForm.paidAmount || ""}
                   onChange={(e) =>
                     setPaymentForm({
@@ -458,7 +480,7 @@ export const CreditDetail: React.FC = () => {
               {/* Payment Method */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Payment Method
+                  {t("creditDetail.paymentMethod")}
                 </label>
                 <select
                   className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
@@ -484,7 +506,7 @@ export const CreditDetail: React.FC = () => {
                 onClick={handleCloseAddPayment}
                 className="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleAddPayment}
@@ -493,11 +515,13 @@ export const CreditDetail: React.FC = () => {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Recording...
+                    <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                    {t("common.loading")}
                   </>
                 ) : (
                   <>
-                    <Plus className="w-4 h-4" /> Record Payment
+                    <Plus className="w-4 h-4" />{" "}
+                    {t("creditDetail.recordPayment")}
                   </>
                 )}
               </button>
