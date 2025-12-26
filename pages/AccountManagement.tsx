@@ -15,6 +15,10 @@ import {
   Trash2,
   AlertTriangle,
   RotateCcw,
+  Plus,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +29,11 @@ import { updateAdminAccount } from "../services/Admin/updateAdminAccount";
 import { softDeleteAdminAccount } from "../services/Admin/softDeleteAdminAccount";
 import { restoreAdminAccount } from "../services/Admin/restoreAdminAccount";
 import { deleteAdminAccount } from "../services/Admin/deleteAdminAccount";
+import { createAdminAccount } from "../services/Admin/createAdminAccount";
+import {
+  fetchLocationProfiles,
+  LocationProfile,
+} from "../services/Location/fetchLocationProfiles";
 
 export const AccountManagement: React.FC = () => {
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
@@ -62,9 +71,73 @@ export const AccountManagement: React.FC = () => {
     useState<AdminAccount | null>(null);
   const [isHardDeleting, setIsHardDeleting] = useState(false);
 
+  // Create Account Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    name: "",
+    password: "",
+    confirmPassword: "",
+    locationId: "",
+    role: "cashier",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [locationProfiles, setLocationProfiles] = useState<LocationProfile[]>(
+    []
+  );
+
   useEffect(() => {
     loadAccounts();
+    loadLocations();
   }, []);
+
+  const loadLocations = async () => {
+    try {
+      const response = await fetchLocationProfiles();
+      console.log("Location profiles response:", response);
+      if (response.success && response.data) {
+        // Ensure data is an array
+        const locations = Array.isArray(response.data) ? response.data : [];
+
+        console.log("All locations from API:", locations);
+
+        // Filter only active locations that are not deleted
+        const activeLocations = locations.filter(
+          (location) =>
+            location.status === "active" &&
+            !location.isDeleted &&
+            !location.deletedAt
+        );
+        console.log("Active locations after filter:", activeLocations);
+
+        // If we have active locations, use them; otherwise show all non-deleted
+        if (activeLocations.length > 0) {
+          setLocationProfiles(activeLocations);
+        } else {
+          // Fallback: show all non-deleted locations
+          const nonDeleted = locations.filter(
+            (location) => !location.isDeleted && !location.deletedAt
+          );
+          console.log("No active locations, using non-deleted:", nonDeleted);
+          setLocationProfiles(nonDeleted);
+
+          // If still empty, show all locations for debugging
+          if (nonDeleted.length === 0 && locations.length > 0) {
+            console.log("No non-deleted locations, showing all:", locations);
+            setLocationProfiles(locations);
+          }
+        }
+      } else {
+        console.error("Failed to load locations:", response.message);
+        setLocationProfiles([]);
+      }
+    } catch (error) {
+      console.error("Error loading locations:", error);
+      toast.error("Failed to load locations");
+      setLocationProfiles([]);
+    }
+  };
 
   const loadAccounts = async () => {
     setLoading(true);
@@ -291,6 +364,70 @@ export const AccountManagement: React.FC = () => {
     }
   };
 
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!createFormData.name.trim()) {
+      toast.error("Account name is required");
+      return;
+    }
+
+    if (!createFormData.password) {
+      toast.error("Password is required");
+      return;
+    }
+
+    if (createFormData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (createFormData.password !== createFormData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (!createFormData.role) {
+      toast.error("Role is required");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const payload = {
+        name: createFormData.name.trim(),
+        password: createFormData.password,
+        confirmPassword: createFormData.confirmPassword,
+        role: createFormData.role,
+        ...(createFormData.locationId && {
+          locationId: createFormData.locationId,
+        }),
+      };
+
+      const response = await createAdminAccount(payload);
+
+      if (response.success) {
+        toast.success("Account created successfully!");
+        setIsCreateModalOpen(false);
+        setCreateFormData({
+          name: "",
+          password: "",
+          confirmPassword: "",
+          locationId: "",
+          role: "cashier",
+        });
+        loadAccounts(); // Refresh the list
+      } else {
+        toast.error(response.message || "Failed to create account");
+      }
+    } catch (error: any) {
+      console.error("Error creating account:", error);
+      toast.error(error.message || "Failed to create account");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const activeCount = accounts.filter(
     (a) => !a.softDeleted && !a.deletedAt
   ).length;
@@ -311,14 +448,25 @@ export const AccountManagement: React.FC = () => {
             Manage system user accounts and permissions
           </p>
         </div>
-        <button
-          onClick={loadAccounts}
-          disabled={loading}
-          className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              loadLocations(); // Reload locations when opening modal
+              setIsCreateModalOpen(true);
+            }}
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-dark px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Create Account
+          </button>
+          <button
+            onClick={loadAccounts}
+            disabled={loading}
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -859,6 +1007,241 @@ export const AccountManagement: React.FC = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Account Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-primary" />
+                Create New Account
+              </h2>
+              <button
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setCreateFormData({
+                    name: "",
+                    password: "",
+                    confirmPassword: "",
+                    locationId: "",
+                    role: "cashier",
+                  });
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAccount} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Account Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={200}
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
+                  placeholder="Enter account name"
+                  value={createFormData.name}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      name: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
+                  value={createFormData.role}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      role: e.target.value,
+                    })
+                  }
+                >
+                  <option value="cashier">Cashier</option>
+                  <option value="owner">Owner</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Location (Optional)
+                </label>
+                <select
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
+                  value={createFormData.locationId}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      locationId: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">No location</option>
+                  {locationProfiles.length === 0 ? (
+                    <option disabled>Loading locations...</option>
+                  ) : (
+                    <>
+                      {locationProfiles.filter(
+                        (loc) => loc.type === "storefront"
+                      ).length > 0 && (
+                        <optgroup label="Storefronts">
+                          {locationProfiles
+                            .filter((loc) => loc.type === "storefront")
+                            .map((loc) => (
+                              <option key={loc._id} value={loc._id}>
+                                {loc.locationName} ({loc.locationCode})
+                              </option>
+                            ))}
+                        </optgroup>
+                      )}
+                      {locationProfiles.filter(
+                        (loc) => loc.type === "warehouse"
+                      ).length > 0 && (
+                        <optgroup label="Warehouses">
+                          {locationProfiles
+                            .filter((loc) => loc.type === "warehouse")
+                            .map((loc) => (
+                              <option key={loc._id} value={loc._id}>
+                                {loc.locationName} ({loc.locationCode})
+                              </option>
+                            ))}
+                        </optgroup>
+                      )}
+                      {locationProfiles.length > 0 &&
+                        locationProfiles.filter(
+                          (loc) => loc.type === "storefront"
+                        ).length === 0 &&
+                        locationProfiles.filter(
+                          (loc) => loc.type === "warehouse"
+                        ).length === 0 && (
+                          <option disabled>
+                            No active locations available
+                          </option>
+                        )}
+                    </>
+                  )}
+                </select>
+                {locationProfiles.length === 0 && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    No locations found. Please check if locations are available.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="w-full border rounded-lg p-2 pr-10 focus:ring-2 focus:ring-primary outline-none"
+                    placeholder="Enter password"
+                    value={createFormData.password}
+                    onChange={(e) =>
+                      setCreateFormData({
+                        ...createFormData,
+                        password: e.target.value,
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Confirm Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    className="w-full border rounded-lg p-2 pr-10 focus:ring-2 focus:ring-primary outline-none"
+                    placeholder="Confirm password"
+                    value={createFormData.confirmPassword}
+                    onChange={(e) =>
+                      setCreateFormData({
+                        ...createFormData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setCreateFormData({
+                      name: "",
+                      password: "",
+                      confirmPassword: "",
+                      locationId: "",
+                      role: "cashier",
+                    });
+                  }}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-4 py-2 bg-primary text-dark rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" /> Create Account
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

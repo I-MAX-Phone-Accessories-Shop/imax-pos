@@ -129,8 +129,10 @@ export const Inventory: React.FC = () => {
       const response = await fetchProducts();
       if (response.success && response.data) {
         // Store full API products for subcategory extraction
-        setApiProducts(response.data);
-        const mappedProducts = response.data.map(mapApiProductToProduct);
+        // Cast to ApiProduct[] since API returns full product data, not mapped Product type
+        const apiData = response.data as unknown as ApiProduct[];
+        setApiProducts(apiData);
+        const mappedProducts = apiData.map(mapApiProductToProduct);
         setProducts(mappedProducts);
         // Only show success toast if products were loaded (not on initial load)
         if (products.length > 0) {
@@ -328,7 +330,7 @@ export const Inventory: React.FC = () => {
       productName: p.name,
       productCode: p.id, // Using id as productCode for existing products
       saleCode: apiProduct?.saleCode || "",
-      SKU: p.id,
+      SKU: apiProduct?.SKU || "",
       barcode: apiProduct?.barcode || "",
       category: p.category,
       subCategory: apiProduct?.subCategory || "",

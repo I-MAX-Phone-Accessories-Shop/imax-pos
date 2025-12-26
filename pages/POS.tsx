@@ -205,11 +205,10 @@ export const POS: React.FC = () => {
     setCart((prev) => prev.filter((item) => item.stockItem._id !== id));
   };
 
-  // Calculate totals (assuming sellingPrice would come from inventory - using placeholder)
+  // Calculate totals
   const getItemPrice = (item: StorefrontStockItem) => {
-    // For now, use a placeholder price since API doesn't include sellingPrice
-    // In production, you'd fetch this from the inventory API
-    return 10000; // Placeholder price in MMK
+    // Use sellingPrice from inventory if available, otherwise use placeholder
+    return item.inventoryId.sellingPrice || 10000; // Default to 10000 MMK if not available
   };
 
   const subtotal = cart.reduce(

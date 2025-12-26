@@ -8,6 +8,7 @@ export interface StorefrontStockInventory {
   category: string;
   profitMargin: number | null;
   profitAmount: number | null;
+  sellingPrice?: number;
 }
 
 export interface StorefrontStockStorefront {
