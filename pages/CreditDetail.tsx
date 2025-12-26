@@ -254,7 +254,7 @@ export const CreditDetail: React.FC = () => {
                 <div>
                   <p className="text-sm text-slate-500">Total Paid</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {personaDetail.summary.totalPaidViaCreditRecords.toLocaleString()}{" "}
+                    {personaDetail?.summary?.totalPaidViaCreditRecords?.toLocaleString()}{" "}
                     MMK
                   </p>
                 </div>
