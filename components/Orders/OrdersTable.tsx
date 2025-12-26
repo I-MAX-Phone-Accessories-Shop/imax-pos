@@ -1,0 +1,154 @@
+import React from "react";
+import {
+  RefreshCw,
+  Eye,
+  ShoppingBag,
+  Store,
+  CreditCard,
+  UserPlus,
+  User,
+} from "lucide-react";
+import { Order } from "../../services/Order/fetchOrders";
+import {
+  getStatusColor,
+  getPaymentTypeLabel,
+  getPaymentMethodLabel,
+  getPaymentTypeColor,
+  formatDate,
+} from "./orderUtils";
+
+interface OrdersTableProps {
+  loading: boolean;
+  orders: Order[];
+  onViewOrder: (orderId: string) => void;
+  onOpenCreditPersonModal: (order: Order) => void;
+}
+
+export const OrdersTable: React.FC<OrdersTableProps> = ({
+  loading,
+  orders,
+  onViewOrder,
+  onOpenCreditPersonModal,
+}) => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+        <RefreshCw className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+        <p className="text-slate-500">Loading orders...</p>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+        <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+        <p className="text-slate-500">No orders found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <table className="w-full text-sm text-left">
+        <thead className="bg-slate-50 border-b">
+          <tr>
+            <th className="p-4 font-semibold text-slate-600">Order Number</th>
+            <th className="p-4 font-semibold text-slate-600">Storefront</th>
+            <th className="p-4 font-semibold text-slate-600">Items</th>
+            <th className="p-4 font-semibold text-slate-600 text-right">
+              Final Amount
+            </th>
+            <th className="p-4 font-semibold text-slate-600 text-right">
+              Paid
+            </th>
+            <th className="p-4 font-semibold text-slate-600">Type</th>
+            <th className="p-4 font-semibold text-slate-600">Method</th>
+            <th className="p-4 font-semibold text-slate-600">Status</th>
+            <th className="p-4 font-semibold text-slate-600">Date</th>
+            <th className="p-4 font-semibold text-slate-600">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {orders.map((order) => (
+            <tr key={order._id} className="hover:bg-slate-50">
+              <td className="p-4 font-medium text-blue-600">
+                {order.orderNumber}
+              </td>
+              <td className="p-4">
+                <div className="flex items-center gap-2">
+                  <Store className="w-4 h-4 text-slate-400" />
+                  <span>{order.storefrontId?.locationName || "-"}</span>
+                </div>
+              </td>
+              <td className="p-4">
+                <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
+                  {order.ordersProducts?.length || 0} item(s)
+                </span>
+              </td>
+              <td className="p-4 text-right font-bold text-slate-800">
+                {order.finalAmount?.toLocaleString()} MMK
+              </td>
+              <td className="p-4 text-right text-green-600 font-medium">
+                {order.paidAmount?.toLocaleString()} MMK
+              </td>
+              <td className="p-4">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-bold ${getPaymentTypeColor(
+                    order.paymentType
+                  )}`}
+                >
+                  {getPaymentTypeLabel(order.paymentType)}
+                </span>
+              </td>
+              <td className="p-4">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-slate-400" />
+                  <span>{getPaymentMethodLabel(order.paymentMethod)}</span>
+                </div>
+              </td>
+              <td className="p-4">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
+                    order.orderStatus
+                  )}`}
+                >
+                  {order.orderStatus?.toUpperCase()}
+                </span>
+              </td>
+              <td className="p-4 text-slate-500 text-xs">
+                {formatDate(order.createdAt)}
+              </td>
+              <td className="p-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onViewOrder(order._id)}
+                    className="text-xs bg-primary/20 text-yellow-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
+                  >
+                    <Eye className="w-3 h-3" /> View
+                  </button>
+                  {order.paymentType?.toLowerCase() === "credit" &&
+                    !order.creditPersonId && (
+                      <button
+                        onClick={() => onOpenCreditPersonModal(order)}
+                        className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-200 border border-orange-200 font-medium transition-colors flex items-center gap-1"
+                      >
+                        <UserPlus className="w-3 h-3" /> Add Person
+                      </button>
+                    )}
+                  {order.paymentType?.toLowerCase() === "credit" &&
+                    order.creditPersonId && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded flex items-center gap-1">
+                        <User className="w-3 h-3" /> Assigned
+                      </span>
+                    )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+

@@ -218,7 +218,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                         className="p-3 font-mono text-xs truncate max-w-xs"
                         title={item.inventoryId}
                       >
-                        {item.inventoryId.substring(0, 12)}...
+                        {item?.inventoryId?._id?.substring(0, 12) || "-"}
                       </td>
                       <td className="p-3 text-center">
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">

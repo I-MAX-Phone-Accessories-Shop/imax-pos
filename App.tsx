@@ -33,29 +33,29 @@ const AppLayout: React.FC = () => {
       {/* Only show header and sidebar if authenticated */}
       {token && (
         <>
-          {/* Header */}
-          <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
-            <div className="flex items-center h-14 px-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
-                aria-label="Open menu"
-              >
-                <Menu className="w-6 h-6 text-primary" />
-              </button>
-              {/* <img
+      {/* Header */}
+      <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
+        <div className="flex items-center h-14 px-4">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
+            aria-label="Open menu"
+          >
+            <Menu className="w-6 h-6 text-primary" />
+          </button>
+          {/* <img
             src="/imaslogo.jpg"
             alt="IMAS Logo"
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
-              <h1 className="text-lg font-bold text-primary tracking-wide">
-                IMAS POS
-              </h1>
-            </div>
-          </header>
+          <h1 className="text-lg font-bold text-primary tracking-wide">
+            IMAS POS
+          </h1>
+        </div>
+      </header>
 
-          {/* Sidebar */}
-          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </>
       )}
 

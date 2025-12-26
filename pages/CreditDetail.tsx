@@ -20,6 +20,9 @@ import {
   CreditPersonaRecordsData,
 } from "../services/Credit/fetchCreditPersonaRecords";
 import { createCreditRecord } from "../services/Credit/createCreditRecord";
+import { fetchOrderById } from "../services/Order/fetchOrderById";
+import { Order } from "../services/Order/fetchOrders";
+import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 
 export const CreditDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +51,10 @@ export const CreditDetail: React.FC = () => {
     paidAmount: 0,
     paymentMethod: "cash",
   });
+
+  // Order Detail Modal State
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -154,6 +161,24 @@ export const CreditDetail: React.FC = () => {
       toast.error("Failed to record payment");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleViewOrder = async (orderId: string) => {
+    setLoadingOrderDetail(true);
+    setSelectedOrder(null);
+    try {
+      const response = await fetchOrderById(orderId);
+      if (response.success && response.data) {
+        setSelectedOrder(response.data);
+      } else {
+        toast.error(response.message || "Failed to load order details");
+      }
+    } catch (error) {
+      console.error("Error loading order details:", error);
+      toast.error("Failed to load order details");
+    } finally {
+      setLoadingOrderDetail(false);
     }
   };
 
@@ -268,12 +293,13 @@ export const CreditDetail: React.FC = () => {
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {personaDetail.orders.map((order) => (
-                    <span
+                    <button
                       key={order._id}
-                      className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium"
+                      onClick={() => handleViewOrder(order._id)}
+                      className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer"
                     >
                       {order.orderNumber}
-                    </span>
+                    </button>
                   ))}
                 </div>
               )}
@@ -479,6 +505,17 @@ export const CreditDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        isOpen={!!(selectedOrder || loadingOrderDetail)}
+        loading={loadingOrderDetail}
+        order={selectedOrder}
+        onClose={() => {
+          setSelectedOrder(null);
+          setLoadingOrderDetail(false);
+        }}
+      />
     </div>
   );
 };

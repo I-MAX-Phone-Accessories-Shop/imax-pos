@@ -1,0 +1,106 @@
+import React from "react";
+import { Search } from "lucide-react";
+import { StorefrontProfile } from "../../services/Storefront/fetchStorefrontProfiles";
+import { Order } from "../../services/Order/fetchOrders";
+import { getPaymentMethodLabel } from "./orderUtils";
+
+interface OrdersFiltersProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  storefronts: StorefrontProfile[];
+  selectedStorefrontId: string;
+  onStorefrontChange: (value: string) => void;
+  paymentTypeFilter: string;
+  onPaymentTypeChange: (value: string) => void;
+  paymentMethodFilter: string;
+  onPaymentMethodChange: (value: string) => void;
+  orders: Order[];
+  filteredOrders: Order[];
+}
+
+export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
+  search,
+  onSearchChange,
+  storefronts,
+  selectedStorefrontId,
+  onStorefrontChange,
+  paymentTypeFilter,
+  onPaymentTypeChange,
+  paymentMethodFilter,
+  onPaymentMethodChange,
+  orders,
+  filteredOrders,
+}) => {
+  const uniquePaymentMethods = Array.from(
+    new Set(orders.map((o) => o.paymentMethod).filter(Boolean))
+  );
+
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
+      <div className="flex flex-wrap items-center gap-4">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[250px]">
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by order number or store..."
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
+
+        {/* Storefront Filter */}
+        <div className="flex items-center gap-2">
+          <select
+            className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            value={selectedStorefrontId}
+            onChange={(e) => onStorefrontChange(e.target.value)}
+          >
+            <option value="all">All Storefronts</option>
+            {storefronts.map((sf) => (
+              <option key={sf._id} value={sf._id}>
+                {sf.locationName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Payment Type Filter */}
+        <div className="flex items-center gap-2">
+          <select
+            className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            value={paymentTypeFilter}
+            onChange={(e) => onPaymentTypeChange(e.target.value)}
+          >
+            <option value="all">All Types</option>
+            <option value="paid">Paid</option>
+            <option value="credit">Credit</option>
+          </select>
+        </div>
+
+        {/* Payment Method Filter */}
+        <div className="flex items-center gap-2">
+          <select
+            className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            value={paymentMethodFilter}
+            onChange={(e) => onPaymentMethodChange(e.target.value)}
+          >
+            <option value="all">All Methods</option>
+            {uniquePaymentMethods.map((method) => (
+              <option key={String(method)} value={String(method)}>
+                {getPaymentMethodLabel(String(method))}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Results count */}
+        <div className="text-sm text-slate-500">
+          Showing {filteredOrders.length} of {orders.length} orders
+        </div>
+      </div>
+    </div>
+  );
+};
+

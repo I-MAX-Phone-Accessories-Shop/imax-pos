@@ -1,0 +1,225 @@
+import React from "react";
+import {
+  X,
+  RefreshCw,
+  Receipt,
+  Store,
+  Calendar,
+  CreditCard,
+  Package,
+} from "lucide-react";
+import { Order } from "../../services/Order/fetchOrders";
+import {
+  getStatusColor,
+  getPaymentTypeLabel,
+  getPaymentMethodLabel,
+  getPaymentTypeColor,
+  formatDate,
+} from "./orderUtils";
+
+interface OrderDetailModalProps {
+  isOpen: boolean;
+  loading: boolean;
+  order: Order | null;
+  onClose: () => void;
+}
+
+export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
+  isOpen,
+  loading,
+  order,
+  onClose,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        {/* Modal Header */}
+        <div className="flex justify-between items-center p-4 border-b bg-slate-50">
+          <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-primary" />
+            Order Details
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-200 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <RefreshCw className="w-8 h-8 animate-spin text-primary mb-3" />
+              <p className="text-slate-500">Loading order details...</p>
+            </div>
+          ) : order ? (
+            <>
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <p className="text-xs text-blue-600 font-medium mb-1">
+                    Order Number
+                  </p>
+                  <p className="font-bold text-blue-800">{order.orderNumber}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <p className="text-xs text-green-600 font-medium mb-1">
+                    Status
+                  </p>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
+                      order.orderStatus
+                    )}`}
+                  >
+                    {order.orderStatus?.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Store & Date Info */}
+              <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Store className="w-4 h-4" />
+                  <span>{order.storefrontId?.locationName || "-"}</span>
+                  <span className="text-xs text-slate-400">
+                    ({order.storefrontId?.locationCode})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Calendar className="w-4 h-4" />
+                  <span>{formatDate(order.createdAt)}</span>
+                </div>
+              </div>
+
+              {/* Products */}
+              <div className="mb-6">
+                <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Order Items
+                </h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="p-3 text-left font-medium text-slate-600">
+                          Product
+                        </th>
+                        <th className="p-3 text-center font-medium text-slate-600">
+                          Qty
+                        </th>
+                        <th className="p-3 text-right font-medium text-slate-600">
+                          Unit Price
+                        </th>
+                        <th className="p-3 text-right font-medium text-slate-600">
+                          Subtotal
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {order.ordersProducts?.map((item, index) => (
+                        <tr key={item._id || index}>
+                          <td className="p-3">
+                            <div>
+                              <p className="font-medium text-slate-800">
+                                {item.inventoryId?.productName || "Unknown"}
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                {item.inventoryId?.productCode}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="p-3 text-center font-medium">
+                            {item.quantity}
+                          </td>
+                          <td className="p-3 text-right text-slate-600">
+                            {item.unitPrice?.toLocaleString()} MMK
+                          </td>
+                          <td className="p-3 text-right font-medium text-slate-800">
+                            {(item.quantity * (item.unitPrice || 0)).toLocaleString()}{" "}
+                            MMK
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Payment Summary */}
+              <div className="bg-slate-50 p-4 rounded-lg border">
+                <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Payment Summary
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Subtotal</span>
+                    <span>{order.subTotal?.toLocaleString()} MMK</span>
+                  </div>
+                  {order.tax > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Tax</span>
+                      <span>{order.tax?.toLocaleString()} MMK</span>
+                    </div>
+                  )}
+                  {order.discount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>
+                        -{order.discount?.toLocaleString()} MMK
+                      </span>
+                    </div>
+                  )}
+                  <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                    <span>Final Amount</span>
+                    <span>{order.finalAmount?.toLocaleString()} MMK</span>
+                  </div>
+                  <div className="flex justify-between text-green-600">
+                    <span>Paid Amount</span>
+                    <span>{order.paidAmount?.toLocaleString()} MMK</span>
+                  </div>
+                  {order.extraChange > 0 && (
+                    <div className="flex justify-between text-blue-600 font-medium">
+                      <span>Change</span>
+                      <span>{order.extraChange?.toLocaleString()} MMK</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t">
+                    <span className="text-slate-500">Payment Type</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-bold ${getPaymentTypeColor(
+                        order.paymentType
+                      )}`}
+                    >
+                      {getPaymentTypeLabel(order.paymentType)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Payment Method</span>
+                    <span className="font-medium">
+                      {getPaymentMethodLabel(order.paymentMethod)}
+                    </span>
+                  </div>
+                  {order.remainingBalance !== undefined &&
+                    order.remainingBalance > 0 && (
+                      <div className="flex justify-between text-orange-600 font-medium">
+                        <span>Remaining Balance</span>
+                        <span>
+                          {order.remainingBalance?.toLocaleString()} MMK
+                        </span>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
