@@ -111,13 +111,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             const Icon = item.icon;
 
             // Simple permission check: Staff cannot purchase
-            const userRole = adminData?.role || currentUser.role;
-            if (item.path === "/purchasing" && userRole !== "owner" && userRole !== "ADMIN")
-              return null;
-            
+            // const userRole = adminData?.role || currentUser.role;
+            // if (item.path === "/purchasing" && userRole !== "owner" && userRole !== "ADMIN")
+            //   return null;
+
             // Account Management only for owners/admins
-            if (item.path === "/accounts" && userRole !== "owner" && userRole !== "ADMIN")
-              return null;
+            // if (item.path === "/accounts" && userRole !== "owner" && userRole !== "ADMIN")
+            //   return null;
 
             return (
               <NavLink
