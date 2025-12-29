@@ -28,6 +28,7 @@ export interface Product {
   _id?: string;
   name: string;
   productName?: string;
+  productCode?: string;
   category: ProductCategory;
   stockWarehouse: number;
   stockShop: number;

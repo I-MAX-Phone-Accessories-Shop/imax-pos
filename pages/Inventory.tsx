@@ -112,6 +112,7 @@ export const Inventory: React.FC = () => {
   // Map API product to local Product type
   const mapApiProductToProduct = (apiProduct: ApiProduct): Product => {
     return {
+      productCode: apiProduct.productCode,
       id: apiProduct.id || apiProduct._id || "",
       name: apiProduct.productName,
       category:
@@ -162,15 +163,14 @@ export const Inventory: React.FC = () => {
         errorMessage.includes("API endpoint not found") ||
         errorMessage.includes("Network error")
       ) {
-        console.warn(
-          "💡 Tip: Make sure to set VITE_API_BASE_URL in your .env.local file.\n" +
-            "Example: VITE_API_BASE_URL=http://localhost:8000/api"
-        );
+        console.warn("Error loading products: " + errorMessage);
       }
     } finally {
       setIsFetching(false);
     }
   };
+
+  console.log("products", products);
 
   // Fetch products on component mount
   useEffect(() => {
@@ -321,6 +321,7 @@ export const Inventory: React.FC = () => {
   };
 
   const openEdit = (p: Product) => {
+    console.log("", p);
     setEditingId(p.id);
     // Find the full API product to get all details including subCategory
     const apiProduct = apiProducts.find((ap) => (ap.id || ap._id) === p.id);
@@ -397,6 +398,8 @@ export const Inventory: React.FC = () => {
     selectedCategory === "All"
       ? products
       : products.filter((p) => p.category === selectedCategory);
+
+  // console.log("filteredProducts", filteredProducts);
 
   return (
     <div className="p-6">
@@ -476,11 +479,12 @@ export const Inventory: React.FC = () => {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-600 border-b">
               <tr>
+                <th className="px-4 py-3">Product Code</th>
                 <th className="px-4 py-3">{t("inventory.productName")}</th>
                 <th className="px-4 py-3">{t("inventory.category")}</th>
                 <th className="px-4 py-3 text-right">{t("inventory.cost")}</th>
                 <th className="px-4 py-3 text-right">{t("inventory.price")}</th>
-                {/* <th className="px-4 py-3 text-right">{t("inventory.whse")}</th> */}
+
                 {/* <th className="px-4 py-3 text-right">{t("inventory.shop")}</th> */}
                 <th className="px-4 py-3 text-center">{t("common.actions")}</th>
               </tr>
@@ -488,6 +492,7 @@ export const Inventory: React.FC = () => {
             <tbody className="divide-y">
               {filteredProducts.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium">{p.productCode}</td>
                   <td className="px-4 py-3 font-medium">{p.name}</td>
                   <td className="px-4 py-3 text-slate-500">{p.category}</td>
                   <td className="px-4 py-3 text-right text-slate-400">
