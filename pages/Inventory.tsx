@@ -480,8 +480,8 @@ export const Inventory: React.FC = () => {
                 <th className="px-4 py-3">{t("inventory.category")}</th>
                 <th className="px-4 py-3 text-right">{t("inventory.cost")}</th>
                 <th className="px-4 py-3 text-right">{t("inventory.price")}</th>
-                <th className="px-4 py-3 text-right">{t("inventory.whse")}</th>
-                <th className="px-4 py-3 text-right">{t("inventory.shop")}</th>
+                {/* <th className="px-4 py-3 text-right">{t("inventory.whse")}</th> */}
+                {/* <th className="px-4 py-3 text-right">{t("inventory.shop")}</th> */}
                 <th className="px-4 py-3 text-center">{t("common.actions")}</th>
               </tr>
             </thead>
@@ -496,8 +496,8 @@ export const Inventory: React.FC = () => {
                   <td className="px-4 py-3 text-right font-bold text-slate-800">
                     {p.sellingPrice.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right">{p.stockWarehouse}</td>
-                  <td className="px-4 py-3 text-right">
+                  {/* <td className="px-4 py-3 text-right">{p.stockWarehouse}</td> */}
+                  {/* <td className="px-4 py-3 text-right">
                     <span
                       className={`${
                         p.stockShop < p.lowStockThreshold
@@ -510,7 +510,7 @@ export const Inventory: React.FC = () => {
                       )}{" "}
                       {p.stockShop}
                     </span>
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => openEdit(p)}
