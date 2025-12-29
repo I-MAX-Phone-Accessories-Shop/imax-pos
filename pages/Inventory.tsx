@@ -70,7 +70,7 @@ interface ApiProduct {
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [apiProducts, setApiProducts] = useState<ApiProduct[]>([]); // Store full API data for subcategories
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -139,7 +139,12 @@ export const Inventory: React.FC = () => {
         setProducts(mappedProducts);
         // Only show success toast if products were loaded (not on initial load)
         if (products.length > 0) {
-          toast.success(t("inventory.loadedProducts").replace("{count}", mappedProducts.length.toString()));
+          toast.success(
+            t("inventory.loadedProducts").replace(
+              "{count}",
+              mappedProducts.length.toString()
+            )
+          );
         }
       } else {
         const errorMsg = t("inventory.failedToLoadInvalid");
@@ -147,8 +152,7 @@ export const Inventory: React.FC = () => {
         setError(errorMsg);
       }
     } catch (err: any) {
-      const errorMessage =
-        err.message || t("inventory.failedToFetch");
+      const errorMessage = err.message || t("inventory.failedToFetch");
       toast.error(errorMessage);
       setError(errorMessage);
       console.error("Error loading products:", err);
@@ -291,8 +295,7 @@ export const Inventory: React.FC = () => {
       await loadProducts();
       toast.success(t("inventory.productCreated"));
     } catch (err: any) {
-      const errorMessage =
-        err.message || t("inventory.failedToCreate");
+      const errorMessage = err.message || t("inventory.failedToCreate");
       toast.error(errorMessage);
       setError(errorMessage);
     } finally {
@@ -398,7 +401,9 @@ export const Inventory: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">{t("inventory.title")}</h1>
+        <h1 className="text-2xl font-bold text-slate-800">
+          {t("inventory.title")}
+        </h1>
         <div className="flex gap-2">
           <button
             onClick={loadProducts}
@@ -460,7 +465,10 @@ export const Inventory: React.FC = () => {
           <p className="text-slate-500">
             {products.length === 0
               ? t("inventory.noProductsFound")
-              : t("inventory.noProductsInCategory").replace("{category}", selectedCategory)}
+              : t("inventory.noProductsInCategory").replace(
+                  "{category}",
+                  selectedCategory
+                )}
           </p>
         </div>
       ) : (
@@ -522,7 +530,9 @@ export const Inventory: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white p-6 rounded-lg w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
-              {editingId ? t("inventory.editProduct") : t("inventory.addNewProduct")}
+              {editingId
+                ? t("inventory.editProduct")
+                : t("inventory.addNewProduct")}
             </h2>
 
             {error && (
@@ -535,7 +545,8 @@ export const Inventory: React.FC = () => {
               {/* Required Fields */}
               <div className="col-span-2">
                 <label className="block text-xs font-bold text-slate-500">
-                  {t("inventory.productName")} <span className="text-red-500">*</span>
+                  {t("inventory.productName")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -548,7 +559,8 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  {t("inventory.productCode")} <span className="text-red-500">*</span>
+                  {t("inventory.productCode")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   className="w-full border rounded p-2"
@@ -574,7 +586,7 @@ export const Inventory: React.FC = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-xs font-bold text-slate-500">
                   {t("inventory.saleCode")}
                 </label>
@@ -585,9 +597,9 @@ export const Inventory: React.FC = () => {
                     setFormData({ ...formData, saleCode: e.target.value })
                   }
                 />
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-xs font-bold text-slate-500">
                   {t("inventory.barcode")}
                 </label>
@@ -598,11 +610,12 @@ export const Inventory: React.FC = () => {
                     setFormData({ ...formData, barcode: e.target.value })
                   }
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  {t("inventory.category")} <span className="text-red-500">*</span>
+                  {t("inventory.category")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -718,7 +731,8 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  {t("inventory.unitOfMeasure")} <span className="text-red-500">*</span>
+                  {t("inventory.unitOfMeasure")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full border rounded p-2"
@@ -751,7 +765,8 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  {t("inventory.buyingPrice")} <span className="text-red-500">*</span>
+                  {t("inventory.buyingPrice")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -770,7 +785,8 @@ export const Inventory: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
-                  {t("inventory.sellingPrice")} <span className="text-red-500">*</span>
+                  {t("inventory.sellingPrice")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -786,7 +802,7 @@ export const Inventory: React.FC = () => {
                   }
                 />
               </div>
-
+              {/* 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
                   {t("inventory.reorderPoint")}
@@ -821,8 +837,8 @@ export const Inventory: React.FC = () => {
                     })
                   }
                 />
-              </div>
-
+              </div> */}
+              {/* 
               <div>
                 <label className="block text-xs font-bold text-slate-500">
                   {t("inventory.taxRate")}
@@ -841,9 +857,9 @@ export const Inventory: React.FC = () => {
                     })
                   }
                 />
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-xs font-bold text-slate-500">
                   {t("inventory.status")}
                 </label>
@@ -860,9 +876,9 @@ export const Inventory: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
-              <div className="col-span-2">
+              {/* <div className="col-span-2">
                 <label className="block text-xs font-bold text-slate-500 mb-2">
                   {t("inventory.tags")}
                 </label>
@@ -899,7 +915,7 @@ export const Inventory: React.FC = () => {
                     </span>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </div>
             <div className="flex justify-end gap-2">
               <button
