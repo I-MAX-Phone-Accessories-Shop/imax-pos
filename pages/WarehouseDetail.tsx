@@ -11,6 +11,8 @@ import {
   Plus,
   Trash2,
   Loader2,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +27,10 @@ import {
   createWarehouseTransfer,
   TransferLineItem,
 } from "../services/Warehouse/createWarehouseTransfer";
+import {
+  updateWarehouseStockQuantity,
+  UpdateWarehouseStockQuantityPayload,
+} from "../services/Warehouse/updateWarehouseStockQuantity";
 
 interface TransferFormItem {
   productCode: string;
@@ -64,6 +70,17 @@ export const WarehouseDetail: React.FC = () => {
   );
   const [transferNotes, setTransferNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Stock Adjustment Modal State
+  const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
+  const [selectedStockItem, setSelectedStockItem] =
+    useState<WarehouseStockItem | null>(null);
+  const [adjustmentType, setAdjustmentType] = useState<"increase" | "decrease">(
+    "increase"
+  );
+  const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
+  const [adjustmentReason, setAdjustmentReason] = useState("");
+  const [isAdjusting, setIsAdjusting] = useState(false);
 
   useEffect(() => {
     loadWarehouseStock();
@@ -272,6 +289,75 @@ export const WarehouseDetail: React.FC = () => {
     );
   };
 
+  // Stock Adjustment Functions
+  const openAdjustmentModal = (
+    item: WarehouseStockItem,
+    type: "increase" | "decrease"
+  ) => {
+    setSelectedStockItem(item);
+    setAdjustmentType(type);
+    setAdjustmentQuantity(0);
+    setAdjustmentReason("");
+    setIsAdjustmentModalOpen(true);
+  };
+
+  const handleSubmitAdjustment = async () => {
+    if (!selectedStockItem) return;
+
+    if (adjustmentQuantity <= 0) {
+      toast.error("Quantity must be greater than 0");
+      return;
+    }
+
+    // For decrease, check if quantity is available
+    if (
+      adjustmentType === "decrease" &&
+      adjustmentQuantity > selectedStockItem.quantity
+    ) {
+      toast.error(
+        `Cannot decrease by ${adjustmentQuantity}. Available quantity is ${selectedStockItem.quantity}`
+      );
+      return;
+    }
+
+    setIsAdjusting(true);
+    try {
+      const quantityChange =
+        adjustmentType === "increase"
+          ? adjustmentQuantity
+          : -adjustmentQuantity;
+
+      const payload: UpdateWarehouseStockQuantityPayload = {
+        quantityChange,
+        reason: adjustmentReason.trim() || "",
+      };
+
+      const result = await updateWarehouseStockQuantity(
+        selectedStockItem._id,
+        payload
+      );
+
+      if (result.success) {
+        toast.success(
+          `Stock ${
+            adjustmentType === "increase" ? "increased" : "decreased"
+          } successfully!`
+        );
+        setIsAdjustmentModalOpen(false);
+        setSelectedStockItem(null);
+        setAdjustmentQuantity(0);
+        setAdjustmentReason("");
+        loadWarehouseStock(); // Refresh stock
+      } else {
+        toast.error(result.message || "Failed to update stock quantity");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update stock quantity");
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -440,13 +526,30 @@ export const WarehouseDetail: React.FC = () => {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => openTransferModal(item)}
-                      disabled={item.availableQuantity === 0}
-                      className="text-xs bg-purple-50 text-primary-600 px-3 py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ArrowRightLeft className="w-3 h-3" /> Transfer
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openTransferModal(item)}
+                        disabled={item.availableQuantity === 0}
+                        className="text-xs bg-purple-50 text-primary-600 px-3 py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ArrowRightLeft className="w-3 h-3" /> Transfer
+                      </button>
+                      <button
+                        onClick={() => openAdjustmentModal(item, "increase")}
+                        className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                        title="Increase Stock"
+                      >
+                        <TrendingUp className="w-3 h-3" /> +
+                      </button>
+                      <button
+                        onClick={() => openAdjustmentModal(item, "decrease")}
+                        disabled={item.quantity === 0}
+                        className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Decrease Stock"
+                      >
+                        <TrendingDown className="w-3 h-3" /> -
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -663,6 +766,140 @@ export const WarehouseDetail: React.FC = () => {
                   ) : (
                     <>
                       <ArrowRightLeft className="w-4 h-4" /> Create Transfer
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stock Adjustment Modal */}
+      {isAdjustmentModalOpen && selectedStockItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                {adjustmentType === "increase" ? (
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                ) : (
+                  <TrendingDown className="w-5 h-5 text-red-600" />
+                )}
+                {adjustmentType === "increase"
+                  ? "Increase Stock"
+                  : "Decrease Stock"}
+              </h2>
+              <button
+                onClick={() => setIsAdjustmentModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Product Info */}
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <p className="text-sm text-slate-500 mb-1">Product</p>
+                <p className="font-bold text-slate-800">
+                  {selectedStockItem.inventoryId.productName}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {selectedStockItem.inventoryId.productCode} | Current
+                  Quantity: {selectedStockItem.quantity}
+                </p>
+              </div>
+
+              {/* Adjustment Type Info */}
+              <div
+                className={`p-3 rounded-lg ${
+                  adjustmentType === "increase"
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
+              >
+                <p className="text-sm font-medium">
+                  {adjustmentType === "increase"
+                    ? "This will increase the stock quantity"
+                    : "This will decrease the stock quantity"}
+                </p>
+                {adjustmentType === "decrease" && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Available to decrease: {selectedStockItem.quantity}
+                  </p>
+                )}
+              </div>
+
+              {/* Quantity Input */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Quantity to {adjustmentType === "increase" ? "Add" : "Remove"}{" "}
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max={
+                    adjustmentType === "decrease"
+                      ? selectedStockItem.quantity
+                      : undefined
+                  }
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
+                  placeholder="Enter quantity"
+                  value={adjustmentQuantity || ""}
+                  onChange={(e) =>
+                    setAdjustmentQuantity(Number(e.target.value) || 0)
+                  }
+                />
+              </div>
+
+              {/* Reason Input */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Reason (optional)
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
+                  placeholder="Enter reason for stock adjustment (optional)..."
+                  value={adjustmentReason}
+                  onChange={(e) => setAdjustmentReason(e.target.value)}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setIsAdjustmentModalOpen(false)}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitAdjustment}
+                  disabled={isAdjusting || adjustmentQuantity <= 0}
+                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 ${
+                    adjustmentType === "increase"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {isAdjusting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Updating...
+                    </>
+                  ) : (
+                    <>
+                      {adjustmentType === "increase" ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4" />
+                      )}{" "}
+                      {adjustmentType === "increase"
+                        ? "Increase Stock"
+                        : "Decrease Stock"}
                     </>
                   )}
                 </button>

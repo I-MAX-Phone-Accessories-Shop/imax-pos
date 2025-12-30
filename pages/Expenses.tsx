@@ -78,7 +78,7 @@ export const Expenses: React.FC = () => {
           amount: 0,
           date: new Date().toISOString().split("T")[0],
           notes: "",
-        });
+    });
         // Refresh expenses list
         loadExpenses();
       } else {
@@ -146,7 +146,7 @@ export const Expenses: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow-sm border rounded-xl overflow-hidden">
+        <div className="bg-white shadow-sm border rounded-xl overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-slate-500">
             <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
@@ -286,11 +286,11 @@ export const Expenses: React.FC = () => {
                 </select>
               </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("expenses.amount")} (MMK) <span className="text-red-500">*</span>
-                </label>
-                <input
+            </label>
+            <input
                   type="number"
                   required
                   min="0"
@@ -304,28 +304,28 @@ export const Expenses: React.FC = () => {
                       amount: Number(e.target.value),
                     })
                   }
-                />
-              </div>
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("expenses.date")} <span className="text-red-500">*</span>
-                </label>
-                <input
+            </label>
+            <input
                   type="date"
                   required
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={formData.date}
-                  onChange={(e) =>
+              onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
-                  }
-                />
-              </div>
+              }
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("expenses.notesOptional")}
-                </label>
+            </label>
                 <textarea
                   rows={3}
                   maxLength={500}
@@ -346,11 +346,11 @@ export const Expenses: React.FC = () => {
                 >
                   {t("common.cancel")}
                 </button>
-                <button
-                  type="submit"
+          <button
+            type="submit"
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
+          >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" /> {t("expenses.creating")}
@@ -360,10 +360,10 @@ export const Expenses: React.FC = () => {
                       <Plus className="w-4 h-4" /> {t("expenses.createExpense")}
                     </>
                   )}
-                </button>
+          </button>
               </div>
-            </form>
-          </div>
+        </form>
+      </div>
         </div>
       )}
     </div>
