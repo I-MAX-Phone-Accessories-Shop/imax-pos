@@ -240,7 +240,7 @@ export const Reports: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white h-full p-6 rounded-xl shadow-sm border">
           <h3 className="font-bold text-slate-700 mb-4">Order Types</h3>
           <ResponsiveContainer width="100%" height="90%">
@@ -285,7 +285,7 @@ export const Reports: React.FC = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div> */}
 
       {/* Storefront Breakdown Table */}
       {selectedStorefront === "all" && storefronts.length > 0 && (

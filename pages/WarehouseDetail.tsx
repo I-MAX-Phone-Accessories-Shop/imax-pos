@@ -91,6 +91,7 @@ export const WarehouseDetail: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetchWarehouseStock();
+      console.log(response);
       if (response.success && response.data) {
         // Filter items by warehouse ID
         const filteredItems = response.data.filter(
