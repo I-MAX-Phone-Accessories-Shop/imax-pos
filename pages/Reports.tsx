@@ -156,7 +156,7 @@ export const Reports: React.FC = () => {
             onChange={(e) => setSelectedStorefront(e.target.value)}
             className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
           >
-            <option value="all">All Storefronts</option>
+            {/* <option value="all">All Storefronts</option> */}
             {storefronts.map((sf) => (
               <option key={sf._id} value={sf._id}>
                 {sf.locationName} ({sf.locationCode})
@@ -243,7 +243,7 @@ export const Reports: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white h-full p-6 rounded-xl shadow-sm border">
           <h3 className="font-bold text-slate-700 mb-4">Order Types</h3>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="90%">
             <PieChart>
               <Pie
                 data={orderTypeData}
@@ -262,7 +262,7 @@ export const Reports: React.FC = () => {
                 ))}
               </Pie>
               <Tooltip />
-              {/* <Legend /> */}
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         </div>
