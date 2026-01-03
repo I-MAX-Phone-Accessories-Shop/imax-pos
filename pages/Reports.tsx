@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useApp } from "../context/AppContext";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
+import { Loader2, Store } from "lucide-react";
+import { toast } from "sonner";
 import {
   fetchLocationProfiles,
   LocationProfile,
@@ -21,25 +9,68 @@ import {
   fetchSaleReport,
   SaleReportResponse,
 } from "../services/Reports/fetchSaleReport";
-import { Loader2, RefreshCw, Store } from "lucide-react";
-import { toast } from "sonner";
+import {
+  fetchPaidOrdersReport,
+  PaidOrdersReportResponse,
+} from "../services/Reports/fetchPaidOrdersReport";
+import {
+  fetchCreditOrdersReport,
+  CreditOrdersReportResponse,
+} from "../services/Reports/fetchCreditOrdersReport";
+import { ReportsHeader } from "../components/Reports/ReportsHeader";
+import { ReportTabs } from "../components/Reports/ReportTabs";
+import { OverallReportTab } from "../components/Reports/OverallReportTab";
+import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
+import { CreditOrdersTab } from "../components/Reports/CreditOrdersTab";
+
+type TabType = "overall" | "paid" | "credit";
 
 export const Reports: React.FC = () => {
-  const { sales, products, expenses } = useApp();
-
   const [storefronts, setStorefronts] = useState<LocationProfile[]>([]);
   const [saleReports, setSaleReports] = useState<SaleReportResponse[]>([]);
+  const [paidOrdersReport, setPaidOrdersReport] =
+    useState<PaidOrdersReportResponse | null>(null);
+  const [creditOrdersReport, setCreditOrdersReport] =
+    useState<CreditOrdersReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingPaidOrders, setLoadingPaidOrders] = useState(false);
+  const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<TabType>("overall");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   useEffect(() => {
     loadReports();
   }, []);
 
+  useEffect(() => {
+    if (selectedStorefront !== "all") {
+      if (activeTab === "paid") {
+        loadPaidOrdersReport();
+      } else if (activeTab === "credit") {
+        loadCreditOrdersReport();
+      } else if (activeTab === "overall") {
+        loadReports();
+      }
+    } else {
+      setPaidOrdersReport(null);
+      setCreditOrdersReport(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStorefront, activeTab, startDate, endDate]);
+
+  const formatDateForAPI = (date: Date | null): string | null => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const loadReports = async () => {
     setLoading(true);
     try {
-      // Fetch all storefronts
       const locationResponse = await fetchLocationProfiles();
       if (locationResponse.success) {
         const storefrontList = locationResponse.data.filter(
@@ -47,11 +78,19 @@ export const Reports: React.FC = () => {
         );
         setStorefronts(storefrontList);
 
-        // Fetch sale reports for each storefront
+        const startDateStr = formatDateForAPI(startDate);
+        const endDateStr = formatDateForAPI(endDate);
+
         const reports = await Promise.all(
-          storefrontList.map((storefront) => fetchSaleReport(storefront._id))
+          storefrontList.map((storefront) =>
+            fetchSaleReport(storefront._id, startDateStr, endDateStr)
+          )
         );
         setSaleReports(reports);
+
+        if (storefrontList.length > 0 && selectedStorefront === "all") {
+          setSelectedStorefront(storefrontList[0]._id);
+        }
       } else {
         toast.error("Failed to load storefronts");
       }
@@ -61,6 +100,76 @@ export const Reports: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadPaidOrdersReport = async () => {
+    if (selectedStorefront === "all") return;
+
+    setLoadingPaidOrders(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchPaidOrdersReport(
+        selectedStorefront,
+        startDateStr,
+        endDateStr
+      );
+      setPaidOrdersReport(response);
+    } catch (error) {
+      console.error("Error loading paid orders report:", error);
+      toast.error("Failed to load paid orders report");
+    } finally {
+      setLoadingPaidOrders(false);
+    }
+  };
+
+  const loadCreditOrdersReport = async () => {
+    if (selectedStorefront === "all") return;
+
+    setLoadingCreditOrders(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchCreditOrdersReport(
+        selectedStorefront,
+        startDateStr,
+        endDateStr
+      );
+      setCreditOrdersReport(response);
+    } catch (error) {
+      console.error("Error loading credit orders report:", error);
+      toast.error("Failed to load credit orders report");
+    } finally {
+      setLoadingCreditOrders(false);
+    }
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    if (selectedStorefront !== "all") {
+      if (tab === "paid" && !paidOrdersReport) {
+        loadPaidOrdersReport();
+      } else if (tab === "credit" && !creditOrdersReport) {
+        loadCreditOrdersReport();
+      }
+    }
+  };
+
+  const handleRefresh = () => {
+    loadReports();
+    if (activeTab === "paid" && selectedStorefront !== "all") {
+      loadPaidOrdersReport();
+    } else if (activeTab === "credit" && selectedStorefront !== "all") {
+      loadCreditOrdersReport();
+    }
+  };
+
+  const handleDateRangeChange = (
+    newStartDate: Date | null,
+    newEndDate: Date | null
+  ) => {
+    setStartDate(newStartDate);
+    setEndDate(newEndDate);
   };
 
   // Aggregate data from all storefronts
@@ -105,36 +214,6 @@ export const Reports: React.FC = () => {
       ? aggregatedReport
       : filteredReports[0]?.data.report || aggregatedReport;
 
-  // Data for storefront comparison chart
-  const storefrontData = saleReports
-    .filter((report) => report.success)
-    .map((report) => ({
-      name: report.data.storefront.locationCode,
-      amount: report.data.report.finalAmount,
-      orders: report.data.report.orderCount,
-    }));
-
-  // Data for order type pie chart
-  const orderTypeData = [
-    {
-      name: "Paid Orders",
-      value: displayReport.paidOrderCount,
-    },
-    {
-      name: "Credit Orders",
-      value: displayReport.creditOrderCount,
-    },
-  ];
-
-  const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#8884d8",
-    "#82ca9d",
-  ];
-
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-96">
@@ -148,230 +227,53 @@ export const Reports: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">Financial Reports</h1>
-        <div className="flex items-center gap-4">
-          <select
-            value={selectedStorefront}
-            onChange={(e) => setSelectedStorefront(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-          >
-            {/* <option value="all">All Storefronts</option> */}
-            {storefronts.map((sf) => (
-              <option key={sf._id} value={sf._id}>
-                {sf.locationName} ({sf.locationCode})
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={loadReports}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
-      </div>
+      <ReportsHeader
+        storefronts={storefronts}
+        selectedStorefront={selectedStorefront}
+        onStorefrontChange={setSelectedStorefront}
+        onRefresh={handleRefresh}
+        loading={loading}
+        startDate={startDate}
+        endDate={endDate}
+        onDateRangeChange={handleDateRangeChange}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow border border-primary/20">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Final Amount
-          </p>
-          <p className="text-2xl font-bold text-slate-900">
-            {displayReport.finalAmount.toLocaleString()} MMK
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-green-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Paid Amount
-          </p>
-          <p className="text-2xl font-bold text-green-600">
-            {displayReport.paidAmount.toLocaleString()} MMK
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-blue-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Total Orders
-          </p>
-          <p className="text-2xl font-bold text-blue-600">
-            {displayReport.orderCount}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-purple-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Sub Total
-          </p>
-          <p className="text-2xl font-bold text-purple-600">
-            {displayReport.subTotal.toLocaleString()} MMK
-          </p>
-        </div>
-      </div>
+      <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow border border-amber-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">Discount</p>
-          <p className="text-2xl font-bold text-amber-600">
-            {displayReport.discount.toLocaleString()} MMK
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-red-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Credit Orders
-          </p>
-          <p className="text-2xl font-bold text-red-500">
-            {displayReport.creditOrderCount}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-green-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Paid Orders
-          </p>
-          <p className="text-2xl font-bold text-green-600">
-            {displayReport.paidOrderCount}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-slate-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">Tax</p>
-          <p className="text-2xl font-bold text-slate-600">
-            {displayReport.tax.toLocaleString()} MMK
-          </p>
-        </div>
-      </div>
-
-      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white h-full p-6 rounded-xl shadow-sm border">
-          <h3 className="font-bold text-slate-700 mb-4">Order Types</h3>
-          <ResponsiveContainer width="100%" height="90%">
-            <PieChart>
-              <Pie
-                data={orderTypeData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label
-              >
-                {orderTypeData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-sm border h-80">
-          <h3 className="font-bold text-slate-700 mb-4">
-            {selectedStorefront === "all"
-              ? "Sales by Storefront"
-              : "Storefront Performance"}
-          </h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={storefrontData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip
-                formatter={(value: number) => `${value.toLocaleString()} MMK`}
-              />
-              <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div> */}
-
-      {/* Storefront Breakdown Table */}
-      {selectedStorefront === "all" && storefronts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <div className="p-4 border-b bg-slate-50">
-            <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary" />
-              Storefront Breakdown
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-slate-600">
-                    Storefront
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Final Amount
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Paid Amount
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Sub Total
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Discount
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Total Orders
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Paid Orders
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                    Credit Orders
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {saleReports
-                  .filter((report) => report.success)
-                  .map((report) => (
-                    <tr
-                      key={report.data.storefront._id}
-                      className="hover:bg-slate-50"
-                    >
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {report.data.storefront.locationName}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {report.data.storefront.locationCode}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-800">
-                        {report.data.report.finalAmount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-green-600">
-                        {report.data.report.paidAmount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-slate-600">
-                        {report.data.report.subTotal.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-amber-600">
-                        {report.data.report.discount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-blue-600">
-                        {report.data.report.orderCount}
-                      </td>
-                      <td className="px-4 py-3 text-right text-green-600">
-                        {report.data.report.paidOrderCount}
-                      </td>
-                      <td className="px-4 py-3 text-right text-red-600">
-                        {report.data.report.creditOrderCount}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {/* Overall Tab */}
+      {activeTab === "overall" && (
+        <OverallReportTab
+          displayReport={displayReport}
+          saleReports={saleReports}
+        />
       )}
+
+      {/* Paid Orders Tab */}
+      {activeTab === "paid" && selectedStorefront !== "all" && (
+        <PaidOrdersTab
+          paidOrdersReport={paidOrdersReport}
+          loading={loadingPaidOrders}
+        />
+      )}
+
+      {/* Credit Orders Tab */}
+      {activeTab === "credit" && selectedStorefront !== "all" && (
+        <CreditOrdersTab
+          creditOrdersReport={creditOrdersReport}
+          loading={loadingCreditOrders}
+        />
+      )}
+
+      {/* Show message if no storefront selected for paid/credit tabs */}
+      {(activeTab === "paid" || activeTab === "credit") &&
+        selectedStorefront === "all" && (
+          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+            <Store className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-600">
+              Please select a storefront to view {activeTab} orders report
+            </p>
+          </div>
+        )}
     </div>
   );
 };

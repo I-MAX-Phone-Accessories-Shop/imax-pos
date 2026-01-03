@@ -1,52 +1,54 @@
 import axios from "../axios";
 
-export interface SaleReportStorefront {
+export interface PaidOrdersStorefront {
   _id: string;
   locationName: string;
   locationCode: string;
 }
 
-export interface SaleReportDateRange {
+export interface PaidOrdersDateRange {
   startDate: string | null;
   endDate: string | null;
 }
 
-export interface SaleReportData {
-  finalAmount: number;
-  paidAmount: number;
-  subTotal: number;
-  tax: number;
-  discount: number;
-  extraChange: number;
-  orderCount: number;
-  creditOrderCount: number;
-  paidOrderCount: number;
+export interface PaidOrdersTotals {
+  totalPaidAmount: number;
+  totalFinalAmount: number;
+  totalOrderCount: number;
 }
 
-export interface SaleReportResponse {
+export interface PaymentMethodData {
+  paymentMethod: string;
+  totalPaidAmount: number;
+  totalFinalAmount: number;
+  orderCount: number;
+}
+
+export interface PaidOrdersReportResponse {
   success: boolean;
   message: string;
   data: {
-    storefront: SaleReportStorefront;
-    dateRange: SaleReportDateRange;
-    report: SaleReportData;
+    storefront: PaidOrdersStorefront;
+    dateRange: PaidOrdersDateRange;
+    totals: PaidOrdersTotals;
+    paymentMethods: PaymentMethodData[];
   };
 }
 
 /**
- * Fetch sale report for a specific storefront
+ * Fetch paid orders report for a specific storefront
  * @param {string} storefrontId - The ID of the storefront
  * @param {string | null} startDate - Start date in YYYY-MM-DD format
  * @param {string | null} endDate - End date in YYYY-MM-DD format
- * @returns {Promise<SaleReportResponse>} Response from API
+ * @returns {Promise<PaidOrdersReportResponse>} Response from API
  */
-export const fetchSaleReport = async (
+export const fetchPaidOrdersReport = async (
   storefrontId: string,
   startDate?: string | null,
   endDate?: string | null
-): Promise<SaleReportResponse> => {
+): Promise<PaidOrdersReportResponse> => {
   try {
-    let url = `/sale-report/storefront/${storefrontId}`;
+    let url = `/sale-report/storefront/${storefrontId}/paid-orders`;
     const params = new URLSearchParams();
     
     if (startDate) {
@@ -63,11 +65,11 @@ export const fetchSaleReport = async (
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
-    console.error("Error fetching sale report:", error);
+    console.error("Error fetching paid orders report:", error);
     return {
       success: false,
       message:
-        error.response?.data?.message || "Failed to fetch sale report",
+        error.response?.data?.message || "Failed to fetch paid orders report",
       data: {
         storefront: {
           _id: storefrontId,
@@ -78,17 +80,12 @@ export const fetchSaleReport = async (
           startDate: null,
           endDate: null,
         },
-        report: {
-          finalAmount: 0,
-          paidAmount: 0,
-          subTotal: 0,
-          tax: 0,
-          discount: 0,
-          extraChange: 0,
-          orderCount: 0,
-          creditOrderCount: 0,
-          paidOrderCount: 0,
+        totals: {
+          totalPaidAmount: 0,
+          totalFinalAmount: 0,
+          totalOrderCount: 0,
         },
+        paymentMethods: [],
       },
     };
   }
