@@ -132,6 +132,13 @@ export const WarehouseDetail: React.FC = () => {
   );
   const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
+  // Calculate total amount for each item and warehouse total
+  const totalWarehouseAmount = stockItems.reduce((sum, item) => {
+    const sellingPrice = item.inventoryId.sellingPrice || 0;
+    const itemTotal = item.quantity * sellingPrice;
+    return sum + itemTotal;
+  }, 0);
+
   // Transfer Modal Functions
   const openTransferModal = (item?: WarehouseStockItem) => {
     if (item) {
@@ -402,7 +409,7 @@ export const WarehouseDetail: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
@@ -444,6 +451,20 @@ export const WarehouseDetail: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-indigo-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <Package className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Total Amount</p>
+              <p className="text-2xl font-bold text-indigo-600">
+                {totalWarehouseAmount.toLocaleString()} MMK
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stock Items Table */}
@@ -480,6 +501,12 @@ export const WarehouseDetail: React.FC = () => {
                 <th className="px-4 py-3 font-medium text-slate-600 text-right">
                   Available
                 </th>
+                <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                  Selling Price
+                </th>
+                <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                  Total Amount
+                </th>
                 <th className="px-4 py-3 font-medium text-slate-600">Status</th>
                 <th className="px-4 py-3 font-medium text-slate-600">
                   Actions
@@ -510,6 +537,15 @@ export const WarehouseDetail: React.FC = () => {
                   </td>
                   <td className="px-4 py-3 text-right text-slate-600">
                     {item.availableQuantity}
+                  </td>
+                  <td className="px-4 py-3 text-right font-medium text-slate-700">
+                    {(item.inventoryId.sellingPrice || 0).toLocaleString()} MMK
+                  </td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-800">
+                    {(
+                      item.quantity * (item.inventoryId.sellingPrice || 0)
+                    ).toLocaleString()}{" "}
+                    MMK
                   </td>
                   <td className="px-4 py-3">
                     {item.isLowStock ? (
@@ -555,6 +591,29 @@ export const WarehouseDetail: React.FC = () => {
                 </tr>
               ))}
             </tbody>
+            <tfoot className="bg-slate-50 border-t-2">
+              <tr>
+                <td
+                  colSpan={4}
+                  className="px-4 py-4 font-bold text-slate-800 text-right"
+                >
+                  Total:
+                </td>
+                <td className="px-4 py-4 text-right font-bold text-slate-800">
+                  {totalQuantity}
+                </td>
+                <td className="px-4 py-4 text-right font-medium text-slate-600">
+                  -
+                </td>
+                <td className="px-4 py-4 text-right font-medium text-slate-600">
+                  -
+                </td>
+                <td className="px-4 py-4 text-right font-bold text-indigo-600 text-lg">
+                  {totalWarehouseAmount.toLocaleString()} MMK
+                </td>
+                <td colSpan={2}></td>
+              </tr>
+            </tfoot>
           </table>
         )}
       </div>

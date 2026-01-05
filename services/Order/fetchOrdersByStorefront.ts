@@ -11,10 +11,26 @@ interface FetchOrdersByStorefrontResponse {
 }
 
 export const fetchOrdersByStorefront = async (
-  storefrontId: string
+  storefrontId: string,
+  startDate?: string | null,
+  endDate?: string | null
 ): Promise<FetchOrdersByStorefrontResponse> => {
   try {
-    const response = await axios.get(`/order/storefront/${storefrontId}`);
+    let url = `/order/storefront/${storefrontId}`;
+    const params = new URLSearchParams();
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching orders by storefront:", error);

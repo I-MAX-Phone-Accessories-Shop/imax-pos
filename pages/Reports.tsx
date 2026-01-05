@@ -17,13 +17,25 @@ import {
   fetchCreditOrdersReport,
   CreditOrdersReportResponse,
 } from "../services/Reports/fetchCreditOrdersReport";
+import {
+  fetchProductSalesStatistics,
+  ProductSalesStatisticsResponse,
+} from "../services/Reports/fetchProductSalesStatistics";
 import { ReportsHeader } from "../components/Reports/ReportsHeader";
 import { ReportTabs } from "../components/Reports/ReportTabs";
 import { OverallReportTab } from "../components/Reports/OverallReportTab";
 import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
 import { CreditOrdersTab } from "../components/Reports/CreditOrdersTab";
+import { SaleStatisticsTab } from "../components/Reports/SaleStatisticsTab";
 
-type TabType = "overall" | "paid" | "credit";
+type TabType = "overall" | "paid" | "credit" | "statistics";
+
+// Helper function to get today's date
+const getToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
 
 export const Reports: React.FC = () => {
   const [storefronts, setStorefronts] = useState<LocationProfile[]>([]);
@@ -32,13 +44,17 @@ export const Reports: React.FC = () => {
     useState<PaidOrdersReportResponse | null>(null);
   const [creditOrdersReport, setCreditOrdersReport] =
     useState<CreditOrdersReportResponse | null>(null);
+  const [productSalesStatistics, setProductSalesStatistics] =
+    useState<ProductSalesStatisticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingPaidOrders, setLoadingPaidOrders] = useState(false);
   const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
+  const [loadingStatistics, setLoadingStatistics] = useState(false);
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overall");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  // Initialize dates to today
+  const [startDate, setStartDate] = useState<Date | null>(getToday());
+  const [endDate, setEndDate] = useState<Date | null>(getToday());
 
   useEffect(() => {
     loadReports();
@@ -50,12 +66,15 @@ export const Reports: React.FC = () => {
         loadPaidOrdersReport();
       } else if (activeTab === "credit") {
         loadCreditOrdersReport();
+      } else if (activeTab === "statistics") {
+        loadProductSalesStatistics();
       } else if (activeTab === "overall") {
         loadReports();
       }
     } else {
       setPaidOrdersReport(null);
       setCreditOrdersReport(null);
+      setProductSalesStatistics(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStorefront, activeTab, startDate, endDate]);
@@ -144,6 +163,44 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const loadProductSalesStatistics = async () => {
+    if (selectedStorefront === "all") return;
+
+    setLoadingStatistics(true);
+    try {
+      // Always use dates - default to today if not set
+      const today = getToday();
+      const startDateToUse = startDate || today;
+      const endDateToUse = endDate || today;
+
+      const startDateStr = formatDateForAPI(startDateToUse);
+      const endDateStr = formatDateForAPI(endDateToUse);
+
+      // Ensure dates are always provided
+      if (!startDateStr || !endDateStr) {
+        const todayStr = formatDateForAPI(today);
+        const response = await fetchProductSalesStatistics(
+          selectedStorefront,
+          todayStr,
+          todayStr
+        );
+        setProductSalesStatistics(response);
+      } else {
+        const response = await fetchProductSalesStatistics(
+          selectedStorefront,
+          startDateStr,
+          endDateStr
+        );
+        setProductSalesStatistics(response);
+      }
+    } catch (error) {
+      console.error("Error loading product sales statistics:", error);
+      toast.error("Failed to load product sales statistics");
+    } finally {
+      setLoadingStatistics(false);
+    }
+  };
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     if (selectedStorefront !== "all") {
@@ -151,6 +208,8 @@ export const Reports: React.FC = () => {
         loadPaidOrdersReport();
       } else if (tab === "credit" && !creditOrdersReport) {
         loadCreditOrdersReport();
+      } else if (tab === "statistics" && !productSalesStatistics) {
+        loadProductSalesStatistics();
       }
     }
   };
@@ -161,6 +220,8 @@ export const Reports: React.FC = () => {
       loadPaidOrdersReport();
     } else if (activeTab === "credit" && selectedStorefront !== "all") {
       loadCreditOrdersReport();
+    } else if (activeTab === "statistics" && selectedStorefront !== "all") {
+      loadProductSalesStatistics();
     }
   };
 
@@ -264,13 +325,27 @@ export const Reports: React.FC = () => {
         />
       )}
 
-      {/* Show message if no storefront selected for paid/credit tabs */}
-      {(activeTab === "paid" || activeTab === "credit") &&
+      {/* Sale Statistics Tab */}
+      {activeTab === "statistics" && selectedStorefront !== "all" && (
+        <SaleStatisticsTab
+          productSalesStatistics={productSalesStatistics}
+          loading={loadingStatistics}
+        />
+      )}
+
+      {/* Show message if no storefront selected for paid/credit/statistics tabs */}
+      {(activeTab === "paid" ||
+        activeTab === "credit" ||
+        activeTab === "statistics") &&
         selectedStorefront === "all" && (
           <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
             <Store className="w-12 h-12 text-slate-400 mx-auto mb-4" />
             <p className="text-slate-600">
-              Please select a storefront to view {activeTab} orders report
+              Please select a storefront to view{" "}
+              {activeTab === "statistics"
+                ? "sale statistics"
+                : `${activeTab} orders`}{" "}
+              report
             </p>
           </div>
         )}

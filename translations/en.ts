@@ -199,6 +199,7 @@ export const en = {
     productUpdatedLocal: "Product updated (local only - API update not implemented)",
     productCreated: "Product created successfully!",
     failedToCreate: "Failed to create product. Please try again.",
+    failedToLoadDetails: "Failed to load product details",
   },
   orders: {
     title: "Order Management",

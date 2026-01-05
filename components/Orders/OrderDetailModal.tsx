@@ -7,6 +7,8 @@ import {
   Calendar,
   CreditCard,
   Package,
+  UserCircle,
+  User,
 } from "lucide-react";
 import { Order } from "../../services/Order/fetchOrders";
 import {
@@ -84,15 +86,60 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
                   <Store className="w-4 h-4" />
-                  <span>{order.storefrontId?.locationName || "-"}</span>
+                  <span>
+                    {order.storefrontId?.locationName ||
+                      order.storefrontId?.storefrontName ||
+                      "-"}
+                  </span>
                   <span className="text-xs text-slate-400">
-                    ({order.storefrontId?.locationCode})
+                    (
+                    {order.storefrontId?.locationCode ||
+                      order.storefrontId?.storefrontCode ||
+                      "-"}
+                    )
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <Calendar className="w-4 h-4" />
                   <span>{formatDate(order.createdAt)}</span>
                 </div>
+              </div>
+
+              {/* Sold By & Credit Person Info */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {order.soldBy && (
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <UserCircle className="w-4 h-4 text-purple-600" />
+                      <p className="text-xs text-purple-600 font-medium">
+                        Sold By
+                      </p>
+                    </div>
+                    <p className="font-bold text-purple-800">
+                      {order.soldBy.name}
+                    </p>
+                    <p className="text-xs text-purple-600 mt-1">
+                      {order.soldBy.role}
+                    </p>
+                  </div>
+                )}
+                {order.creditPersonId &&
+                  typeof order.creditPersonId === "object" && (
+                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <User className="w-4 h-4 text-orange-600" />
+                        <p className="text-xs text-orange-600 font-medium">
+                          Credit Person
+                        </p>
+                      </div>
+                      <p className="font-bold text-orange-800">
+                        {order.creditPersonId.name}
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        {order.creditPersonId.phone}
+                      </p>
+                    </div>
+                  )}
               </div>
 
               {/* Products */}
@@ -139,7 +186,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                             {item.unitPrice?.toLocaleString()} MMK
                           </td>
                           <td className="p-3 text-right font-medium text-slate-800">
-                            {(item.quantity * (item.unitPrice || 0)).toLocaleString()}{" "}
+                            {(
+                              item.quantity * (item.unitPrice || 0)
+                            ).toLocaleString()}{" "}
                             MMK
                           </td>
                         </tr>
@@ -169,9 +218,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   {order.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>
-                        -{order.discount?.toLocaleString()} MMK
-                      </span>
+                      <span>-{order.discount?.toLocaleString()} MMK</span>
                     </div>
                   )}
                   <div className="border-t pt-2 flex justify-between font-bold text-lg">
@@ -222,4 +269,3 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     </div>
   );
 };
-

@@ -19,7 +19,21 @@ export interface OrderStorefront {
   _id: string;
   storefrontCode: string;
   storefrontName: string;
+  locationCode?: string;
+  locationName?: string;
   id?: string;
+}
+
+export interface SoldBy {
+  _id: string;
+  name: string;
+  role: string;
+}
+
+export interface CreditPerson {
+  _id: string;
+  name: string;
+  phone: string;
 }
 
 export interface Order {
@@ -27,7 +41,8 @@ export interface Order {
   orderNumber: string;
   storefrontId: OrderStorefront;
   ordersProducts: OrderProduct[];
-  creditPersonId: string | null;
+  creditPersonId: CreditPerson | string | null;
+  soldBy?: SoldBy;
   subTotal: number;
   tax: number;
   discount: number;
@@ -52,9 +67,26 @@ interface FetchOrdersResponse {
   data: Order[];
 }
 
-export const fetchOrders = async (): Promise<FetchOrdersResponse> => {
+export const fetchOrders = async (
+  startDate?: string | null,
+  endDate?: string | null
+): Promise<FetchOrdersResponse> => {
   try {
-    const response = await axios.get("/order");
+    let url = "/order";
+    const params = new URLSearchParams();
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching orders:", error);

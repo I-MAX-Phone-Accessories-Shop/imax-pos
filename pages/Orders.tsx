@@ -18,6 +18,14 @@ import { OrdersTable } from "../components/Orders/OrdersTable";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { CreditPersonModal } from "../components/Orders/CreditPersonModal";
 import { useLanguage } from "../context/LanguageContext";
+import { DateRangePicker } from "../components/Reports/DateRangePicker";
+
+// Helper function to get today's date
+const getToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
 
 export const Orders: React.FC = () => {
   const { t } = useLanguage();
@@ -36,6 +44,9 @@ export const Orders: React.FC = () => {
   const [selectedOrderForCredit, setSelectedOrderForCredit] =
     useState<Order | null>(null);
   const [assigningCreditPerson, setAssigningCreditPerson] = useState(false);
+  // Initialize dates to today
+  const [startDate, setStartDate] = useState<Date | null>(getToday());
+  const [endDate, setEndDate] = useState<Date | null>(getToday());
 
   useEffect(() => {
     loadInitialData();
@@ -43,7 +54,8 @@ export const Orders: React.FC = () => {
 
   useEffect(() => {
     loadOrders();
-  }, [selectedStorefrontId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStorefrontId, startDate, endDate]);
 
   const loadInitialData = async () => {
     // Load storefronts
@@ -67,12 +79,23 @@ export const Orders: React.FC = () => {
     }
   };
 
+  const formatDateForAPI = (date: Date | null): string | null => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const loadOrders = async () => {
     setLoading(true);
     try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+
       if (selectedStorefrontId === "all") {
         // Fetch all orders
-        const response = await fetchOrders();
+        const response = await fetchOrders(startDateStr, endDateStr);
         if (response.success && response.data) {
           setOrders(response.data.reverse());
         } else {
@@ -80,7 +103,11 @@ export const Orders: React.FC = () => {
         }
       } else {
         // Fetch orders by storefront
-        const response = await fetchOrdersByStorefront(selectedStorefrontId);
+        const response = await fetchOrdersByStorefront(
+          selectedStorefrontId,
+          startDateStr,
+          endDateStr
+        );
         if (response.success && response.data) {
           setOrders(response.data.orders.reverse());
         } else {
@@ -168,18 +195,26 @@ export const Orders: React.FC = () => {
             <Receipt className="w-7 h-7 text-primary" />
             {t("orders.title")}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {t("orders.subtitle")}
-          </p>
+          <p className="text-sm text-slate-500 mt-1">{t("orders.subtitle")}</p>
         </div>
-        <button
-          onClick={loadOrders}
-          disabled={loading}
-          className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          {t("common.refresh")}
-        </button>
+        <div className="flex items-center gap-3">
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(newStartDate, newEndDate) => {
+              setStartDate(newStartDate);
+              setEndDate(newEndDate);
+            }}
+          />
+          <button
+            onClick={loadOrders}
+            disabled={loading}
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            {t("common.refresh")}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

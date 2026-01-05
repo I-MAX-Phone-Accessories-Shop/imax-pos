@@ -1,7 +1,7 @@
 import React from "react";
-import { Store, DollarSign, CreditCard } from "lucide-react";
+import { Store, DollarSign, CreditCard, BarChart3 } from "lucide-react";
 
-type TabType = "overall" | "paid" | "credit";
+type TabType = "overall" | "paid" | "credit" | "statistics";
 
 interface ReportTabsProps {
   activeTab: TabType;
@@ -46,6 +46,17 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
       >
         <CreditCard className="w-4 h-4" />
         Credit Orders
+      </button>
+      <button
+        onClick={() => onTabChange("statistics")}
+        className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors ${
+          activeTab === "statistics"
+            ? "border-b-2 border-purple-600 text-purple-600"
+            : "text-slate-500 hover:text-slate-700"
+        }`}
+      >
+        <BarChart3 className="w-4 h-4" />
+        Sale Statistics
       </button>
     </div>
   );
