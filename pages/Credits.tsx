@@ -130,9 +130,7 @@ export const Credits: React.FC = () => {
             <User className="w-6 h-6 text-primary" />
             {t("credits.title")}
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            {t("credits.subtitle")}
-          </p>
+          <p className="text-slate-500 text-sm mt-1">{t("credits.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -160,7 +158,9 @@ export const Credits: React.FC = () => {
               <User className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">{t("credits.totalProfiles")}</p>
+              <p className="text-sm text-slate-500">
+                {t("credits.totalProfiles")}
+              </p>
               <p className="text-2xl font-bold text-slate-800">
                 {totalPersonas}
               </p>
@@ -186,7 +186,9 @@ export const Credits: React.FC = () => {
               <Ban className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">{t("credits.blacklisted")}</p>
+              <p className="text-sm text-slate-500">
+                {t("credits.blacklisted")}
+              </p>
               <p className="text-2xl font-bold text-slate-800">
                 {blacklistedCount}
               </p>
@@ -224,9 +226,7 @@ export const Credits: React.FC = () => {
           </div>
         ) : filteredPersonas.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
-            {search
-              ? t("credits.noResults")
-              : t("credits.noProfiles")}
+            {search ? t("credits.noResults") : t("credits.noProfiles")}
           </div>
         ) : (
           <table className="w-full text-sm text-left">
@@ -235,9 +235,15 @@ export const Credits: React.FC = () => {
                 <th className="px-4 py-3 font-medium">{t("credits.name")}</th>
                 <th className="px-4 py-3 font-medium">{t("credits.phone")}</th>
                 <th className="px-4 py-3 font-medium">{t("credits.status")}</th>
-                <th className="px-4 py-3 font-medium">{t("credits.blacklistReason")}</th>
-                <th className="px-4 py-3 font-medium">{t("credits.createdAt")}</th>
-                <th className="px-4 py-3 font-medium text-right">{t("credits.actions")}</th>
+                <th className="px-4 py-3 font-medium">
+                  {t("credits.blacklistReason")}
+                </th>
+                <th className="px-4 py-3 font-medium">
+                  {t("credits.createdAt")}
+                </th>
+                <th className="px-4 py-3 font-medium text-right">
+                  {t("credits.actions")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -266,7 +272,8 @@ export const Credits: React.FC = () => {
                       </span>
                     ) : (
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
-                        <CheckCircle className="w-3 h-3" /> {t("credits.active")}
+                        <CheckCircle className="w-3 h-3" />{" "}
+                        {t("credits.active")}
                       </span>
                     )}
                   </td>
@@ -372,11 +379,13 @@ export const Credits: React.FC = () => {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> {t("credits.creating")}
+                    <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                    {t("credits.creating")}
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-4 h-4" /> {t("credits.createProfile")}
+                    <UserPlus className="w-4 h-4" />{" "}
+                    {t("credits.createProfile")}
                   </>
                 )}
               </button>

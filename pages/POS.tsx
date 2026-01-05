@@ -533,7 +533,8 @@ export const POS: React.FC = () => {
                     {item.stockItem.inventoryId.productName}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {getItemPrice(item.stockItem).toLocaleString()} x {item.qty}
+                    {(getItemPrice(item.stockItem) * item.qty).toLocaleString()}{" "}
+                    MMK
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-2">
