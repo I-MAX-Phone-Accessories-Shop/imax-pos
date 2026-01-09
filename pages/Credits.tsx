@@ -12,6 +12,7 @@ import {
   Loader2,
   X,
   Eye,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -19,6 +20,7 @@ import {
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
 import { createCreditPersona } from "../services/Credit/createCreditPersona";
+import { updateCreditPersona } from "../services/Credit/updateCreditPersona";
 import { useLanguage } from "../context/LanguageContext";
 
 export const Credits: React.FC = () => {
@@ -28,9 +30,10 @@ export const Credits: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Add Modal State
+  // Add/Edit Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", phone: "" });
 
   useEffect(() => {
@@ -60,16 +63,24 @@ export const Credits: React.FC = () => {
   };
 
   const handleOpenAddModal = () => {
+    setEditingId(null);
     setFormData({ name: "", phone: "" });
+    setIsAddModalOpen(true);
+  };
+
+  const handleOpenEditModal = (persona: CreditPersona) => {
+    setEditingId(persona._id);
+    setFormData({ name: persona.name, phone: persona.phone });
     setIsAddModalOpen(true);
   };
 
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
+    setEditingId(null);
     setFormData({ name: "", phone: "" });
   };
 
-  const handleAddProfile = async () => {
+  const handleSubmitProfile = async () => {
     if (!formData.name.trim()) {
       toast.error(t("credits.nameRequired"));
       return;
@@ -81,21 +92,48 @@ export const Credits: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await createCreditPersona({
-        name: formData.name.trim(),
-        phone: formData.phone.trim(),
-      });
+      if (editingId) {
+        // Update existing profile
+        const response = await updateCreditPersona(editingId, {
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+        });
 
-      if (response.success) {
-        toast.success(t("credits.profileCreated"));
-        handleCloseAddModal();
-        loadCreditPersonas(); // Refresh the list
+        if (response.success) {
+          toast.success(t("credits.profileUpdated"));
+          handleCloseAddModal();
+          loadCreditPersonas();
+        } else {
+          toast.error(response.message || t("credits.failedToUpdate"));
+        }
       } else {
-        toast.error(response.message || t("credits.failedToCreate"));
+        // Create new profile
+        const response = await createCreditPersona({
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+        });
+
+        if (response.success) {
+          toast.success(t("credits.profileCreated"));
+          handleCloseAddModal();
+          loadCreditPersonas();
+        } else {
+          toast.error(response.message || t("credits.failedToCreate"));
+        }
       }
-    } catch (error) {
-      console.error("Error creating credit profile:", error);
-      toast.error(t("credits.failedToCreate"));
+    } catch (error: any) {
+      console.error(
+        editingId
+          ? "Error updating credit profile:"
+          : "Error creating credit profile:",
+        error
+      );
+      toast.error(
+        error.message ||
+          (editingId
+            ? t("credits.failedToUpdate")
+            : t("credits.failedToCreate"))
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -302,6 +340,13 @@ export const Credits: React.FC = () => {
                       >
                         <Eye className="w-3 h-3" /> {t("common.view")}
                       </button>
+                      <button
+                        onClick={() => handleOpenEditModal(persona)}
+                        className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                        title={t("common.edit")}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
                       {!persona.blacklist && (
                         <button className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors">
                           {t("credits.blacklist")}
@@ -323,7 +368,7 @@ export const Credits: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-primary" />
-                {t("credits.addProfile")}
+                {editingId ? t("credits.editProfile") : t("credits.addProfile")}
               </h2>
               <button
                 onClick={handleCloseAddModal}
@@ -373,15 +418,17 @@ export const Credits: React.FC = () => {
                 {t("common.cancel")}
               </button>
               <button
-                onClick={handleAddProfile}
+                onClick={handleSubmitProfile}
                 disabled={isSubmitting}
                 className="px-4 py-2 bg-btn-primary text-dark rounded-lg hover:bg-btn-primary-hover transition-colors disabled:opacity-50 flex items-center gap-2 font-medium"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />{" "}
-                    {t("credits.creating")}
+                    {editingId ? t("credits.updating") : t("credits.creating")}
                   </>
+                ) : editingId ? (
+                  t("credits.updateProfile")
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4" />{" "}
