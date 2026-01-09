@@ -1,30 +1,36 @@
 import axios from "../axios";
-import { Supplier } from "../../types";
 
-interface FetchSuppliersResponse {
-  success: boolean;
-  message: string;
-  data: Supplier[];
+export interface UpdateWarehouseProfilePayload {
+  warehouseCode?: string;
+  warehouseName?: string;
+  warehouseAddress?: string;
+  warehousePhone?: string;
+  warehouseEmail?: string;
+  managerName?: string;
+  status?: "active" | "inactive";
+  description?: string;
+  notes?: string;
 }
 
-/**
- * Fetch all supplier profiles via API
- * @param {boolean} isDeleted - Optional: Set to true to fetch soft-deleted suppliers
- * @returns {Promise<FetchSuppliersResponse>} Response from API
- */
-export const fetchSuppliers = async (
-  isDeleted?: boolean
-): Promise<FetchSuppliersResponse> => {
+interface UpdateWarehouseProfileResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
+export const updateWarehouseProfile = async (
+  warehouseId: string,
+  profileData: UpdateWarehouseProfilePayload
+): Promise<UpdateWarehouseProfileResponse> => {
   try {
-    const url =
-      isDeleted !== undefined
-        ? `/supplier-profile?isDeleted=${isDeleted}`
-        : "/supplier-profile";
-    const response = await axios.get(url);
+    const response = await axios.patch(
+      `/warehouse-profile/${warehouseId}`,
+      profileData
+    );
 
     return response.data;
-  } catch (error) {
-    console.error("Error fetching suppliers:", error);
+  } catch (error: any) {
+    console.error("Error updating warehouse profile:", error);
 
     if (axios.isAxiosError(error)) {
       if (

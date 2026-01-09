@@ -9,12 +9,14 @@ import {
   User,
   Mail,
   ChevronRight,
+  Edit,
 } from "lucide-react";
 import {
   fetchStorefrontProfiles,
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
 import { createStorefrontProfile } from "../services/Storefront/createStorefrontProfile";
+import { updateStorefrontProfile } from "../services/Storefront/updateStorefrontProfile";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -40,6 +42,7 @@ export const Storefront: React.FC = () => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<StorefrontProfileFormData>({
     storefrontCode: "",
@@ -73,7 +76,43 @@ export const Storefront: React.FC = () => {
     }
   };
 
-  const handleCreateProfile = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({
+      storefrontCode: "",
+      storefrontName: "",
+      storefrontAddress: "",
+      storefrontPhone: "",
+      storefrontEmail: "",
+      managerName: "",
+      status: "active",
+      description: "",
+      notes: "",
+    });
+    setEditingId(null);
+  };
+
+  const handleOpenEdit = (profile: StorefrontProfile) => {
+    setEditingId(profile._id);
+    setFormData({
+      storefrontCode: profile.locationCode,
+      storefrontName: profile.locationName,
+      storefrontAddress: profile.locationAddress,
+      storefrontPhone: profile.locationPhone,
+      storefrontEmail: profile.locationEmail || "",
+      managerName: profile.managerName || "",
+      status: profile.status || "active",
+      description: profile.description || "",
+      notes: profile.notes || "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
@@ -90,39 +129,49 @@ export const Storefront: React.FC = () => {
     setIsSubmitting(true);
     try {
       // Prepare payload (handle optional fields and formatting)
-      const payload = {
+      const payload: any = {
         storefrontCode: formData.storefrontCode.toUpperCase(),
         storefrontName: formData.storefrontName,
         storefrontAddress: formData.storefrontAddress,
         storefrontPhone: formData.storefrontPhone,
-        ...(formData.storefrontEmail && {
-          storefrontEmail: formData.storefrontEmail.toLowerCase(),
-        }),
-        ...(formData.managerName && { managerName: formData.managerName }),
-        status: formData.status,
-        ...(formData.description && { description: formData.description }),
-        ...(formData.notes && { notes: formData.notes }),
       };
 
-      await createStorefrontProfile(payload);
-      loadStorefrontProfiles();
+      // Add optional fields only if they have values
+      if (formData.storefrontEmail) {
+        payload.storefrontEmail = formData.storefrontEmail.toLowerCase();
+      }
+      if (formData.managerName) {
+        payload.managerName = formData.managerName;
+      }
+      if (formData.status) {
+        payload.status = formData.status;
+      }
+      if (formData.description) {
+        payload.description = formData.description;
+      }
+      if (formData.notes) {
+        payload.notes = formData.notes;
+      }
 
-      toast.success(t("storefront.profileCreated"));
-      setIsModalOpen(false);
-      // Reset form
-      setFormData({
-        storefrontCode: "",
-        storefrontName: "",
-        storefrontAddress: "",
-        storefrontPhone: "",
-        storefrontEmail: "",
-        managerName: "",
-        status: "active",
-        description: "",
-        notes: "",
-      });
+      if (editingId) {
+        // Update existing storefront
+        await updateStorefrontProfile(editingId, payload);
+        toast.success(t("storefront.profileUpdated"));
+      } else {
+        // Create new storefront
+        await createStorefrontProfile(payload);
+        toast.success(t("storefront.profileCreated"));
+      }
+
+      loadStorefrontProfiles();
+      handleCloseModal();
     } catch (error: any) {
-      toast.error(error.message || t("storefront.failedToCreate"));
+      toast.error(
+        error.message ||
+          (editingId
+            ? t("storefront.failedToUpdate")
+            : t("storefront.failedToCreate"))
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -194,6 +243,16 @@ export const Storefront: React.FC = () => {
                     >
                       {profile.status}
                     </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenEdit(profile);
+                      }}
+                      className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                      title={t("common.edit")}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
                   </div>
                 </div>
@@ -218,7 +277,8 @@ export const Storefront: React.FC = () => {
                 </div>
 
                 <div className="mt-3 pt-3 border-t text-xs text-primary font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {t("storefront.viewStockItems")} <ChevronRight className="w-3 h-3" />
+                  {t("storefront.viewStockItems")}{" "}
+                  <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
             ))}
@@ -233,22 +293,25 @@ export const Storefront: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Store className="w-5 h-5 text-primary" />
-                {t("storefront.newProfile")}
+                {editingId
+                  ? t("storefront.editProfile")
+                  : t("storefront.newProfile")}
               </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleCloseModal}
                 className="text-slate-400 hover:text-slate-600 p-1"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateProfile} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Required Fields */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    {t("storefront.locationCode")} <span className="text-red-500">*</span>
+                    {t("storefront.locationCode")}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -263,6 +326,7 @@ export const Storefront: React.FC = () => {
                         storefrontCode: e.target.value.toUpperCase(),
                       })
                     }
+                    disabled={!!editingId}
                   />
                 </div>
 
@@ -287,7 +351,8 @@ export const Storefront: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    {t("storefront.locationName")} <span className="text-red-500">*</span>
+                    {t("storefront.locationName")}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -307,7 +372,8 @@ export const Storefront: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    {t("storefront.locationAddress")} <span className="text-red-500">*</span>
+                    {t("storefront.locationAddress")}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     required
@@ -327,7 +393,8 @@ export const Storefront: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    {t("storefront.locationPhone")} <span className="text-red-500">*</span>
+                    {t("storefront.locationPhone")}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -416,7 +483,7 @@ export const Storefront: React.FC = () => {
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   {t("common.cancel")}
@@ -426,7 +493,13 @@ export const Storefront: React.FC = () => {
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSubmitting ? t("storefront.creating") : t("storefront.createStorefront")}
+                  {isSubmitting
+                    ? editingId
+                      ? t("storefront.updating")
+                      : t("storefront.creating")
+                    : editingId
+                    ? t("storefront.updateStorefront")
+                    : t("storefront.createStorefront")}
                 </button>
               </div>
             </form>

@@ -1,30 +1,24 @@
 import axios from "../axios";
-import { Supplier } from "../../types";
 
-interface FetchSuppliersResponse {
+interface DeleteSupplierResponse {
   success: boolean;
   message: string;
-  data: Supplier[];
+  data?: any;
 }
 
-/**
- * Fetch all supplier profiles via API
- * @param {boolean} isDeleted - Optional: Set to true to fetch soft-deleted suppliers
- * @returns {Promise<FetchSuppliersResponse>} Response from API
- */
-export const fetchSuppliers = async (
-  isDeleted?: boolean
-): Promise<FetchSuppliersResponse> => {
+export const deleteSupplier = async (
+  supplierId: string
+): Promise<DeleteSupplierResponse> => {
   try {
-    const url =
-      isDeleted !== undefined
-        ? `/supplier-profile?isDeleted=${isDeleted}`
-        : "/supplier-profile";
-    const response = await axios.get(url);
+    const response = await axios.delete(`/supplier-profile/${supplierId}`);
 
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching suppliers:", error);
+    return {
+      success: true,
+      message: "Supplier permanently deleted successfully",
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("Error deleting supplier:", error);
 
     if (axios.isAxiosError(error)) {
       if (

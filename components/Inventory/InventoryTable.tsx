@@ -1,5 +1,4 @@
 import React from "react";
-import { Edit, Eye } from "lucide-react";
 import { Product } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -29,7 +28,8 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       <table className="w-full text-sm text-left">
         <thead className="bg-slate-50 text-slate-600 border-b">
           <tr>
-            <th className="px-4 py-3">Product Code</th>
+            <th className="px-4 py-3 text-center">{t("inventory.no")}</th>
+            <th className="px-4 py-3">{t("inventory.productCode")}</th>
             <th className="px-4 py-3">{t("inventory.productName")}</th>
             <th className="px-4 py-3">{t("inventory.category")}</th>
             <th className="px-4 py-3 text-right">{t("inventory.cost")}</th>
@@ -38,32 +38,33 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y">
-          {products.map((p) => (
+          {products.map((p, index) => (
             <tr key={p.id} className="hover:bg-slate-50">
+              <td className="px-4 py-3 text-center text-slate-600">
+                {String(index + 1).padStart(2, "0")}
+              </td>
               <td className="px-4 py-3 font-medium">{p.productCode}</td>
               <td className="px-4 py-3 font-medium">{p.name}</td>
               <td className="px-4 py-3 text-slate-500">{p.category}</td>
               <td className="px-4 py-3 text-right text-slate-400">
-                {p.costPrice.toLocaleString()}
+                {p.costPrice.toLocaleString()} MMK
               </td>
               <td className="px-4 py-3 text-right font-bold text-slate-800">
-                {p.sellingPrice.toLocaleString()}
+                {p.sellingPrice.toLocaleString()} MMK
               </td>
-              <td className="px-4 py-3 text-center">
+              <td className="px-4 py-3">
                 <div className="flex items-center justify-center gap-2">
                   <button
                     onClick={() => onViewDetails(p.id)}
-                    className="text-blue-600 hover:text-blue-700"
-                    title="View Details"
+                    className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
                   >
-                    <Eye className="w-4 h-4" />
+                    {t("inventory.checkItem")}
                   </button>
                   <button
                     onClick={() => onEdit(p)}
-                    className="text-primary hover:text-primary-600"
-                    title="Edit"
+                    className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
                   >
-                    <Edit className="w-4 h-4" />
+                    {t("inventory.editItem")}
                   </button>
                 </div>
               </td>
@@ -74,4 +75,3 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
     </div>
   );
 };
-
