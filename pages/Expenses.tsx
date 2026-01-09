@@ -8,10 +8,12 @@ import {
   Loader2,
   Plus,
   X,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchExpenses, Expense } from "../services/Expense/fetchExpenses";
 import { createExpense } from "../services/Expense/createExpense";
+import { updateExpense } from "../services/Expense/updateExpense";
 import { useLanguage } from "../context/LanguageContext";
 
 export const Expenses: React.FC = () => {
@@ -22,6 +24,7 @@ export const Expenses: React.FC = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     category: "electricity",
     amount: 0,
@@ -50,7 +53,33 @@ export const Expenses: React.FC = () => {
     }
   };
 
-  const handleCreateExpense = async (e: React.FormEvent) => {
+  const handleOpenEdit = (expense: Expense) => {
+    setEditingId(expense._id);
+    setFormData({
+      category: expense.category,
+      amount: expense.amount,
+      date: expense.date.split("T")[0], // Extract date part if it includes time
+      notes: expense.notes || "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormData({
+      category: "electricity",
+      amount: 0,
+      date: new Date().toISOString().split("T")[0],
+      notes: "",
+    });
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.category || formData.amount <= 0 || !formData.date) {
@@ -60,33 +89,53 @@ export const Expenses: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        category: formData.category,
-        amount: formData.amount,
-        date: formData.date,
-        ...(formData.notes && { notes: formData.notes }),
-      };
+      if (editingId) {
+        // Update existing expense
+        const payload: any = {};
+        if (formData.category) payload.category = formData.category;
+        if (formData.amount > 0) payload.amount = formData.amount;
+        if (formData.date) payload.date = formData.date;
+        if (formData.notes) payload.notes = formData.notes;
 
-      const response = await createExpense(payload);
+        const response = await updateExpense(editingId, payload);
 
-      if (response.success) {
-        toast.success(t("expenses.expenseCreated"));
-        setIsModalOpen(false);
-        // Reset form
-        setFormData({
-          category: "electricity",
-          amount: 0,
-          date: new Date().toISOString().split("T")[0],
-          notes: "",
-    });
-        // Refresh expenses list
-        loadExpenses();
+        if (response.success) {
+          toast.success(t("expenses.expenseUpdated"));
+          handleCloseModal();
+          loadExpenses();
+        } else {
+          toast.error(response.message || t("expenses.failedToUpdate"));
+        }
       } else {
-        toast.error(response.message || t("expenses.failedToCreate"));
+        // Create new expense
+        const payload = {
+          category: formData.category,
+          amount: formData.amount,
+          date: formData.date,
+          ...(formData.notes && { notes: formData.notes }),
+        };
+
+        const response = await createExpense(payload);
+
+        if (response.success) {
+          toast.success(t("expenses.expenseCreated"));
+          handleCloseModal();
+          loadExpenses();
+        } else {
+          toast.error(response.message || t("expenses.failedToCreate"));
+        }
       }
     } catch (error: any) {
-      console.error("Error creating expense:", error);
-      toast.error(error.message || t("expenses.failedToCreate"));
+      console.error(
+        editingId ? "Error updating expense:" : "Error creating expense:",
+        error
+      );
+      toast.error(
+        error.message ||
+          (editingId
+            ? t("expenses.failedToUpdate")
+            : t("expenses.failedToCreate"))
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -138,7 +187,9 @@ export const Expenses: React.FC = () => {
             <PieChart className="w-5 h-5 text-red-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">{t("expenses.totalExpenses")}</p>
+            <p className="text-sm text-slate-500">
+              {t("expenses.totalExpenses")}
+            </p>
             <p className="text-2xl font-bold text-slate-800">
               {totalExpenses.toLocaleString()} MMK
             </p>
@@ -146,7 +197,7 @@ export const Expenses: React.FC = () => {
         </div>
       </div>
 
-        <div className="bg-white shadow-sm border rounded-xl overflow-hidden">
+      <div className="bg-white shadow-sm border rounded-xl overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-slate-500">
             <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
@@ -161,7 +212,9 @@ export const Expenses: React.FC = () => {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b">
               <tr>
-                <th className="px-4 py-3 font-semibold text-slate-600">{t("expenses.date")}</th>
+                <th className="px-4 py-3 font-semibold text-slate-600">
+                  {t("expenses.date")}
+                </th>
                 <th className="px-4 py-3 font-semibold text-slate-600">
                   {t("expenses.category")}
                 </th>
@@ -176,6 +229,9 @@ export const Expenses: React.FC = () => {
                 </th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-right">
                   {t("expenses.amount")}
+                </th>
+                <th className="px-4 py-3 font-semibold text-slate-600 text-center">
+                  {t("common.actions")}
                 </th>
               </tr>
             </thead>
@@ -239,6 +295,15 @@ export const Expenses: React.FC = () => {
                   <td className="px-4 py-3 text-right font-bold text-red-600">
                     {expense.amount.toLocaleString()} MMK
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => handleOpenEdit(expense)}
+                      className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                      title={t("common.edit")}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -253,20 +318,23 @@ export const Expenses: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-primary" />
-                {t("expenses.newExpense")}
+                {editingId
+                  ? t("expenses.editExpense")
+                  : t("expenses.newExpense")}
               </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleCloseModal}
                 className="text-slate-400 hover:text-slate-600 p-1"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateExpense} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  {t("expenses.category")} <span className="text-red-500">*</span>
+                  {t("expenses.category")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <select
                   required
@@ -276,21 +344,26 @@ export const Expenses: React.FC = () => {
                     setFormData({ ...formData, category: e.target.value })
                   }
                 >
-                  <option value="electricity">{t("expenses.electricity")}</option>
+                  <option value="electricity">
+                    {t("expenses.electricity")}
+                  </option>
                   <option value="water">{t("expenses.water")}</option>
                   <option value="utilities">{t("expenses.utilities")}</option>
                   <option value="salary">{t("expenses.salary")}</option>
-                  <option value="maintenance">{t("expenses.maintenance")}</option>
+                  <option value="maintenance">
+                    {t("expenses.maintenance")}
+                  </option>
                   <option value="rent">{t("expenses.rent")}</option>
                   <option value="other">{t("expenses.other")}</option>
                 </select>
               </div>
 
-          <div>
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  {t("expenses.amount")} (MMK) <span className="text-red-500">*</span>
-            </label>
-            <input
+                  {t("expenses.amount")} (MMK){" "}
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
                   type="number"
                   required
                   min="0"
@@ -304,28 +377,28 @@ export const Expenses: React.FC = () => {
                       amount: Number(e.target.value),
                     })
                   }
-            />
-          </div>
+                />
+              </div>
 
-          <div>
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("expenses.date")} <span className="text-red-500">*</span>
-            </label>
-            <input
+                </label>
+                <input
                   type="date"
                   required
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={formData.date}
-              onChange={(e) =>
+                  onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
-              }
-            />
-          </div>
+                  }
+                />
+              </div>
 
-          <div>
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("expenses.notesOptional")}
-            </label>
+                </label>
                 <textarea
                   rows={3}
                   maxLength={500}
@@ -341,29 +414,34 @@ export const Expenses: React.FC = () => {
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   {t("common.cancel")}
                 </button>
-          <button
-            type="submit"
+                <button
+                  type="submit"
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-          >
+                >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> {t("expenses.creating")}
+                      <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                      {editingId
+                        ? t("expenses.updating")
+                        : t("expenses.creating")}
                     </>
+                  ) : editingId ? (
+                    t("expenses.updateExpense")
                   ) : (
                     <>
                       <Plus className="w-4 h-4" /> {t("expenses.createExpense")}
                     </>
                   )}
-          </button>
+                </button>
               </div>
-        </form>
-      </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
