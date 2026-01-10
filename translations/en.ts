@@ -145,6 +145,10 @@ export const en = {
     notePlaceholder: "Serial number, note...",
     completeSale: "Complete Sale",
     payment: "Payment",
+    scanBarcodeToAdd: "Scan barcode to add to cart...",
+    searchOrScanBarcode: "Search products or scan barcode...",
+    barcodeNotFound: "Product with this barcode not found",
+    addedToCart: "added to cart",
   },
   inventory: {
     title: "Product Inventory",

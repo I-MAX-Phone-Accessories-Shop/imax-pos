@@ -11,6 +11,7 @@ import {
   Loader2,
   ChevronDown,
   User,
+  Scan,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -96,7 +97,7 @@ export const POS: React.FC = () => {
       // Load stock items
       await loadStockItems();
     } catch (error) {
-      console.error("Error loading initial data:", error);
+      // console.error("Error loading initial data:", error);
       toast.error(t("pos.failedToLoadData"));
     } finally {
       setLoading(false);
@@ -109,10 +110,10 @@ export const POS: React.FC = () => {
   const loadCreditPersonas = async () => {
     try {
       const cpResponse = await fetchCreditPersonas();
-      console.log("Credit personas response:", cpResponse);
+      // console.log("Credit personas response:", cpResponse);
       if (cpResponse.success && cpResponse.data) {
         const activePersonas = cpResponse.data.filter((p) => !p.blacklist);
-        console.log("Active credit personas:", activePersonas);
+        // console.log("Active credit personas:", activePersonas);
         setCreditPersonas(activePersonas);
       }
     } catch (error) {
@@ -123,6 +124,7 @@ export const POS: React.FC = () => {
   const loadStockItems = async () => {
     try {
       const response = await fetchStorefrontStock();
+      console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
       }
@@ -208,6 +210,62 @@ export const POS: React.FC = () => {
     setCart((prev) => prev.filter((item) => item.stockItem._id !== id));
   };
 
+  // Handle barcode scanning from search input
+  const handleBarcodeScan = (searchValue: string) => {
+    if (!searchValue.trim()) return;
+
+    // Filter products by selected storefront first
+    const storefrontProducts = allStockItems.filter((item) => {
+      const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
+      return matchesStorefront;
+    });
+
+    // Find matching product by barcode, productCode, or SKU (case-insensitive)
+    // Only try exact matches (not partial) for barcode scanning
+    const matchingProduct = storefrontProducts.find((item) => {
+      const barcodeToMatch = searchValue.trim().toLowerCase();
+      const productBarcode =
+        (item.inventoryId as any)?.barcode?.toLowerCase() || "";
+      const productCode = item.inventoryId.productCode?.toLowerCase() || "";
+      const sku = item.inventoryId.SKU?.toLowerCase() || "";
+
+      // Exact match only for barcode scanning
+      return (
+        (productBarcode && productBarcode === barcodeToMatch) ||
+        (productCode && productCode === barcodeToMatch) ||
+        (sku && sku === barcodeToMatch)
+      );
+    });
+
+    if (matchingProduct) {
+      // Check if product is in stock
+      if (matchingProduct.availableQuantity <= 0) {
+        toast.error(t("pos.outOfStock"));
+        setSearch(""); // Clear search
+        return;
+      }
+
+      // Add to cart (will increment if already exists)
+      addToCart(matchingProduct);
+
+      // Show success feedback
+      toast.success(
+        `${matchingProduct.inventoryId.productName} ${
+          t("pos.addedToCart") || "added to cart"
+        }`,
+        {
+          duration: 1500,
+        }
+      );
+
+      // Clear search after successful barcode scan
+      setSearch("");
+      return true; // Indicate barcode was found and processed
+    }
+
+    return false; // No barcode match found, continue with regular search
+  };
+
   // Calculate totals
   const getItemPrice = (item: StorefrontStockItem) => {
     // Use sellingPrice from inventory if available, otherwise use placeholder
@@ -219,6 +277,14 @@ export const POS: React.FC = () => {
     0
   );
   const total = subtotal * (1 - discount / 100);
+
+  // Auto-update paid amount when discount or subtotal changes in checkout modal
+  useEffect(() => {
+    if (showCheckoutModal && paymentType === "paid") {
+      // Update paid amount to match new total when discount or subtotal changes
+      setPaidAmount(total);
+    }
+  }, [showCheckoutModal, total, paymentType]);
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
@@ -336,15 +402,37 @@ export const POS: React.FC = () => {
         {/* Search Bar with Storefront Badge */}
         <div className="mb-4">
           <div className="flex items-center gap-3">
-            {/* Search Input */}
+            {/* Combined Search/Barcode Input */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none" />
+              <Scan className="absolute right-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none opacity-50" />
               <input
                 type="text"
-                placeholder={t("pos.searchProducts")}
-                className="w-full pl-10 pr-4 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
+                placeholder={
+                  t("pos.searchOrScanBarcode") ||
+                  "Search products or scan barcode..."
+                }
+                className="w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  // When Enter is pressed, try to scan barcode first
+                  if (e.key === "Enter" && search.trim()) {
+                    e.preventDefault();
+                    handleBarcodeScan(search);
+                    // If barcode was found and added, search is already cleared
+                    // If not found, continue with regular search (filtering happens automatically)
+                  }
+                }}
+                onBlur={() => {
+                  // Auto-process barcode when input loses focus (useful for barcode scanners that auto-tab)
+                  // Only if search value exists and looks like it could be a barcode (length >= 3)
+                  // This helps with barcode scanners that send data on blur
+                  if (search.trim() && search.trim().length >= 3) {
+                    handleBarcodeScan(search);
+                  }
+                }}
+                autoFocus
               />
             </div>
 
@@ -582,7 +670,11 @@ export const POS: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setShowCheckoutModal(true)}
+            onClick={() => {
+              // Auto-fill paid amount with total when opening checkout modal
+              setPaidAmount(total);
+              setShowCheckoutModal(true);
+            }}
             disabled={cart.length === 0}
             className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >

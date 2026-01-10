@@ -116,7 +116,7 @@ export const Purchasing: React.FC = () => {
     try {
       const res = await fetchTransfers();
       if (res.success) {
-        setTransferList(res.data);
+        setTransferList(res.data.reverse());
       }
     } catch (error) {
       console.error("Failed to load transfers", error);
@@ -180,7 +180,8 @@ export const Purchasing: React.FC = () => {
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <PackageCheck className="w-4 h-4" /> {t("purchasing.goodsReceivedNote")}
+          <PackageCheck className="w-4 h-4" />{" "}
+          {t("purchasing.goodsReceivedNote")}
         </button>
         <button
           onClick={() => setActiveTab("transfer")}

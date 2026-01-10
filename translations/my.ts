@@ -145,6 +145,10 @@ export const my = {
     notePlaceholder: "အမှတ်စဉ်၊ မှတ်ချက်...",
     completeSale: "ရောင်းချမှု ပြီးစီးမည်",
     payment: "ပေးချေမှု",
+    scanBarcodeToAdd: "ဘားကုဒ် စကန်လုပ်ပြီး ထည့်သွင်းပါ...",
+    searchOrScanBarcode: "ကုန်ပစ္စည်းများ ရှာဖွေပါ သို့မဟုတ် ဘားကုဒ် စကန်လုပ်ပါ...",
+    barcodeNotFound: "ဤဘားကုဒ်ဖြင့် ကုန်ပစ္စည်းကို မတွေ့ရှိပါ",
+    addedToCart: "ထည့်သွင်းပြီးပါပြီ",
   },
   inventory: {
     title: "ကုန်ပစ္စည်းစာရင်း",

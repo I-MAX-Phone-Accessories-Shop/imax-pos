@@ -143,7 +143,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white p-6 rounded-lg w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">
-          {editingId ? t("inventory.editProduct") : t("inventory.addNewProduct")}
+          {editingId
+            ? t("inventory.editProduct")
+            : t("inventory.addNewProduct")}
         </h2>
 
         {error && (
@@ -156,7 +158,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Required Fields */}
           <div className="col-span-2">
             <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.productName")} <span className="text-red-500">*</span>
+              {t("inventory.productName")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               className="w-full border rounded p-2"
@@ -165,9 +168,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
+          <div className="col-span-2">
+            <label className="block text-xs font-bold text-slate-500">
+              {t("inventory.barcode")}
+            </label>
+            <input
+              className="w-full border rounded p-2"
+              value={formData.barcode || ""}
+              onChange={(e) => updateFormData({ barcode: e.target.value })}
+              placeholder={t("inventory.barcode") || "Enter barcode"}
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.productCode")} <span className="text-red-500">*</span>
+              {t("inventory.productCode")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               className="w-full border rounded p-2"
@@ -212,22 +228,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               />
               {categoryShowDropdown && (
                 <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {getFilteredCategories(categoryInput || formData.category).map(
-                    (category) => (
-                      <div
-                        key={category}
-                        className="px-4 py-2 hover:bg-primary/10 cursor-pointer"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          updateFormData({ category });
-                          setCategoryInput("");
-                          setCategoryShowDropdown(false);
-                        }}
-                      >
-                        {category}
-                      </div>
-                    )
-                  )}
+                  {getFilteredCategories(
+                    categoryInput || formData.category
+                  ).map((category) => (
+                    <div
+                      key={category}
+                      className="px-4 py-2 hover:bg-primary/10 cursor-pointer"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        updateFormData({ category });
+                        setCategoryInput("");
+                        setCategoryShowDropdown(false);
+                      }}
+                    >
+                      {category}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -290,7 +306,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.unitOfMeasure")} <span className="text-red-500">*</span>
+              {t("inventory.unitOfMeasure")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <select
               className="w-full border rounded p-2"
@@ -321,7 +338,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.buyingPrice")} <span className="text-red-500">*</span>
+              {t("inventory.buyingPrice")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -337,7 +355,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.sellingPrice")} <span className="text-red-500">*</span>
+              {t("inventory.sellingPrice")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -370,4 +389,3 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     </div>
   );
 };
-

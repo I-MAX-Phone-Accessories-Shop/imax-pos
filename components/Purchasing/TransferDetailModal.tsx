@@ -70,6 +70,71 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
   const totalQuantity =
     transfer?.lineItems.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
+  // Helper function to extract ID from string or object
+  const getDisplayId = (
+    value:
+      | string
+      | {
+          _id?: string;
+          locationCode?: string;
+          locationName?: string;
+          storefrontCode?: string;
+          storefrontName?: string;
+        }
+      | null
+      | undefined
+  ): string => {
+    if (!value) return "-";
+    if (typeof value === "string") return value;
+    if (typeof value === "object") {
+      return value._id || value.locationCode || value.storefrontCode || "-";
+    }
+    return "-";
+  };
+
+  // Helper function to get display name from object
+  const getDisplayName = (
+    value:
+      | string
+      | {
+          _id?: string;
+          locationCode?: string;
+          locationName?: string;
+          storefrontCode?: string;
+          storefrontName?: string;
+        }
+      | null
+      | undefined
+  ): string => {
+    if (!value) return "-";
+    if (typeof value === "string") return value;
+    if (typeof value === "object") {
+      return (
+        value.locationName ||
+        value.storefrontName ||
+        value.locationCode ||
+        value.storefrontCode ||
+        value._id ||
+        "-"
+      );
+    }
+    return "-";
+  };
+
+  // Helper function to get inventory ID from string or object
+  const getInventoryId = (item: any): string => {
+    if (!item?.inventoryId) return "-";
+    if (typeof item.inventoryId === "string") {
+      return item.inventoryId.substring(0, 12);
+    }
+    if (typeof item.inventoryId === "object") {
+      return item.inventoryId._id?.substring(0, 12) || "-";
+    }
+    return "-";
+  };
+
+  console.log(transfer);
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Transfer Details">
       {loading ? (
@@ -134,22 +199,37 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
               </div>
               <div
                 className="text-purple-800 font-mono text-sm truncate"
-                title={transfer.sourceId}
+                title={getDisplayId(transfer.sourceId as any)}
               >
-                {transfer.sourceId}
+                {getDisplayName(transfer.sourceId as any)}
               </div>
+              {typeof transfer.sourceId === "object" && transfer.sourceId && (
+                <div className="text-purple-600 text-xs mt-1">
+                  ID: {(transfer.sourceId as any)._id?.substring(0, 12) || "-"}
+                </div>
+              )}
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 text-green-700 text-sm font-semibold mb-2">
                 <Warehouse className="w-4 h-4" />
-                Destination Warehouse ID
+                Destination Warehouse
               </div>
               <div
                 className="text-green-800 font-mono text-sm truncate"
-                title={transfer.destinationWarehouseId}
+                title={getDisplayId(transfer.destinationWarehouseId as any)}
               >
-                {transfer.destinationWarehouseId}
+                {getDisplayName(transfer.destinationWarehouseId as any)}
               </div>
+              {typeof transfer.destinationWarehouseId === "object" &&
+                transfer.destinationWarehouseId && (
+                  <div className="text-green-600 text-xs mt-1">
+                    ID:{" "}
+                    {(transfer.destinationWarehouseId as any)._id?.substring(
+                      0,
+                      12
+                    ) || "-"}
+                  </div>
+                )}
             </div>
           </div>
 
@@ -204,7 +284,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="p-3 text-left">#</th>
-                    <th className="p-3 text-left">Inventory ID</th>
+                    <th className="p-3 text-left">Product Name</th>
                     <th className="p-3 text-center">Quantity</th>
                     <th className="p-3 text-left">GRN Line Item ID</th>
                     <th className="p-3 text-left">Notes</th>
@@ -214,11 +294,8 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                   {transfer.lineItems.map((item, index) => (
                     <tr key={item._id} className="hover:bg-slate-50">
                       <td className="p-3 text-slate-500">{index + 1}</td>
-                      <td
-                        className="p-3 font-mono text-xs truncate max-w-xs"
-                        title={item.inventoryId}
-                      >
-                        {item?.inventoryId?._id?.substring(0, 12) || "-"}
+                      <td className="p-3 font-mono text-xs truncate max-w-xs">
+                        {item.inventoryId?.productName || "-"}
                       </td>
                       <td className="p-3 text-center">
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
@@ -227,10 +304,20 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                       </td>
                       <td
                         className="p-3 font-mono text-xs truncate max-w-xs"
-                        title={item.grnLineItemId}
+                        title={
+                          item.grnLineItemId
+                            ? typeof item.grnLineItemId === "string"
+                              ? item.grnLineItemId
+                              : (item.grnLineItemId as any)?._id || "-"
+                            : "-"
+                        }
                       >
                         {item.grnLineItemId
-                          ? item?.grnLineItemId?.substring(0, 12).concat("...")
+                          ? typeof item.grnLineItemId === "string"
+                            ? item.grnLineItemId.substring(0, 12).concat("...")
+                            : (item.grnLineItemId as any)?._id
+                                ?.substring(0, 12)
+                                ?.concat("...") || "-"
                           : "-"}
                       </td>
                       <td className="p-3 text-slate-500">
