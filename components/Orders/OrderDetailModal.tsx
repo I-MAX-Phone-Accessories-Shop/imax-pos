@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   X,
   RefreshCw,
@@ -9,6 +9,8 @@ import {
   Package,
   UserCircle,
   User,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { Order } from "../../services/Order/fetchOrders";
 import {
@@ -18,12 +20,16 @@ import {
   getPaymentTypeColor,
   formatDate,
 } from "./orderUtils";
+import { useLanguage } from "../../context/LanguageContext";
+import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
+import { RemoveItemsFromOrderModal } from "./RemoveItemsFromOrderModal";
 
 interface OrderDetailModalProps {
   isOpen: boolean;
   loading: boolean;
   order: Order | null;
   onClose: () => void;
+  onOrderUpdate?: () => void;
 }
 
 export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
@@ -31,7 +37,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   loading,
   order,
   onClose,
+  onOrderUpdate,
 }) => {
+  const { t } = useLanguage();
+  const [showAddItemsModal, setShowAddItemsModal] = useState(false);
+  const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -43,12 +54,32 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             <Receipt className="w-5 h-5 text-primary" />
             Order Details
           </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-slate-200 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            {order && (
+              <>
+                <button
+                  onClick={() => setShowRemoveItemsModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                >
+                  <Minus className="w-4 h-4" />
+                  {t("orders.removeItems") || "Remove Items"}
+                </button>
+                <button
+                  onClick={() => setShowAddItemsModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t("orders.addItems") || "Add Items"}
+                </button>
+              </>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-slate-200 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}
@@ -266,6 +297,32 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           ) : null}
         </div>
       </div>
+
+      {/* Add Items Modal */}
+      <AddItemsToOrderModal
+        isOpen={showAddItemsModal}
+        order={order}
+        onClose={() => setShowAddItemsModal(false)}
+        onSuccess={() => {
+          setShowAddItemsModal(false);
+          if (onOrderUpdate) {
+            onOrderUpdate();
+          }
+        }}
+      />
+
+      {/* Remove Items Modal */}
+      <RemoveItemsFromOrderModal
+        isOpen={showRemoveItemsModal}
+        order={order}
+        onClose={() => setShowRemoveItemsModal(false)}
+        onSuccess={() => {
+          setShowRemoveItemsModal(false);
+          if (onOrderUpdate) {
+            onOrderUpdate();
+          }
+        }}
+      />
     </div>
   );
 };

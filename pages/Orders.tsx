@@ -155,6 +155,22 @@ export const Orders: React.FC = () => {
     }
   };
 
+  const handleRefreshOrderDetails = async () => {
+    if (selectedOrder?._id) {
+      setLoadingDetail(true);
+      try {
+        const response = await fetchOrderById(selectedOrder._id);
+        if (response.success && response.data) {
+          setSelectedOrder(response.data);
+        }
+      } catch (error) {
+        console.error("Error refreshing order details:", error);
+      } finally {
+        setLoadingDetail(false);
+      }
+    }
+  };
+
   const handleOpenCreditPersonModal = (order: Order) => {
     setSelectedOrderForCredit(order);
     setShowCreditPersonModal(true);
@@ -248,6 +264,10 @@ export const Orders: React.FC = () => {
         onClose={() => {
           setSelectedOrder(null);
           setLoadingDetail(false);
+        }}
+        onOrderUpdate={async () => {
+          await loadOrders();
+          await handleRefreshOrderDetails();
         }}
       />
 
