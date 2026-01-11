@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Search,
-  Trash2,
   Plus,
   Minus,
-  Printer,
-  X,
-  Store,
+  Trash2,
+  ShoppingCart,
+  CreditCard,
+  DollarSign,
   RefreshCw,
-  Loader2,
+  Store,
   ChevronDown,
-  User,
+  Loader2,
   Scan,
+  X,
+  User,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useLanguage } from "../context/LanguageContext";
+import { printThermalReceipt } from "../components/ThermalReceipt";
 import {
   fetchStorefrontStock,
   StorefrontStockItem,
@@ -27,7 +32,6 @@ import {
   fetchCreditPersonas,
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
-import { useLanguage } from "../context/LanguageContext";
 
 // Payment methods
 enum PaymentMethod {
@@ -61,7 +65,6 @@ export const POS: React.FC = () => {
     PaymentMethod.CASH
   );
   const [discount, setDiscount] = useState(0);
-  const [showReceipt, setShowReceipt] = useState<any>(null);
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
@@ -100,7 +103,7 @@ export const POS: React.FC = () => {
       // console.error("Error loading initial data:", error);
       toast.error(t("pos.failedToLoadData"));
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
 
     // Load credit personas separately
@@ -353,7 +356,8 @@ export const POS: React.FC = () => {
           note,
         };
 
-        setShowReceipt(receiptData);
+        // Auto-print receipt
+        printThermalReceipt(receiptData, "58mm");
         setCart([]);
         setDiscount(0);
         setNote("");
@@ -899,117 +903,6 @@ export const POS: React.FC = () => {
                 {t("common.cancel")}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Receipt Modal */}
-      {showReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-200">
-            <div className="flex justify-between items-center mb-4 no-print">
-              <h3 className="font-bold text-gray-800">
-                {t("pos.receiptPreview")}
-              </h3>
-              <button
-                onClick={() => setShowReceipt(null)}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
-            {/* Thermal Receipt Layout */}
-            <div
-              id="receipt-content"
-              className="font-mono text-xs p-4 border border-gray-200 bg-gray-50 rounded-lg"
-            >
-              <div className="text-center mb-4">
-                <h1 className="font-bold text-lg uppercase text-gray-800">
-                  {showReceipt.storefrontName}
-                </h1>
-                <p className="text-gray-500">IMAS POS System</p>
-              </div>
-              <div className="border-b border-dashed border-gray-400 my-2"></div>
-              <p>
-                {t("pos.orderNumber")}: {showReceipt.invoiceNumber}
-              </p>
-              <p>
-                {t("common.date")}:{" "}
-                {new Date(showReceipt.date).toLocaleString()}
-              </p>
-              <div className="border-b border-dashed border-gray-400 my-2"></div>
-              <table className="w-full text-left">
-                <thead>
-                  <tr>
-                    <th className="pb-1">{t("pos.items")}</th>
-                    <th className="pb-1 text-right">{t("common.price")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {showReceipt.items.map((item: any, i: number) => (
-                    <tr key={i}>
-                      <td>
-                        {item.name}{" "}
-                        <span className="text-[10px]">x{item.qty}</span>
-                      </td>
-                      <td className="text-right">
-                        {(item.price * item.qty).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="border-b border-dashed border-gray-400 my-2"></div>
-              <div className="flex justify-between">
-                <span>{t("common.subtotal")}</span>
-                <span>{showReceipt.subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("common.discount")}</span>
-                <span>{showReceipt.discountPercent}%</span>
-              </div>
-              <div className="flex justify-between font-bold text-sm mt-1">
-                <span>{t("common.total").toUpperCase()}</span>
-                <span>{showReceipt.total.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between mt-1">
-                <span>{t("pos.payment")}</span>
-                <span>{showReceipt.paymentMethod}</span>
-              </div>
-              {showReceipt.paidAmount && (
-                <div className="flex justify-between mt-1">
-                  <span>{t("common.paid")}</span>
-                  <span>{showReceipt.paidAmount.toLocaleString()}</span>
-                </div>
-              )}
-              {showReceipt.change > 0 && (
-                <div className="flex justify-between mt-1 font-bold">
-                  <span>{t("common.change")}</span>
-                  <span>{showReceipt.change.toLocaleString()}</span>
-                </div>
-              )}
-              {showReceipt.note && (
-                <div className="mt-2 text-[10px]">
-                  {t("common.notes")}: {showReceipt.note}
-                </div>
-              )}
-              <div className="text-center mt-4 text-[10px] text-gray-500">
-                {t("pos.thankYou")}
-                <br />
-                {t("pos.receiptFooter")}
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                window.print();
-                setShowReceipt(null);
-              }}
-              className="w-full mt-4 bg-btn-secondary hover:bg-btn-secondary-hover text-primary py-2 rounded-lg flex justify-center items-center gap-2 transition-colors no-print font-medium"
-            >
-              <Printer className="w-4 h-4" /> {t("pos.print")}
-            </button>
           </div>
         </div>
       )}
