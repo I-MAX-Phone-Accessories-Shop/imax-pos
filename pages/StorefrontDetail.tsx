@@ -47,24 +47,35 @@ export const StorefrontDetail: React.FC = () => {
   }, [id]);
 
   const loadStorefrontStock = async () => {
+    if (!id) {
+      toast.error("Storefront ID is missing");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetchStorefrontStock();
+      const response = await fetchStorefrontStock(id);
       console.log(response);
       if (response.success && response.data) {
-        // Filter items by storefront ID
-        const filteredItems = response.data.filter(
-          (item) => item.storefrontId?._id === id
-        );
-        setStockItems(filteredItems);
+        setStockItems(response.data);
 
         // Update storefront info from first item if not provided via state
-        if (filteredItems.length > 0 && !storefrontInfo) {
-          setStorefrontName(filteredItems[0].storefrontId.storefrontName);
-          setStorefrontCode(filteredItems[0].storefrontId.storefrontCode);
+        if (response.data.length > 0 && !storefrontInfo) {
+          const firstItem = response.data[0];
+          setStorefrontName(
+            firstItem.storefrontId.locationName ||
+              firstItem.storefrontId.storefrontName ||
+              "Storefront"
+          );
+          setStorefrontCode(
+            firstItem.storefrontId.locationCode ||
+              firstItem.storefrontId.storefrontCode ||
+              ""
+          );
         }
       } else {
-        toast.error("Failed to load storefront stock");
+        toast.error(response.message || "Failed to load storefront stock");
       }
     } catch (error) {
       console.error("Error loading storefront stock:", error);

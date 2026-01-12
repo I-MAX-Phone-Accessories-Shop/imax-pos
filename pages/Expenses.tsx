@@ -9,12 +9,15 @@ import {
   Plus,
   X,
   Edit,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchExpenses, Expense } from "../services/Expense/fetchExpenses";
 import { createExpense } from "../services/Expense/createExpense";
 import { updateExpense } from "../services/Expense/updateExpense";
+import { deleteExpense } from "../services/Expense/deleteExpense";
 import { useLanguage } from "../context/LanguageContext";
+import { ConfirmModal } from "../components/Common/ConfirmModal";
 
 export const Expenses: React.FC = () => {
   const { t } = useLanguage();
@@ -31,6 +34,10 @@ export const Expenses: React.FC = () => {
     date: new Date().toISOString().split("T")[0], // Format: YYYY-MM-DD
     notes: "",
   });
+
+  // Delete Confirmation Modal State
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadExpenses();
@@ -147,6 +154,43 @@ export const Expenses: React.FC = () => {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleDelete = (expense: Expense) => {
+    setExpenseToDelete(expense);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!expenseToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await deleteExpense(expenseToDelete._id);
+      if (response.success) {
+        toast.success(
+          response.message ||
+            t("expenses.expenseDeleted") ||
+            "Expense deleted successfully"
+        );
+        setExpenseToDelete(null);
+        loadExpenses();
+      } else {
+        toast.error(
+          response.message ||
+            t("expenses.failedToDelete") ||
+            "Failed to delete expense"
+        );
+      }
+    } catch (error: any) {
+      console.error("Error deleting expense:", error);
+      toast.error(
+        error.message ||
+          t("expenses.failedToDelete") ||
+          "Failed to delete expense"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const totalExpenses = expenses.reduce(
@@ -296,13 +340,22 @@ export const Expenses: React.FC = () => {
                     {expense.amount.toLocaleString()} MMK
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleOpenEdit(expense)}
-                      className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                      title={t("common.edit")}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleOpenEdit(expense)}
+                        className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                        title={t("common.edit")}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(expense)}
+                        className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title={t("common.delete") || "Delete"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -444,6 +497,28 @@ export const Expenses: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!expenseToDelete}
+        title={t("expenses.deleteExpense") || "Delete Expense"}
+        message={
+          expenseToDelete
+            ? t("expenses.confirmDeleteMessage")?.replace(
+                "{amount}",
+                expenseToDelete.amount.toLocaleString()
+              ) ||
+              `Are you sure you want to delete this expense of ${expenseToDelete.amount.toLocaleString()} MMK? This action cannot be undone.`
+            : t("expenses.confirmDelete") ||
+              "Are you sure you want to delete this expense?"
+        }
+        confirmText={t("common.delete") || "Delete"}
+        cancelText={t("common.cancel") || "Cancel"}
+        confirmButtonColor="red"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setExpenseToDelete(null)}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

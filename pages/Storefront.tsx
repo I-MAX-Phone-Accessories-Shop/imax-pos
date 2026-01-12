@@ -10,6 +10,11 @@ import {
   Mail,
   ChevronRight,
   Edit,
+  Package,
+  RefreshCw,
+  AlertTriangle,
+  Loader2,
+  Box,
 } from "lucide-react";
 import {
   fetchStorefrontProfiles,
@@ -17,6 +22,10 @@ import {
 } from "../services/Storefront/fetchStorefrontProfiles";
 import { createStorefrontProfile } from "../services/Storefront/createStorefrontProfile";
 import { updateStorefrontProfile } from "../services/Storefront/updateStorefrontProfile";
+import {
+  fetchStorefrontStock,
+  StorefrontStockItem,
+} from "../services/Storefront/fetchStorefrontStock";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -40,6 +49,13 @@ export const Storefront: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(false);
 
+  // Inventory State
+  const [inventoryItems, setInventoryItems] = useState<StorefrontStockItem[]>(
+    []
+  );
+  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -59,6 +75,43 @@ export const Storefront: React.FC = () => {
   useEffect(() => {
     loadStorefrontProfiles();
   }, []);
+
+  const loadInventory = async () => {
+    setLoadingInventory(true);
+    try {
+      const response = await fetchStorefrontStock();
+      if (response.success && response.data) {
+        setInventoryItems(response.data);
+      } else {
+        toast.error(response.message || "Failed to load inventory");
+      }
+    } catch (error) {
+      console.error("Error loading inventory:", error);
+      toast.error("Failed to load inventory");
+    } finally {
+      setLoadingInventory(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showInventory) {
+      loadInventory();
+    }
+  }, [showInventory]);
+
+  // Calculate stats for all inventory
+  const totalQuantity = inventoryItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
+  const lowStockCount = inventoryItems.filter((item) => item.isLowStock).length;
+
+  // Calculate total amount for all inventory
+  const totalInventoryAmount = inventoryItems.reduce((sum, item) => {
+    const sellingPrice = item.inventoryId.sellingPrice || 0;
+    const itemTotal = item.quantity * sellingPrice;
+    return sum + itemTotal;
+  }, 0);
 
   const loadStorefrontProfiles = async () => {
     setLoading(true);
@@ -183,13 +236,261 @@ export const Storefront: React.FC = () => {
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
           {t("storefront.title")}
         </h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" /> {t("storefront.addStorefront")}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setShowInventory(!showInventory);
+              if (!showInventory) {
+                loadInventory();
+              }
+            }}
+            className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Package className="w-4 h-4" />
+            {showInventory ? "Hide Inventory" : "Show All Inventory"}
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> {t("storefront.addStorefront")}
+          </button>
+        </div>
       </div>
+
+      {/* All Inventory Products Section */}
+      {showInventory && (
+        <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+          <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+            <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+              <Package className="w-5 h-5 text-primary" />
+              All Storefront Inventory
+            </h2>
+            <button
+              onClick={loadInventory}
+              disabled={loadingInventory}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${loadingInventory ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </button>
+          </div>
+
+          {/* Stats Cards */}
+          {!loadingInventory && inventoryItems.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b bg-slate-50">
+              <div className="bg-white p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/20 rounded-lg">
+                    <Box className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Total Products</p>
+                    <p className="text-2xl font-bold text-slate-800">
+                      {inventoryItems.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Package className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Total Quantity</p>
+                    <p className="text-2xl font-bold text-slate-800">
+                      {totalQuantity}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Low Stock Items</p>
+                    <p className="text-2xl font-bold text-slate-800">
+                      {lowStockCount}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-indigo-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-100 rounded-lg">
+                    <Store className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Total Amount</p>
+                    <p className="text-2xl font-bold text-indigo-600">
+                      {totalInventoryAmount.toLocaleString()} MMK
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {loadingInventory ? (
+            <div className="p-8 text-center text-slate-500">
+              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+              <p>Loading inventory...</p>
+            </div>
+          ) : inventoryItems.length === 0 ? (
+            <div className="p-8 text-center text-slate-500">
+              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p>No inventory items found.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      Product Name
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      Product Code
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      SKU
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      Category
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      Storefront
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                      Quantity
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                      Available
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                      Selling Price
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                      Total Amount
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 font-medium text-slate-600">
+                      Last Updated
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {inventoryItems.map((item) => {
+                    const storefrontName =
+                      item.storefrontId.locationName ||
+                      item.storefrontId.storefrontName ||
+                      "Unknown";
+                    const storefrontCode =
+                      item.storefrontId.locationCode ||
+                      item.storefrontId.storefrontCode ||
+                      "";
+
+                    return (
+                      <tr
+                        key={item._id}
+                        className="hover:bg-slate-50 cursor-pointer"
+                        onClick={() =>
+                          navigate(`/storefront/${item.storefrontId._id}`, {
+                            state: {
+                              storefrontName,
+                              storefrontCode,
+                            },
+                          })
+                        }
+                      >
+                        <td className="px-4 py-3 font-medium text-slate-800">
+                          {item.inventoryId.productName}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">
+                            {item.inventoryId.productCode}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 font-mono text-xs">
+                          {item.inventoryId.SKU}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
+                            {item.inventoryId.category}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <Store className="w-3 h-3 text-slate-400" />
+                            <div>
+                              <p className="text-xs font-medium text-slate-800">
+                                {storefrontName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {storefrontCode}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-slate-800">
+                          {item.quantity}
+                        </td>
+                        <td className="px-4 py-3 text-right text-slate-600">
+                          {item.availableQuantity}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium text-slate-700">
+                          {(
+                            item.inventoryId.sellingPrice || 0
+                          ).toLocaleString()}{" "}
+                          MMK
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-slate-800">
+                          {(
+                            item.quantity * (item.inventoryId.sellingPrice || 0)
+                          ).toLocaleString()}{" "}
+                          MMK
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.isLowStock ? (
+                            <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
+                              <AlertTriangle className="w-3 h-3" /> Low Stock
+                            </span>
+                          ) : item.quantity === 0 ? (
+                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                              Out of Stock
+                            </span>
+                          ) : (
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                              In Stock
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 text-xs">
+                          {new Date(item.lastUpdated).toLocaleDateString()}{" "}
+                          {new Date(item.lastUpdated).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Storefront Profiles List */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">

@@ -13,8 +13,11 @@ export interface StorefrontStockInventory {
 
 export interface StorefrontStockStorefront {
   _id: string;
-  storefrontCode: string;
-  storefrontName: string;
+  locationCode: string;
+  locationName: string;
+  // Legacy support
+  storefrontCode?: string;
+  storefrontName?: string;
 }
 
 export interface StorefrontStockItem {
@@ -41,9 +44,14 @@ interface FetchStorefrontStockResponse {
   };
 }
 
-export const fetchStorefrontStock = async (): Promise<FetchStorefrontStockResponse> => {
+export const fetchStorefrontStock = async (
+  storefrontId?: string
+): Promise<FetchStorefrontStockResponse> => {
   try {
-    const response = await axios.get("/storefront-inventory");
+    const url = storefrontId
+      ? `/storefront-inventory?storefrontId=${storefrontId}`
+      : "/storefront-inventory";
+    const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching storefront stock:", error);

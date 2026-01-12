@@ -137,10 +137,6 @@ export const CreditDetail: React.FC = () => {
       toast.error(t("creditDetail.selectOrder"));
       return;
     }
-    if (paymentForm.paidAmount <= 0) {
-      toast.error(t("creditDetail.enterAmount"));
-      return;
-    }
 
     setIsSubmitting(true);
     try {

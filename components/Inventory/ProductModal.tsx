@@ -249,7 +249,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-xs font-bold text-slate-500">
               {t("inventory.subCategory")}
             </label>
@@ -291,7 +291,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-xs font-bold text-slate-500">
@@ -304,7 +304,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-xs font-bold text-slate-500">
               {t("inventory.unitOfMeasure")}{" "}
               <span className="text-red-500">*</span>
@@ -322,9 +322,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
-          <div className="col-span-2">
+          {/* <div className="col-span-2">
             <label className="block text-xs font-bold text-slate-500">
               {t("common.description")}
             </label>
@@ -334,7 +334,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               value={formData.description}
               onChange={(e) => updateFormData({ description: e.target.value })}
             />
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-xs font-bold text-slate-500">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Product, ProductCategory } from "../types";
 import { createProduct } from "../services/Inventory/createProduct";
+import { updateProduct } from "../services/Inventory/updateProduct";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
 import { useLanguage } from "../context/LanguageContext";
 import { InventoryTable } from "../components/Inventory/InventoryTable";
@@ -168,27 +169,61 @@ export const Inventory: React.FC = () => {
     }
 
     if (editingId) {
-      // For editing, update local state and refresh from API
-      // Note: For full implementation, you should implement PUT/PATCH API endpoint
-      // and update the product via API instead of local state
-      const updatedProducts = products.map((p) =>
-        p.id === editingId
-          ? {
-              ...p,
-              name: formData.productName,
-              category: formData.category as ProductCategory,
-              costPrice: formData.buyingPrice,
-              sellingPrice: formData.sellingPrice,
-              lowStockThreshold: formData.reorderPoint || 0,
-            }
-          : p
-      );
-      setProducts(updatedProducts);
-      setIsModalOpen(false);
-      setEditingId(null);
-      resetForm();
-      // TODO: Implement PUT/PATCH API call to update product on server
-      toast.warning(t("inventory.productUpdatedLocal"));
+      // Update existing product via API
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Prepare API payload matching the update endpoint structure
+        const apiPayload: any = {
+          productName: formData.productName,
+          productCode: formData.productCode,
+          SKU: formData.SKU,
+          category: formData.category || "Unknown",
+          buyingPrice: formData.buyingPrice,
+          sellingPrice: formData.sellingPrice,
+          unitOfMeasure: formData.unitOfMeasure || "piece",
+        };
+
+        // Add optional fields only if they have values
+        if (formData.saleCode) apiPayload.saleCode = formData.saleCode;
+        if (formData.barcode) apiPayload.barcode = formData.barcode;
+        if (formData.subCategory) apiPayload.subCategory = formData.subCategory;
+        if (formData.brand) apiPayload.brand = formData.brand;
+        if (formData.description) apiPayload.description = formData.description;
+        if (formData.reorderPoint !== undefined && formData.reorderPoint >= 0)
+          apiPayload.reorderPoint = formData.reorderPoint;
+        if (
+          formData.reorderQuantity !== undefined &&
+          formData.reorderQuantity >= 0
+        )
+          apiPayload.reorderQuantity = formData.reorderQuantity;
+        if (formData.taxRate !== undefined && formData.taxRate >= 0)
+          apiPayload.taxRate = formData.taxRate;
+        if (formData.status) apiPayload.status = formData.status;
+        if (formData.tags && formData.tags.length > 0)
+          apiPayload.tags = formData.tags;
+
+        await updateProduct(editingId, apiPayload);
+
+        setIsModalOpen(false);
+        setEditingId(null);
+        resetForm();
+        // Refresh products list after updating
+        await loadProducts();
+        toast.success(
+          t("inventory.productUpdated") || "Product updated successfully"
+        );
+      } catch (err: any) {
+        const errorMessage =
+          err.message ||
+          t("inventory.failedToUpdate") ||
+          "Failed to update product";
+        toast.error(errorMessage);
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
