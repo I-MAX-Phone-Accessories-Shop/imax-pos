@@ -88,24 +88,35 @@ export const WarehouseDetail: React.FC = () => {
   }, [id]);
 
   const loadWarehouseStock = async () => {
+    if (!id) {
+      toast.error("Warehouse ID is missing");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetchWarehouseStock();
+      const response = await fetchWarehouseStock(id);
       console.log(response);
       if (response.success && response.data) {
-        // Filter items by warehouse ID
-        const filteredItems = response.data.filter(
-          (item) => item.warehouseId !== null && item.warehouseId._id === id
-        );
-        setStockItems(filteredItems);
+        setStockItems(response.data);
 
         // Update warehouse info from first item if not provided via state
-        if (filteredItems.length > 0 && !warehouseInfo) {
-          setWarehouseName(filteredItems[0].warehouseId.warehouseName);
-          setWarehouseCode(filteredItems[0].warehouseId.warehouseCode);
+        if (response.data.length > 0 && !warehouseInfo) {
+          const firstItem = response.data[0];
+          setWarehouseName(
+            firstItem.warehouseId.locationName ||
+              firstItem.warehouseId.warehouseName ||
+              "Warehouse"
+          );
+          setWarehouseCode(
+            firstItem.warehouseId.locationCode ||
+              firstItem.warehouseId.warehouseCode ||
+              ""
+          );
         }
       } else {
-        toast.error("Failed to load warehouse stock");
+        toast.error(response.message || "Failed to load warehouse stock");
       }
     } catch (error) {
       console.error("Error loading warehouse stock:", error);

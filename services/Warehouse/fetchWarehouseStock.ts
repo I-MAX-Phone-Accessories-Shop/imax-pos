@@ -5,15 +5,22 @@ export interface WarehouseStockInventory {
   productName: string;
   productCode: string;
   SKU: string;
+  barcode?: string;
   category: string;
+  buyingPrice?: number;
+  sellingPrice?: number;
   profitMargin: number | null;
   profitAmount: number | null;
 }
 
 export interface WarehouseStockWarehouse {
   _id: string;
-  warehouseCode: string;
-  warehouseName: string;
+  locationCode: string;
+  locationName: string;
+  locationAddress?: string;
+  // Legacy support
+  warehouseCode?: string;
+  warehouseName?: string;
 }
 
 export interface WarehouseStockItem {
@@ -40,9 +47,14 @@ interface FetchWarehouseStockResponse {
   };
 }
 
-export const fetchWarehouseStock = async (): Promise<FetchWarehouseStockResponse> => {
+export const fetchWarehouseStock = async (
+  warehouseId?: string
+): Promise<FetchWarehouseStockResponse> => {
   try {
-    const response = await axios.get("/warehouse");
+    const url = warehouseId
+      ? `/warehouse?warehouseId=${warehouseId}`
+      : "/warehouse";
+    const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching warehouse stock:", error);
