@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Modal } from "../Modal";
 import { Supplier, Product, PurchaseOrderItem } from "../../types";
 import { createPurchase } from "../../services/Purchase/createPurchase";
@@ -64,6 +64,10 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     setPONewProductName("");
     setPOQty(1);
     setPOItemNote("");
+  };
+
+  const removePOItem = (index: number) => {
+    setPOItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const submitPO = async () => {
@@ -203,6 +207,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                   <th className="py-2 px-1">Qty</th>
                   <th className="py-2 px-1">Unit Price</th>
                   <th className="py-2 px-1">Cost Price</th>
+                  <th className="py-2 px-1 w-12">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,17 +219,26 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                     <td className="py-2">
                       {(item.costPrice * item.qty).toLocaleString()}
                     </td>
+                    <td className="py-2">
+                      <button
+                        onClick={() => removePOItem(i)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {poItems.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="text-center text-slate-400 py-4">
+                    <td colSpan={5} className="text-center text-slate-400 py-4">
                       No items added
                     </td>
                   </tr>
                 )}
                 <tr>
-                  <td colSpan={4} className="text-right py-2">
+                  <td colSpan={5} className="text-right py-2">
                     Total:{" "}
                     {poItems
                       .reduce(

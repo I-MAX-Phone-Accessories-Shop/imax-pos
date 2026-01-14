@@ -6,14 +6,23 @@ interface InventoryTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onViewDetails: (productId: string) => void;
+  selectedProductIds?: string[];
+  onSelectionChange?: (productId: string, selected: boolean) => void;
+  onSelectAll?: (selected: boolean) => void;
 }
 
 export const InventoryTable: React.FC<InventoryTableProps> = ({
   products,
   onEdit,
   onViewDetails,
+  selectedProductIds = [],
+  onSelectionChange,
+  onSelectAll,
 }) => {
   const { t } = useLanguage();
+  
+  const allSelected = products.length > 0 && selectedProductIds.length === products.length;
+  const someSelected = selectedProductIds.length > 0 && selectedProductIds.length < products.length;
 
   if (products.length === 0) {
     return (
@@ -28,6 +37,19 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       <table className="w-full text-sm text-left">
         <thead className="bg-slate-50 text-slate-600 border-b">
           <tr>
+            {onSelectionChange && (
+              <th className="px-4 py-3 text-center w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(input) => {
+                    if (input) input.indeterminate = someSelected;
+                  }}
+                  onChange={(e) => onSelectAll?.(e.target.checked)}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+              </th>
+            )}
             <th className="px-4 py-3 text-center">{t("inventory.no")}</th>
             <th className="px-4 py-3">{t("inventory.productCode")}</th>
             <th className="px-4 py-3">{t("inventory.productName")}</th>
@@ -38,11 +60,23 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y">
-          {products.map((p, index) => (
-            <tr key={p.id} className="hover:bg-slate-50">
-              <td className="px-4 py-3 text-center text-slate-600">
-                {String(index + 1).padStart(2, "0")}
-              </td>
+          {products.map((p, index) => {
+            const isSelected = selectedProductIds.includes(p.id);
+            return (
+              <tr key={p.id} className="hover:bg-slate-50">
+                {onSelectionChange && (
+                  <td className="px-4 py-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => onSelectionChange(p.id, e.target.checked)}
+                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                    />
+                  </td>
+                )}
+                <td className="px-4 py-3 text-center text-slate-600">
+                  {String(index + 1).padStart(2, "0")}
+                </td>
               <td className="px-4 py-3 font-medium">{p.productCode}</td>
               <td className="px-4 py-3 font-medium">{p.name}</td>
               <td className="px-4 py-3 text-slate-500">{p.category}</td>
@@ -68,8 +102,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   </button>
                 </div>
               </td>
-            </tr>
-          ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

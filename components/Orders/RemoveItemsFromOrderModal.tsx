@@ -31,16 +31,27 @@ export const RemoveItemsFromOrderModal: React.FC<
     []
   );
   const [tax, setTax] = useState(0);
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState(0); // Keep for API (absolute amount)
+  const [discountPercent, setDiscountPercent] = useState(0); // Percentage for display
   const [paidAmount, setPaidAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
 
   useEffect(() => {
     if (isOpen && order) {
       // Initialize form with existing order values
       setTax(order.tax || 0);
-      setDiscount(order.discount || 0);
+      const existingDiscount = order.discount || 0;
+      setDiscount(existingDiscount);
+      // Calculate discount percentage from existing order
+      const existingSubtotal = order.subTotal || 0;
+      const calculatedPercent =
+        existingSubtotal > 0
+          ? Math.round((existingDiscount / existingSubtotal) * 100 * 100) / 100
+          : 0;
+      setDiscountPercent(calculatedPercent);
       setPaidAmount(order.paidAmount || 0);
+      setDiscountManuallyChanged(false);
       // Initialize selected items from order products
       const initialItems: SelectedItemToRemove[] =
         order.ordersProducts?.map((item) => ({
@@ -58,7 +69,9 @@ export const RemoveItemsFromOrderModal: React.FC<
       setSelectedItems([]);
       setTax(0);
       setDiscount(0);
+      setDiscountPercent(0);
       setPaidAmount(0);
+      setDiscountManuallyChanged(false);
     }
   }, [isOpen, order]);
 
@@ -83,6 +96,29 @@ export const RemoveItemsFromOrderModal: React.FC<
     });
     setSelectedItems(updatedItems);
   };
+
+  // Update absolute discount amount when percentage or subtotal changes
+  useEffect(() => {
+    if (order) {
+      const itemsToRemoveSubtotal = selectedItems.reduce(
+        (sum, item) => sum + item.subtotalToRemove,
+        0
+      );
+      const existingSubtotal = order.subTotal || 0;
+      const totalSubtotal = Math.max(
+        0,
+        existingSubtotal - itemsToRemoveSubtotal
+      );
+
+      // Calculate discount from percentage
+      const calculatedDiscount = Math.max(
+        0,
+        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
+      );
+      setDiscount(calculatedDiscount);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discountPercent, selectedItems, order]);
 
   const handleRemoveItem = (inventoryId: string) => {
     // Remove item from selection (set removeQuantity to 0, but keep in list)
@@ -115,10 +151,11 @@ export const RemoveItemsFromOrderModal: React.FC<
           )
         : 0;
 
-    // Discount: If discount form value is different from existing, use the form value as absolute amount
-    // Otherwise, keep existing discount
-    const calculatedDiscount =
-      discount !== existingDiscount ? discount : existingDiscount;
+    // Discount: Calculate from percentage
+    const calculatedDiscount = Math.max(
+      0,
+      Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
+    );
 
     // Final amount after tax and discount
     const finalAmount = Math.max(
@@ -400,18 +437,26 @@ export const RemoveItemsFromOrderModal: React.FC<
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    {t("orders.discount") || "Discount"} (MMK)
+                    {t("orders.discount") || "Discount"} (%)
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={discount}
-                    onChange={(e) =>
-                      setDiscount(parseFloat(e.target.value) || 0)
-                    }
-                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={discountPercent}
+                      onChange={(e) => {
+                        const percent = parseFloat(e.target.value) || 0;
+                        setDiscountPercent(Math.min(100, Math.max(0, percent)));
+                        setDiscountManuallyChanged(true);
+                      }}
+                      className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    />
+                    <span className="text-xs text-slate-500 whitespace-nowrap">
+                      = {discount.toLocaleString()} MMK
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="mb-3">

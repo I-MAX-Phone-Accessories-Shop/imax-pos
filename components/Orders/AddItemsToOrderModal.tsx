@@ -51,26 +51,86 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   const [searchProduct, setSearchProduct] = useState("");
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [tax, setTax] = useState(0);
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState(0); // Keep for API (absolute amount)
+  const [discountPercent, setDiscountPercent] = useState(0); // Percentage for display
   const [paidAmount, setPaidAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
+  const [taxManuallyChanged, setTaxManuallyChanged] = useState(false);
 
   useEffect(() => {
     if (isOpen && order) {
       loadInventoryProducts();
       // Initialize form with existing order values
       setTax(order.tax || 0);
-      setDiscount(order.discount || 0);
+      const existingDiscount = order.discount || 0;
+      setDiscount(existingDiscount);
+      // Calculate discount percentage from existing order
+      const existingSubtotal = order.subTotal || 0;
+      const calculatedPercent =
+        existingSubtotal > 0
+          ? Math.round((existingDiscount / existingSubtotal) * 100 * 100) / 100
+          : 0;
+      setDiscountPercent(calculatedPercent);
       setPaidAmount(order.paidAmount || 0);
+      setDiscountManuallyChanged(false);
+      setTaxManuallyChanged(false);
     } else {
       // Reset form when modal closes
       setSelectedItems([]);
       setSearchProduct("");
       setTax(0);
       setDiscount(0);
+      setDiscountPercent(0);
       setPaidAmount(0);
+      setDiscountManuallyChanged(false);
+      setTaxManuallyChanged(false);
     }
   }, [isOpen, order]);
+
+  // Auto-update tax when items are added/removed (if not manually changed)
+  useEffect(() => {
+    if (order) {
+      const existingSubtotal = order.subTotal || 0;
+      const existingTax = order.tax || 0;
+      const newItemsSubtotal = selectedItems.reduce(
+        (sum, item) => sum + item.subtotal,
+        0
+      );
+      const totalSubtotal = existingSubtotal + newItemsSubtotal;
+
+      if (existingSubtotal > 0 && !taxManuallyChanged) {
+        // Update tax proportionally if not manually changed
+        const calculatedTax = Math.max(
+          0,
+          Math.round(((totalSubtotal * existingTax) / existingSubtotal) * 100) /
+            100
+        );
+        setTax(calculatedTax);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedItems, order]);
+
+  // Update absolute discount amount when percentage or subtotal changes
+  useEffect(() => {
+    if (order) {
+      const existingSubtotal = order.subTotal || 0;
+      const newItemsSubtotal = selectedItems.reduce(
+        (sum, item) => sum + item.subtotal,
+        0
+      );
+      const totalSubtotal = existingSubtotal + newItemsSubtotal;
+
+      // Calculate discount from percentage
+      const calculatedDiscount = Math.max(
+        0,
+        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
+      );
+      setDiscount(calculatedDiscount);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discountPercent, selectedItems, order]);
 
   const loadInventoryProducts = async () => {
     if (!order || !order.storefrontId?._id) {
@@ -192,14 +252,23 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
     // Total subtotal including new items
     const totalSubtotal = existingSubtotal + newItemsSubtotal;
 
-    // Tax: Add to existing tax (or use the tax value from form if manually set)
-    // If tax form value is different from existing, use the form value as absolute amount
-    const calculatedTax = tax !== existingTax ? tax : existingTax;
+    // Tax: If tax was manually changed, use the form value as absolute amount
+    // Otherwise, calculate proportionally based on new subtotal
+    const calculatedTax = taxManuallyChanged
+      ? tax
+      : existingSubtotal > 0
+      ? Math.max(
+          0,
+          Math.round(((totalSubtotal * existingTax) / existingSubtotal) * 100) /
+            100
+        )
+      : 0;
 
-    // Discount: Add to existing discount (or use the discount value from form if manually set)
-    // If discount form value is different from existing, use the form value as absolute amount
-    const calculatedDiscount =
-      discount !== existingDiscount ? discount : existingDiscount;
+    // Discount: Calculate from percentage
+    const calculatedDiscount = Math.max(
+      0,
+      Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
+    );
 
     // Final amount after tax and discount
     const finalAmount = totalSubtotal + calculatedTax - calculatedDiscount;
@@ -548,22 +617,35 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                 min="0"
                 step="0.01"
                 value={tax}
-                onChange={(e) => setTax(parseFloat(e.target.value) || 0)}
+                onChange={(e) => {
+                  setTax(parseFloat(e.target.value) || 0);
+                  setTaxManuallyChanged(true);
+                }}
                 className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                {t("orders.discount") || "Discount"} (MMK)
+                {t("orders.discount") || "Discount"} (%)
               </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={discount}
-                onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={discountPercent}
+                  onChange={(e) => {
+                    const percent = parseFloat(e.target.value) || 0;
+                    setDiscountPercent(Math.min(100, Math.max(0, percent)));
+                    setDiscountManuallyChanged(true);
+                  }}
+                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                />
+                <span className="text-xs text-slate-500 whitespace-nowrap">
+                  = {discount.toLocaleString()} MMK
+                </span>
+              </div>
             </div>
           </div>
           <div className="mb-3">

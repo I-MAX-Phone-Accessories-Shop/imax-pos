@@ -4,6 +4,13 @@ import { Product, ProductCategory } from "../types";
 import { createProduct } from "../services/Inventory/createProduct";
 import { updateProduct } from "../services/Inventory/updateProduct";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
+import { transferInventoryToWarehouse } from "../services/Inventory/transferInventoryToWarehouse";
+import { transferInventoryToStorefront } from "../services/Inventory/transferInventoryToStorefront";
+import { fetchWarehouseProfiles } from "../services/Warehouse/fetchWarehouseProfiles";
+import {
+  fetchStorefrontProfiles,
+  StorefrontProfile,
+} from "../services/Storefront/fetchStorefrontProfiles";
 import { useLanguage } from "../context/LanguageContext";
 import { InventoryTable } from "../components/Inventory/InventoryTable";
 import { CategoryFilter } from "../components/Inventory/CategoryFilter";
@@ -17,6 +24,8 @@ import {
   fetchProductById,
   ProductDetail,
 } from "../services/Inventory/fetchProductById";
+import { WarehouseProfile } from "../types";
+import { Building2, X, Loader2, Store } from "lucide-react";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -33,6 +42,21 @@ export const Inventory: React.FC = () => {
     useState<ProductDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Transfer to Warehouse State
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [warehouses, setWarehouses] = useState<WarehouseProfile[]>([]);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
+  const [isTransferring, setIsTransferring] = useState(false);
+
+  // Transfer to Storefront State
+  const [isTransferStorefrontModalOpen, setIsTransferStorefrontModalOpen] =
+    useState(false);
+  const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
+  const [selectedStorefrontId, setSelectedStorefrontId] = useState("");
+  const [isTransferringToStorefront, setIsTransferringToStorefront] =
+    useState(false);
 
   // Form State - API structure
   const [formData, setFormData] = useState<ProductFormData>({
@@ -121,7 +145,37 @@ export const Inventory: React.FC = () => {
   // Fetch products on component mount
   useEffect(() => {
     loadProducts();
+    loadWarehouses();
+    loadStorefronts();
   }, []);
+
+  const loadWarehouses = async () => {
+    try {
+      const response = await fetchWarehouseProfiles();
+      if (response.success && response.data) {
+        setWarehouses(
+          response.data.filter((w: WarehouseProfile) => w.status === "active")
+        );
+      }
+    } catch (error) {
+      console.error("Error loading warehouses:", error);
+    }
+  };
+
+  const loadStorefronts = async () => {
+    try {
+      const response = await fetchStorefrontProfiles();
+      if (response.success && response.data) {
+        setStorefronts(
+          response.data.filter(
+            (s: StorefrontProfile) => s.status === "active" && !s.isDeleted
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error loading storefronts:", error);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -333,6 +387,153 @@ export const Inventory: React.FC = () => {
       ? products
       : products.filter((p) => p.category === selectedCategory);
 
+  // Selection handlers
+  const handleSelectionChange = (productId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedProductIds([...selectedProductIds, productId]);
+    } else {
+      setSelectedProductIds(
+        selectedProductIds.filter((id) => id !== productId)
+      );
+    }
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedProductIds(filteredProducts.map((p) => p.id));
+    } else {
+      setSelectedProductIds([]);
+    }
+  };
+
+  const handleOpenTransferModal = () => {
+    if (selectedProductIds.length === 0) {
+      toast.error("Please select at least one product to transfer");
+      return;
+    }
+    setIsTransferModalOpen(true);
+  };
+
+  const handleCloseTransferModal = () => {
+    setIsTransferModalOpen(false);
+    setSelectedWarehouseId("");
+  };
+
+  const handleOpenTransferStorefrontModal = () => {
+    if (selectedProductIds.length === 0) {
+      toast.error("Please select at least one product to transfer");
+      return;
+    }
+    setIsTransferStorefrontModalOpen(true);
+  };
+
+  const handleCloseTransferStorefrontModal = () => {
+    setIsTransferStorefrontModalOpen(false);
+    setSelectedStorefrontId("");
+  };
+
+  const handleTransfer = async () => {
+    if (!selectedWarehouseId) {
+      toast.error("Please select a warehouse");
+      return;
+    }
+
+    if (selectedProductIds.length === 0) {
+      toast.error("Please select at least one product to transfer");
+      return;
+    }
+
+    setIsTransferring(true);
+    try {
+      // Get the actual inventory IDs from apiProducts
+      const inventoryIds = selectedProductIds
+        .map((productId) => {
+          const apiProduct = apiProducts.find(
+            (ap) => (ap.id || ap._id) === productId
+          );
+          return apiProduct?._id || apiProduct?.id;
+        })
+        .filter((id): id is string => !!id);
+
+      if (inventoryIds.length === 0) {
+        toast.error("No valid inventory items selected");
+        return;
+      }
+
+      const response = await transferInventoryToWarehouse({
+        inventoryIds,
+        warehouseId: selectedWarehouseId,
+      });
+
+      if (response.success) {
+        toast.success(
+          response.message || "Inventory transferred to warehouse successfully"
+        );
+        setSelectedProductIds([]);
+        handleCloseTransferModal();
+        await loadProducts();
+      } else {
+        toast.error(response.message || "Failed to transfer inventory");
+      }
+    } catch (error: any) {
+      console.error("Error transferring inventory:", error);
+      toast.error(error.message || "Failed to transfer inventory");
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  const handleTransferToStorefront = async () => {
+    if (!selectedStorefrontId) {
+      toast.error("Please select a storefront");
+      return;
+    }
+
+    if (selectedProductIds.length === 0) {
+      toast.error("Please select at least one product to transfer");
+      return;
+    }
+
+    setIsTransferringToStorefront(true);
+    try {
+      // Get the actual inventory IDs from apiProducts
+      const inventoryIds = selectedProductIds
+        .map((productId) => {
+          const apiProduct = apiProducts.find(
+            (ap) => (ap.id || ap._id) === productId
+          );
+          return apiProduct?._id || apiProduct?.id;
+        })
+        .filter((id): id is string => !!id);
+
+      if (inventoryIds.length === 0) {
+        toast.error("No valid inventory items selected");
+        return;
+      }
+
+      const response = await transferInventoryToStorefront({
+        inventoryIds,
+        storefrontId: selectedStorefrontId,
+      });
+
+      if (response.success) {
+        toast.success(
+          response.message || "Inventory transferred to storefront successfully"
+        );
+        setSelectedProductIds([]);
+        handleCloseTransferStorefrontModal();
+        await loadProducts();
+      } else {
+        toast.error(response.message || "Failed to transfer inventory");
+      }
+    } catch (error: any) {
+      console.error("Error transferring inventory:", error);
+      toast.error(error.message || "Failed to transfer inventory");
+    } finally {
+      setIsTransferringToStorefront(false);
+    }
+  };
+
   // console.log("filteredProducts", filteredProducts);
 
   return (
@@ -349,6 +550,24 @@ export const Inventory: React.FC = () => {
           >
             {isFetching ? t("common.loading") : t("inventory.refresh")}
           </button>
+          {selectedProductIds.length > 0 && (
+            <>
+              <button
+                onClick={handleOpenTransferModal}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Building2 className="w-4 h-4" />
+                Transfer to Warehouse ({selectedProductIds.length})
+              </button>
+              <button
+                onClick={handleOpenTransferStorefrontModal}
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
+              >
+                <Store className="w-4 h-4" />
+                Transfer to Storefront ({selectedProductIds.length})
+              </button>
+            </>
+          )}
           <button
             onClick={() => {
               resetForm();
@@ -396,6 +615,9 @@ export const Inventory: React.FC = () => {
           products={filteredProducts}
           onEdit={openEdit}
           onViewDetails={handleViewDetails}
+          selectedProductIds={selectedProductIds}
+          onSelectionChange={handleSelectionChange}
+          onSelectAll={handleSelectAll}
         />
       )}
 
@@ -428,6 +650,190 @@ export const Inventory: React.FC = () => {
           setLoadingDetail(false);
         }}
       />
+
+      {/* Transfer to Warehouse Modal */}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-primary" />
+                Transfer to Warehouse
+              </h2>
+              <button
+                onClick={handleCloseTransferModal}
+                disabled={isTransferring}
+                className="text-slate-400 hover:text-slate-600 p-1 disabled:opacity-50"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <p className="text-sm text-slate-500 mb-1">Selected Products</p>
+                <p className="font-bold text-slate-800">
+                  {selectedProductIds.length} product(s) selected
+                </p>
+                <div className="mt-2 text-xs text-slate-600">
+                  {filteredProducts
+                    .filter((p) => selectedProductIds.includes(p.id))
+                    .map((p) => p.name)
+                    .join(", ")}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Select Warehouse <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={selectedWarehouseId}
+                  onChange={(e) => setSelectedWarehouseId(e.target.value)}
+                  disabled={isTransferring}
+                >
+                  <option value="">Select a warehouse</option>
+                  {warehouses.map((warehouse) => (
+                    <option key={warehouse._id} value={warehouse._id}>
+                      {warehouse.locationName} ({warehouse.locationCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {warehouses.length === 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-sm text-amber-800">
+                    No active warehouses available. Please create a warehouse
+                    first.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={handleCloseTransferModal}
+                  disabled={isTransferring}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleTransfer}
+                  disabled={isTransferring || !selectedWarehouseId}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isTransferring ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                      Transferring...
+                    </>
+                  ) : (
+                    <>
+                      <Building2 className="w-4 h-4" /> Transfer
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer to Storefront Modal */}
+      {isTransferStorefrontModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Store className="w-5 h-5 text-primary" />
+                Transfer to Storefront
+              </h2>
+              <button
+                onClick={handleCloseTransferStorefrontModal}
+                disabled={isTransferringToStorefront}
+                className="text-slate-400 hover:text-slate-600 p-1 disabled:opacity-50"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <p className="text-sm text-slate-500 mb-1">Selected Products</p>
+                <p className="font-bold text-slate-800">
+                  {selectedProductIds.length} product(s) selected
+                </p>
+                <div className="mt-2 text-xs text-slate-600">
+                  {filteredProducts
+                    .filter((p) => selectedProductIds.includes(p.id))
+                    .map((p) => p.name)
+                    .join(", ")}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Select Storefront <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={selectedStorefrontId}
+                  onChange={(e) => setSelectedStorefrontId(e.target.value)}
+                  disabled={isTransferringToStorefront}
+                >
+                  <option value="">Select a storefront</option>
+                  {storefronts.map((storefront) => (
+                    <option key={storefront._id} value={storefront._id}>
+                      {storefront.locationName} ({storefront.locationCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {storefronts.length === 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-sm text-amber-800">
+                    No active storefronts available. Please create a storefront
+                    first.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={handleCloseTransferStorefrontModal}
+                  disabled={isTransferringToStorefront}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleTransferToStorefront}
+                  disabled={isTransferringToStorefront || !selectedStorefrontId}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isTransferringToStorefront ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                      Transferring...
+                    </>
+                  ) : (
+                    <>
+                      <Store className="w-4 h-4" /> Transfer
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
