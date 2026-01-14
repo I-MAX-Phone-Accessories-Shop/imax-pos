@@ -209,6 +209,25 @@ export const POS: React.FC = () => {
     );
   };
 
+  const setQty = (id: string, newQty: number) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.stockItem._id === id) {
+          // Validate quantity
+          if (newQty < 1) {
+            return { ...item, qty: 1 };
+          }
+          if (newQty > item.stockItem.availableQuantity) {
+            toast.error(t("pos.cannotExceedStock"));
+            return { ...item, qty: item.stockItem.availableQuantity };
+          }
+          return { ...item, qty: newQty };
+        }
+        return item;
+      })
+    );
+  };
+
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((item) => item.stockItem._id !== id));
   };
@@ -636,9 +655,24 @@ export const POS: React.FC = () => {
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="text-sm font-medium w-6 text-center">
-                    {item.qty}
-                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={item.stockItem.availableQuantity}
+                    value={item.qty}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setQty(item.stockItem._id, value);
+                    }}
+                    onBlur={(e) => {
+                      // Ensure quantity is at least 1 when input loses focus
+                      const value = parseInt(e.target.value) || 1;
+                      if (value < 1) {
+                        setQty(item.stockItem._id, 1);
+                      }
+                    }}
+                    className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
                   <button
                     onClick={() => updateQty(item.stockItem._id, 1)}
                     className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
