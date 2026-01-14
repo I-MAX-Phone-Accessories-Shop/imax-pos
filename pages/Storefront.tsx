@@ -119,7 +119,7 @@ export const Storefront: React.FC = () => {
       const response = await fetchStorefrontProfiles();
       console.log(response);
       if (response.success && response.data) {
-        setStorefrontProfiles(response.data);
+        setStorefrontProfiles(response.data.reverse());
       }
     } catch (error) {
       console.log(error);

@@ -117,7 +117,7 @@ export const Warehouse: React.FC = () => {
       const response = await fetchWarehouseProfiles();
       console.log(response);
       if (response.success && response.data) {
-        setWarehouseProfiles(response.data);
+        setWarehouseProfiles(response.data.reverse());
       }
     } catch (error) {
       console.log(error);
