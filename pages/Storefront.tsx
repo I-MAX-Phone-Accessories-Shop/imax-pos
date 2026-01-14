@@ -713,7 +713,7 @@ export const Storefront: React.FC = () => {
                   />
                 </div>
 
-                <div>
+                {/*  <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     {t("storefront.locationEmail")}
                   </label>
@@ -732,6 +732,8 @@ export const Storefront: React.FC = () => {
                   />
                 </div>
 
+                */}
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     {t("storefront.managerName")}
@@ -749,7 +751,7 @@ export const Storefront: React.FC = () => {
                 </div>
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("storefront.description")}
                 </label>
@@ -779,7 +781,7 @@ export const Storefront: React.FC = () => {
                     setFormData({ ...formData, notes: e.target.value })
                   }
                 />
-              </div>
+              </div> */}
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                 <button
