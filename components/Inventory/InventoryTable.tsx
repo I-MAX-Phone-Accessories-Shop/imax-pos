@@ -9,6 +9,7 @@ interface InventoryTableProps {
   selectedProductIds?: string[];
   onSelectionChange?: (productId: string, selected: boolean) => void;
   onSelectAll?: (selected: boolean) => void;
+  showSelectBoxes?: boolean;
 }
 
 export const InventoryTable: React.FC<InventoryTableProps> = ({
@@ -18,11 +19,15 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   selectedProductIds = [],
   onSelectionChange,
   onSelectAll,
+  showSelectBoxes = false,
 }) => {
   const { t } = useLanguage();
-  
-  const allSelected = products.length > 0 && selectedProductIds.length === products.length;
-  const someSelected = selectedProductIds.length > 0 && selectedProductIds.length < products.length;
+
+  const allSelected =
+    products.length > 0 && selectedProductIds.length === products.length;
+  const someSelected =
+    selectedProductIds.length > 0 &&
+    selectedProductIds.length < products.length;
 
   if (products.length === 0) {
     return (
@@ -37,7 +42,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       <table className="w-full text-sm text-left">
         <thead className="bg-slate-50 text-slate-600 border-b">
           <tr>
-            {onSelectionChange && (
+            {showSelectBoxes && onSelectionChange && (
               <th className="px-4 py-3 text-center w-12">
                 <input
                   type="checkbox"
@@ -64,12 +69,14 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
             const isSelected = selectedProductIds.includes(p.id);
             return (
               <tr key={p.id} className="hover:bg-slate-50">
-                {onSelectionChange && (
+                {showSelectBoxes && onSelectionChange && (
                   <td className="px-4 py-3 text-center">
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={(e) => onSelectionChange(p.id, e.target.checked)}
+                      onChange={(e) =>
+                        onSelectionChange(p.id, e.target.checked)
+                      }
                       className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                     />
                   </td>
@@ -77,31 +84,31 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                 <td className="px-4 py-3 text-center text-slate-600">
                   {String(index + 1).padStart(2, "0")}
                 </td>
-              <td className="px-4 py-3 font-medium">{p.productCode}</td>
-              <td className="px-4 py-3 font-medium">{p.name}</td>
-              <td className="px-4 py-3 text-slate-500">{p.category}</td>
-              <td className="px-4 py-3 text-right text-slate-400">
-                {p.costPrice.toLocaleString()} MMK
-              </td>
-              <td className="px-4 py-3 text-right font-bold text-slate-800">
-                {p.sellingPrice.toLocaleString()} MMK
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => onViewDetails(p.id)}
-                    className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
-                  >
-                    {t("inventory.checkItem")}
-                  </button>
-                  <button
-                    onClick={() => onEdit(p)}
-                    className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
-                  >
-                    {t("inventory.editItem")}
-                  </button>
-                </div>
-              </td>
+                <td className="px-4 py-3 font-medium">{p.productCode}</td>
+                <td className="px-4 py-3 font-medium">{p.name}</td>
+                <td className="px-4 py-3 text-slate-500">{p.category}</td>
+                <td className="px-4 py-3 text-right text-slate-400">
+                  {p.costPrice.toLocaleString()} MMK
+                </td>
+                <td className="px-4 py-3 text-right font-bold text-slate-800">
+                  {p.sellingPrice.toLocaleString()} MMK
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => onViewDetails(p.id)}
+                      className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
+                    >
+                      {t("inventory.checkItem")}
+                    </button>
+                    <button
+                      onClick={() => onEdit(p)}
+                      className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
+                    >
+                      {t("inventory.editItem")}
+                    </button>
+                  </div>
+                </td>
               </tr>
             );
           })}

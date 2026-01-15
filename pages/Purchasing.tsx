@@ -108,7 +108,7 @@ export const Purchasing: React.FC = () => {
     try {
       const res = await fetchPurchases({ page, limit });
       if (res.success) {
-        setPOList(res.data.reverse());
+        setPOList(res.data);
         setPoPagination(res.pagination);
       }
     } catch (error) {

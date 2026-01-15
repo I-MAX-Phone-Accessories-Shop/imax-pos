@@ -55,7 +55,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
         <thead className="bg-slate-50 border-b">
           <tr>
             <th className="p-4 font-semibold text-slate-600">Order Number</th>
-            <th className="p-4 font-semibold text-slate-600">Storefront</th>
+            {/* <th className="p-4 font-semibold text-slate-600">Storefront</th> */}
             <th className="p-4 font-semibold text-slate-600">Items</th>
             <th className="p-4 font-semibold text-slate-600 text-right">
               Final Amount
@@ -63,12 +63,12 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
             <th className="p-4 font-semibold text-slate-600 text-right">
               Paid
             </th>
-            <th className="p-4 font-semibold text-slate-600">Type</th>
+            <th className="p-4 font-semibold text-slate-600 ">Type</th>
             <th className="p-4 font-semibold text-slate-600">Method</th>
-            <th className="p-4 font-semibold text-slate-600">Sold By</th>
+            {/* <th className="p-4 font-semibold text-slate-600">Sold By</th> */}
             <th className="p-4 font-semibold text-slate-600">Credit Person</th>
-            <th className="p-4 font-semibold text-slate-600">Status</th>
-            <th className="p-4 font-semibold text-slate-600">Date</th>
+            {/* <th className="p-4 font-semibold text-slate-600">Status</th> */}
+            {/* <th className="p-4 font-semibold text-slate-600">Date</th> */}
             <th className="p-4 font-semibold text-slate-600">Actions</th>
           </tr>
         </thead>
@@ -78,7 +78,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               <td className="p-4 font-medium text-blue-600">
                 {order.orderNumber}
               </td>
-              <td className="p-4">
+              {/* <td className="p-4">
                 <div className="flex items-center gap-2">
                   <Store className="w-4 h-4 text-slate-400" />
                   <span>
@@ -87,7 +87,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                       "-"}
                   </span>
                 </div>
-              </td>
+              </td> */}
               <td className="p-4">
                 <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
                   {order.ordersProducts?.length || 0} item(s)
@@ -96,7 +96,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               <td className="p-4 text-right font-bold text-slate-800">
                 {order.finalAmount?.toLocaleString()} MMK
               </td>
-              <td className="p-4 text-right text-green-600 font-medium">
+              <td className="p-4 text-right font-bold text-green-600">
                 {order.paidAmount?.toLocaleString()} MMK
               </td>
               <td className="p-4">
@@ -114,7 +114,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   <span>{getPaymentMethodLabel(order.paymentMethod)}</span>
                 </div>
               </td>
-              <td className="p-4">
+              {/* <td className="p-4">
                 {order.soldBy ? (
                   <div className="flex items-center gap-2">
                     <UserCircle className="w-4 h-4 text-slate-400" />
@@ -130,7 +130,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 ) : (
                   <span className="text-slate-400 text-xs">-</span>
                 )}
-              </td>
+              </td> */}
               <td className="p-4">
                 {order.creditPersonId &&
                 typeof order.creditPersonId === "object" ? (
@@ -149,7 +149,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   <span className="text-slate-400 text-xs">-</span>
                 )}
               </td>
-              <td className="p-4">
+              {/* <td className="p-4">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
                     order.orderStatus
@@ -160,7 +160,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               </td>
               <td className="p-4 text-slate-500 text-xs">
                 {formatDate(order.createdAt)}
-              </td>
+              </td> */}
               <td className="p-4">
                 <div className="flex items-center gap-2">
                   <button

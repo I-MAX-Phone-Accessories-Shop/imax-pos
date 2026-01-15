@@ -91,7 +91,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // Combobox states for category and subCategory
   const [categoryInput, setCategoryInput] = useState("");
   const [categoryShowDropdown, setCategoryShowDropdown] = useState(false);
-  const [subCategoryInput, setSubCategoryInput] = useState("");
+  // const [subCategoryInput, setSubCategoryInput] = useState("");
   // const [subCategoryShowDropdown, setSubCategoryShowDropdown] = useState(false);
 
   // Get unique categories from products
@@ -168,7 +168,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-1">
             <label className="block text-xs font-bold text-slate-500">
               {t("inventory.barcode")}
             </label>
@@ -192,17 +192,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.sku")} <span className="text-red-500">*</span>
+              {t("inventory.sku")}
             </label>
             <input
               className="w-full border rounded p-2"
               value={formData.SKU}
               onChange={(e) => updateFormData({ SKU: e.target.value })}
-              disabled={!!editingId}
             />
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-xs font-bold text-slate-500">

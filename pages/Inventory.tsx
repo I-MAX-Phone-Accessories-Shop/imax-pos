@@ -49,6 +49,10 @@ export const Inventory: React.FC = () => {
   const [warehouses, setWarehouses] = useState<WarehouseProfile[]>([]);
   const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
   const [isTransferring, setIsTransferring] = useState(false);
+  const [showSelectBoxes, setShowSelectBoxes] = useState(false);
+  const [transferMode, setTransferMode] = useState<
+    "warehouse" | "storefront" | null
+  >(null);
 
   // Transfer to Storefront State
   const [isTransferStorefrontModalOpen, setIsTransferStorefrontModalOpen] =
@@ -203,7 +207,6 @@ export const Inventory: React.FC = () => {
     if (
       !formData.productName ||
       !formData.productCode ||
-      !formData.SKU ||
       !formData.buyingPrice ||
       !formData.sellingPrice
     ) {
@@ -288,12 +291,19 @@ export const Inventory: React.FC = () => {
       const apiPayload: any = {
         productName: formData.productName,
         productCode: formData.productCode,
-        SKU: formData.SKU,
         category: formData.category || "Unknown",
         buyingPrice: formData.buyingPrice,
         sellingPrice: formData.sellingPrice,
         unitOfMeasure: formData.unitOfMeasure || "piece",
       };
+
+      // Add SKU only if it has a value, otherwise provide a default
+      if (formData.SKU) {
+        apiPayload.SKU = formData.SKU;
+      } else {
+        // Generate a default SKU if not provided
+        apiPayload.SKU = `SKU-${Date.now()}`;
+      }
 
       // Add optional fields only if they have values
       if (formData.saleCode) apiPayload.saleCode = formData.saleCode;
@@ -547,23 +557,64 @@ export const Inventory: React.FC = () => {
           >
             {isFetching ? t("common.loading") : t("inventory.refresh")}
           </button>
-          {selectedProductIds.length > 0 && (
+          {selectedProductIds.length === 0 && !showSelectBoxes && (
             <>
               <button
-                onClick={handleOpenTransferModal}
+                onClick={() => {
+                  setShowSelectBoxes(true);
+                  setTransferMode("warehouse");
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
               >
                 <Building2 className="w-4 h-4" />
-                Transfer to Warehouse ({selectedProductIds.length})
+                Transfer to Warehouse
               </button>
               <button
-                onClick={handleOpenTransferStorefrontModal}
+                onClick={() => {
+                  setShowSelectBoxes(true);
+                  setTransferMode("storefront");
+                }}
                 className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
               >
                 <Store className="w-4 h-4" />
-                Transfer to Storefront ({selectedProductIds.length})
+                Transfer to Storefront
               </button>
             </>
+          )}
+
+          {showSelectBoxes && (
+            <>
+              {transferMode === "warehouse" && (
+                <button
+                  onClick={handleOpenTransferModal}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Confirm Warehouse Transfer ({selectedProductIds.length})
+                </button>
+              )}
+              {transferMode === "storefront" && (
+                <button
+                  onClick={handleOpenTransferStorefrontModal}
+                  className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 flex items-center gap-2"
+                >
+                  <Store className="w-4 h-4" />
+                  Confirm Storefront Transfer ({selectedProductIds.length})
+                </button>
+              )}
+            </>
+          )}
+          {showSelectBoxes && (
+            <button
+              onClick={() => {
+                setShowSelectBoxes(false);
+                setSelectedProductIds([]);
+                setTransferMode(null);
+              }}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Cancel Selection
+            </button>
           )}
           <button
             onClick={() => {
@@ -615,6 +666,7 @@ export const Inventory: React.FC = () => {
           selectedProductIds={selectedProductIds}
           onSelectionChange={handleSelectionChange}
           onSelectAll={handleSelectAll}
+          showSelectBoxes={showSelectBoxes}
         />
       )}
 

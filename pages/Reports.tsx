@@ -95,7 +95,7 @@ export const Reports: React.FC = () => {
         const storefrontList = locationResponse.data.filter(
           (loc) => loc.type === "storefront" && loc.status === "active"
         );
-        setStorefronts(storefrontList);
+        setStorefronts(storefrontList.reverse());
 
         const startDateStr = formatDateForAPI(startDate);
         const endDateStr = formatDateForAPI(endDate);

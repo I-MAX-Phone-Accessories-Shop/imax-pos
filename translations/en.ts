@@ -229,7 +229,7 @@ export const en = {
     productStatus: "Product Status",
     loadingProductDetails: "Loading product details...",
     noProductDetails: "No product details available",
-    checkItem: "Check Item",
+    checkItem: "View",
     editItem: "Edit",
     no: "No",
   },

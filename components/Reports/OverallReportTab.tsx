@@ -20,6 +20,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   displayReport,
   saleReports,
 }) => {
+  console.log(saleReports);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

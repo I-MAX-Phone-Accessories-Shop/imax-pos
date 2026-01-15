@@ -342,16 +342,16 @@ export const Credits: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleOpenEditModal(persona)}
-                        className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                        className="text-xs bg-blue/20 text-blue-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
                         title={t("common.edit")}
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4" /> {t("common.edit")}
                       </button>
-                      {!persona.blacklist && (
+                      {/* {!persona.blacklist && (
                         <button className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors">
                           {t("credits.blacklist")}
                         </button>
-                      )}
+                      )} */}
                     </div>
                   </td>
                 </tr>
