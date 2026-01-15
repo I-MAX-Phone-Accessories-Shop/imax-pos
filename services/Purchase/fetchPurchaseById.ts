@@ -2,14 +2,18 @@ import axios from "../axios";
 
 export interface PurchaseProduct {
   inventoryId: string;
+  productStatus: string;
   productName: string;
   buyingPrice: number;
   purchaseQuantity: number;
+  receivedQuantity: number;
   productCode: string;
+  isDeleted: boolean;
+  deletedAt: string | null;
   _id: string;
   createdAt: string;
   updatedAt: string;
-  id: string;
+  remainingQuantity: number;
 }
 
 export interface PurchaseDetail {
@@ -19,9 +23,14 @@ export interface PurchaseDetail {
   status: string;
   note: string;
   totalAmount: number;
+  purchasedBy: {
+    _id: string;
+    name: string;
+    role: string;
+  };
   createdAt: string;
   updatedAt: string;
-  id: string;
+  __v: number;
 }
 
 interface FetchPurchaseByIdResponse {

@@ -12,6 +12,8 @@ import {
   Hash,
   DollarSign,
   User,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 
 interface PODetailModalProps {
@@ -56,6 +58,19 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
       (s) => s.id === supplierId || s._id === supplierId
     );
     return supplier ? supplier.supplierName : "Unknown Supplier";
+  };
+
+  const getProductStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-300";
+      case "received":
+        return "bg-green-100 text-green-700 border-green-300";
+      case "partial":
+        return "bg-blue-100 text-blue-700 border-blue-300";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-300";
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -137,14 +152,32 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
             </div>
           </div>
 
-          {/* Supplier Info */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 text-blue-700 text-sm font-semibold mb-2">
-              <User className="w-4 h-4" />
-              Supplier Information
+          {/* Purchased By Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 text-green-700 text-sm font-semibold mb-2">
+                <User className="w-4 h-4" />
+                Purchased By
+              </div>
+              <div className="text-green-800">
+                <div className="font-medium text-lg">
+                  {purchase.purchasedBy.name}
+                </div>
+                <div className="text-sm text-green-600 capitalize">
+                  {purchase.purchasedBy.role}
+                </div>
+              </div>
             </div>
-            <div className="text-blue-800 font-medium text-lg">
-              {getSupplierName(purchase.supplierId)}
+
+            {/* Supplier Info */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 text-blue-700 text-sm font-semibold mb-2">
+                <User className="w-4 h-4" />
+                Supplier Information
+              </div>
+              <div className="text-blue-800 font-medium text-lg">
+                {getSupplierName(purchase.supplierId)}
+              </div>
             </div>
           </div>
 
@@ -187,7 +220,9 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                   <tr>
                     <th className="p-3 text-left">Product Name</th>
                     <th className="p-3 text-left">Product Code</th>
+                    <th className="p-3 text-center">Status</th>
                     <th className="p-3 text-center">Quantity</th>
+                    <th className="p-3 text-center">Received</th>
                     <th className="p-3 text-right">Buying Price</th>
                     <th className="p-3 text-right">Subtotal</th>
                   </tr>
@@ -200,8 +235,27 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                         {product.productCode}
                       </td>
                       <td className="p-3 text-center">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getProductStatusColor(
+                            product.productStatus
+                          )}`}
+                        >
+                          {product.productStatus === "received" ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <Clock className="w-3 h-3" />
+                          )}
+                          {product.productStatus.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
                           {product.purchaseQuantity}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                          {product.receivedQuantity}
                         </span>
                       </td>
                       <td className="p-3 text-right text-slate-600">
@@ -217,7 +271,7 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                 </tbody>
                 <tfoot className="bg-slate-50 border-t">
                   <tr>
-                    <td colSpan={4} className="p-3 text-right font-semibold">
+                    <td colSpan={6} className="p-3 text-right font-semibold">
                       Total Amount:
                     </td>
                     <td className="p-3 text-right font-bold text-green-600">

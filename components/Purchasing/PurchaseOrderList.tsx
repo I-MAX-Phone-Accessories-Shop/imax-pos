@@ -93,7 +93,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               <th className="p-4">Total Amount</th>
               <th className="p-4">Status</th>
               <th className="p-4">Note</th>
-              <th className="p-4">Purchasing Person</th>
+              <th className="p-4">Total Remaining</th>
               <th className="p-4">Actions</th>
             </tr>
           </thead>
@@ -108,9 +108,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               filteredPOs.map((po) => {
                 return (
                   <tr key={po._id} className="hover:bg-slate-50">
-                    <td className="p-4 font-mono text-xs">
-                      {po._id.substring(0, 8)}...
-                    </td>
+                    <td className="p-4  ">{po.poNumber}</td>
                     <td className="p-4">
                       {new Date(po.createdAt).toLocaleDateString()}
                     </td>
@@ -134,9 +132,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                     <td className="p-4 text-slate-500 truncate max-w-xs">
                       {po.note}
                     </td>
-                    <td className="p-4">
-                      {po.purchasedBy?.name || "Unknown Purchasing Person"}
-                    </td>
+                    <td className="p-4">{po.totalRemainingQuantity}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         {po.status === "pending" && (
