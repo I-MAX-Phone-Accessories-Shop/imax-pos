@@ -140,8 +140,6 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  console.log("products", products);
-
   // Fetch products on component mount
   useEffect(() => {
     loadProducts();
@@ -333,7 +331,6 @@ export const Inventory: React.FC = () => {
   };
 
   const openEdit = (p: Product) => {
-    console.log("", p);
     setEditingId(p.id);
     // Find the full API product to get all details including subCategory
     const apiProduct = apiProducts.find((ap) => (ap.id || ap._id) === p.id);

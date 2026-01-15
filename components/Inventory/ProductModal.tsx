@@ -1,21 +1,21 @@
 import React, { useState } from "react";
-import { Product, ProductCategory } from "../../types";
+import { Product } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
 
-const UNIT_OF_MEASURE_OPTIONS = [
-  "piece",
-  "kg",
-  "gram",
-  "liter",
-  "ml",
-  "meter",
-  "cm",
-  "box",
-  "pack",
-  "carton",
-  "dozen",
-  "pair",
-];
+// const UNIT_OF_MEASURE_OPTIONS = [
+//   "piece",
+//   "kg",
+//   "gram",
+//   "liter",
+//   "ml",
+//   "meter",
+//   "cm",
+//   "box",
+//   "pack",
+//   "carton",
+//   "dozen",
+//   "pair",
+// ];
 
 export interface ProductFormData {
   productName: string;
@@ -92,7 +92,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [categoryInput, setCategoryInput] = useState("");
   const [categoryShowDropdown, setCategoryShowDropdown] = useState(false);
   const [subCategoryInput, setSubCategoryInput] = useState("");
-  const [subCategoryShowDropdown, setSubCategoryShowDropdown] = useState(false);
+  // const [subCategoryShowDropdown, setSubCategoryShowDropdown] = useState(false);
 
   // Get unique categories from products
   const getUniqueCategories = (): string[] => {
@@ -106,15 +106,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   // Get unique subcategories from API products
-  const getUniqueSubCategories = (): string[] => {
-    const subCategories = new Set<string>();
-    apiProducts.forEach((p) => {
-      if (p.subCategory && p.subCategory.trim()) {
-        subCategories.add(p.subCategory);
-      }
-    });
-    return Array.from(subCategories).sort();
-  };
+  // const getUniqueSubCategories = (): string[] => {
+  //   const subCategories = new Set<string>();
+  //   apiProducts.forEach((p) => {
+  //     if (p.subCategory && p.subCategory.trim()) {
+  //       subCategories.add(p.subCategory);
+  //     }
+  //   });
+  //   return Array.from(subCategories).sort();
+  // };
 
   // Filter categories/subcategories based on input
   const getFilteredCategories = (input: string): string[] => {
@@ -125,13 +125,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     );
   };
 
-  const getFilteredSubCategories = (input: string): string[] => {
-    const allSubCategories = getUniqueSubCategories();
-    if (!input.trim()) return allSubCategories;
-    return allSubCategories.filter((subCat) =>
-      subCat.toLowerCase().includes(input.toLowerCase())
-    );
-  };
+  // const getFilteredSubCategories = (input: string): string[] => {
+  //   const allSubCategories = getUniqueSubCategories();
+  //   if (!input.trim()) return allSubCategories;
+  //   return allSubCategories.filter((subCat) =>
+  //     subCat.toLowerCase().includes(input.toLowerCase())
+  //   );
+  // };
 
   const updateFormData = (updates: Partial<ProductFormData>) => {
     onFormDataChange({ ...formData, ...updates });
@@ -189,7 +189,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               className="w-full border rounded p-2"
               value={formData.productCode}
               onChange={(e) => updateFormData({ productCode: e.target.value })}
-              disabled={!!editingId}
             />
           </div>
 

@@ -37,7 +37,7 @@ export const updateProduct = async (
   productData: UpdateProductPayload
 ): Promise<UpdateProductResponse> => {
   try {
-    const response = await axios.put(`/inventory/${productId}`, productData);
+    const response = await axios.patch(`/inventory/${productId}`, productData);
 
     return response.data;
   } catch (error) {

@@ -93,6 +93,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               <th className="p-4">Total Amount</th>
               <th className="p-4">Status</th>
               <th className="p-4">Note</th>
+              <th className="p-4">Purchasing Person</th>
               <th className="p-4">Actions</th>
             </tr>
           </thead>
@@ -105,9 +106,6 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               </tr>
             ) : (
               filteredPOs.map((po) => {
-                const supplier = suppliers.find(
-                  (s) => (s.id || s._id) === po.supplierId
-                );
                 return (
                   <tr key={po._id} className="hover:bg-slate-50">
                     <td className="p-4 font-mono text-xs">
@@ -117,7 +115,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                       {new Date(po.createdAt).toLocaleDateString()}
                     </td>
                     <td className="p-4">
-                      {supplier?.supplierName || "Unknown Supplier"}
+                      {po.supplierId?.supplierName || "Unknown Supplier"}
                     </td>
                     <td className="p-4 font-medium">
                       {po.totalAmount.toLocaleString()}
@@ -135,6 +133,9 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                     </td>
                     <td className="p-4 text-slate-500 truncate max-w-xs">
                       {po.note}
+                    </td>
+                    <td className="p-4">
+                      {po.purchasedBy?.name || "Unknown Purchasing Person"}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">

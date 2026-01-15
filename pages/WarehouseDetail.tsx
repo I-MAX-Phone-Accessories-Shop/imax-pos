@@ -602,7 +602,7 @@ export const WarehouseDetail: React.FC = () => {
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-slate-50 border-t-2">
+            {/* <tfoot className="bg-slate-50 border-t-2">
               <tr>
                 <td
                   colSpan={4}
@@ -624,7 +624,7 @@ export const WarehouseDetail: React.FC = () => {
                 </td>
                 <td colSpan={2}></td>
               </tr>
-            </tfoot>
+            </tfoot> */}
           </table>
         )}
       </div>
