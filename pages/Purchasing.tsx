@@ -33,12 +33,25 @@ export const Purchasing: React.FC = () => {
 
   // PO State
   const [poList, setPOList] = useState<ApiPurchaseOrder[]>([]);
+  const [deletedPOList, setDeletedPOList] = useState<ApiPurchaseOrder[]>([]);
+  const [poPagination, setPoPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
   const [isPODetailModalOpen, setIsPODetailModalOpen] = useState(false);
 
   // GRN State
   const [grnList, setGRNList] = useState<GRNData[]>([]);
+  const [grnPagination, setGrnPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
   const [isCreateGRNModalOpen, setIsCreateGRNModalOpen] = useState(false);
   const [selectedGRNId, setSelectedGRNId] = useState<string | null>(null);
   const [isGRNDetailModalOpen, setIsGRNDetailModalOpen] = useState(false);
@@ -76,6 +89,9 @@ export const Purchasing: React.FC = () => {
         // Fetch Purchase Orders
         loadPurchases();
 
+        // Fetch Deleted Purchase Orders
+        loadDeletedPurchases();
+
         // Fetch GRNs
         loadGRNs();
 
@@ -88,11 +104,12 @@ export const Purchasing: React.FC = () => {
     loadData();
   }, []);
 
-  const loadPurchases = async () => {
+  const loadPurchases = async (page: number = 1, limit: number = 10) => {
     try {
-      const res = await fetchPurchases();
+      const res = await fetchPurchases({ page, limit });
       if (res.success) {
         setPOList(res.data.reverse());
+        setPoPagination(res.pagination);
       }
     } catch (error) {
       console.error("Failed to load POs", error);
@@ -100,11 +117,24 @@ export const Purchasing: React.FC = () => {
     }
   };
 
-  const loadGRNs = async () => {
+  const loadDeletedPurchases = async (page: number = 1, limit: number = 10) => {
     try {
-      const res = await fetchGRNs();
+      const res = await fetchPurchases({ page, limit, isDeleted: true });
+      if (res.success) {
+        setDeletedPOList(res.data.reverse());
+      }
+    } catch (error) {
+      console.error("Failed to load deleted POs", error);
+      toast.error("Failed to load deleted POs");
+    }
+  };
+
+  const loadGRNs = async (page: number = 1, limit: number = 10) => {
+    try {
+      const res = await fetchGRNs({ page, limit });
       if (res.success) {
         setGRNList(res.data);
+        setGrnPagination(res.pagination);
       }
     } catch (error) {
       console.error("Failed to load GRNs", error);
@@ -125,8 +155,13 @@ export const Purchasing: React.FC = () => {
   };
 
   const handleGRNSuccess = () => {
-    loadGRNs();
-    loadPurchases();
+    loadGRNs(grnPagination.currentPage);
+    loadPurchases(poPagination.currentPage);
+  };
+
+  const handleCreateGRNFromPO = (po: ApiPurchaseOrder) => {
+    setSelectedPOId(po._id);
+    setIsCreateGRNModalOpen(true);
   };
 
   const handleViewPO = (po: ApiPurchaseOrder) => {
@@ -200,10 +235,14 @@ export const Purchasing: React.FC = () => {
         <>
           <PurchaseOrderList
             poList={poList}
+            deletedPOList={deletedPOList}
             suppliers={suppliers}
             setIsCreateModalOpen={setIsCreateModalOpen}
             loadPurchases={loadPurchases}
+            loadDeletedPurchases={loadDeletedPurchases}
             onViewPO={handleViewPO}
+            pagination={poPagination}
+            onCreateGRN={handleCreateGRNFromPO}
           />
           <CreatePOModal
             isOpen={isCreateModalOpen}
@@ -230,24 +269,7 @@ export const Purchasing: React.FC = () => {
             onStatusChange={loadGRNs}
             onViewGRN={handleViewGRN}
             onTransferGRN={handleTransferGRN}
-          />
-          <CreateGRNModal
-            isOpen={isCreateGRNModalOpen}
-            onClose={() => setIsCreateGRNModalOpen(false)}
-            purchaseOrders={poList}
-            suppliers={suppliers}
-            onSuccess={handleGRNSuccess}
-          />
-          <GRNDetailModal
-            isOpen={isGRNDetailModalOpen}
-            onClose={() => setIsGRNDetailModalOpen(false)}
-            grnId={selectedGRNId}
-          />
-          <TransferWarehouseModal
-            isOpen={isTransferModalOpen}
-            onClose={() => setIsTransferModalOpen(false)}
-            grnId={transferGRNId}
-            onSuccess={handleTransferSuccess}
+            pagination={grnPagination}
           />
         </>
       )}
@@ -267,6 +289,27 @@ export const Purchasing: React.FC = () => {
           />
         </>
       )}
+
+      {/* Global Modals - accessible from any tab */}
+      <CreateGRNModal
+        isOpen={isCreateGRNModalOpen}
+        onClose={() => setIsCreateGRNModalOpen(false)}
+        purchaseOrders={poList}
+        suppliers={suppliers}
+        onSuccess={handleGRNSuccess}
+        selectedPOId={selectedPOId}
+      />
+      <GRNDetailModal
+        isOpen={isGRNDetailModalOpen}
+        onClose={() => setIsGRNDetailModalOpen(false)}
+        grnId={selectedGRNId}
+      />
+      <TransferWarehouseModal
+        isOpen={isTransferModalOpen}
+        onClose={() => setIsTransferModalOpen(false)}
+        grnId={transferGRNId}
+        onSuccess={handleTransferSuccess}
+      />
     </div>
   );
 };

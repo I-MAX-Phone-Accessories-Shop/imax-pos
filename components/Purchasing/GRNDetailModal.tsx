@@ -2,7 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "../Modal";
 import { GRNData } from "../../services/Purchase/fetchGRNs";
 import { fetchGRNById } from "../../services/Purchase/fetchGRNById";
-import { Package, Calendar, FileText, Hash, DollarSign } from "lucide-react";
+import { updateGRNLineItems } from "../../services/Purchase/updateGRNLineItems";
+import { UpdateLineItemModal } from "./UpdateLineItemModal";
+import { toast } from "sonner";
+import {
+  Package,
+  Calendar,
+  FileText,
+  Hash,
+  DollarSign,
+  Edit2,
+} from "lucide-react";
 
 interface GRNDetailModalProps {
   isOpen: boolean;
@@ -17,6 +27,9 @@ export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
 }) => {
   const [grn, setGrn] = useState<GRNData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [selectedLineItem, setSelectedLineItem] = useState<any>(null);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (isOpen && grnId) {
@@ -56,7 +69,50 @@ export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
 
   const handleClose = () => {
     setGrn(null);
+    setUpdateModalOpen(false);
+    setSelectedLineItem(null);
     onClose();
+  };
+
+  const handleUpdateLineItem = (lineItem: any) => {
+    setSelectedLineItem(lineItem);
+    setUpdateModalOpen(true);
+  };
+
+  const handleSaveLineItem = async (
+    lineItemId: string,
+    goodQuantity: number,
+    badQuantity: number,
+    notes: string
+  ) => {
+    if (!grnId) return;
+
+    setUpdating(true);
+    try {
+      const result = await updateGRNLineItems(grnId, [
+        {
+          lineItemId,
+          goodQuantity,
+          badQuantity,
+          notes,
+        },
+      ]);
+
+      if (result.success) {
+        // Refresh GRN data to show updated values
+        await loadGRNDetails();
+        setUpdateModalOpen(false);
+        setSelectedLineItem(null);
+      } else {
+        console.error("Failed to update line item:", result.message);
+        toast.error("Failed to update line item: " + result.message);
+      }
+    } catch (error) {
+      console.error("Error updating line item:", error);
+      toast.error("Error updating line item: " + error);
+    } finally {
+      setUpdating(false);
+    }
   };
 
   return (
@@ -163,6 +219,7 @@ export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
                     <th className="p-3 text-center">Available</th>
                     <th className="p-3 text-right">Unit Price</th>
                     <th className="p-3 text-right">Total Price</th>
+                    <th className="p-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -203,6 +260,15 @@ export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
                       <td className="p-3 text-right font-medium">
                         {item.totalPrice.toLocaleString()}
                       </td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleUpdateLineItem(item)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Update Line Item"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -221,6 +287,15 @@ export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
           No GRN data available
         </div>
       )}
+
+      {/* Update Line Item Modal */}
+      <UpdateLineItemModal
+        isOpen={updateModalOpen}
+        onClose={() => setUpdateModalOpen(false)}
+        lineItem={selectedLineItem}
+        onSave={handleSaveLineItem}
+        updating={updating}
+      />
     </Modal>
   );
 };

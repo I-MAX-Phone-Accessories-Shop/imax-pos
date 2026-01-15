@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "../Modal";
 import { ApiPurchaseOrder, Supplier } from "../../types";
 import { createGRN } from "../../services/Purchase/createGRN";
@@ -22,6 +22,7 @@ interface CreateGRNModalProps {
   purchaseOrders: ApiPurchaseOrder[];
   suppliers: Supplier[];
   onSuccess: () => void;
+  selectedPOId?: string | null;
 }
 
 export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
@@ -30,14 +31,24 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
   purchaseOrders,
   suppliers,
   onSuccess,
+  selectedPOId: propSelectedPOId,
 }) => {
-  const [selectedPOId, setSelectedPOId] = useState("");
+  const [internalSelectedPOId, setInternalSelectedPOId] = useState("");
   const [grnItems, setGRNItems] = useState<ExtendedGRNItem[]>([]);
   const [grnNote, setGRNNote] = useState("");
   const [grnDate, setGrnDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use propSelectedPOId if provided, otherwise use internal state
+  const selectedPOId = propSelectedPOId || internalSelectedPOId;
+
+  useEffect(() => {
+    if (propSelectedPOId) {
+      setInternalSelectedPOId(propSelectedPOId);
+    }
+  }, [propSelectedPOId]);
 
   const pendingPOs = purchaseOrders.filter((p) => {
     const status = p.status?.toLowerCase();
@@ -106,7 +117,9 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
   };
 
   const resetForm = () => {
-    setSelectedPOId("");
+    if (!propSelectedPOId) {
+      setInternalSelectedPOId("");
+    }
     setGRNItems([]);
     setGRNNote("");
     setGrnDate(new Date().toISOString().split("T")[0]);
@@ -195,7 +208,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
               className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={selectedPOId}
               onChange={(e) => {
-                setSelectedPOId(e.target.value);
+                setInternalSelectedPOId(e.target.value);
                 setGRNItems([]);
               }}
             >

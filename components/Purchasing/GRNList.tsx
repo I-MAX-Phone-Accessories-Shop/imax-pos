@@ -1,15 +1,30 @@
 import React, { useState } from "react";
-import { Plus, Eye, CheckCircle, Warehouse } from "lucide-react";
+import {
+  Plus,
+  Eye,
+  CheckCircle,
+  Warehouse,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { GRNData } from "../../services/Purchase/fetchGRNs";
 import { updateGRNStatus } from "../../services/Purchase/updateGRNStatus";
 import { toast } from "sonner";
+
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
 
 interface GRNListProps {
   grnList: GRNData[];
   setIsCreateModalOpen: (isOpen: boolean) => void;
   onViewGRN?: (grn: GRNData) => void;
-  onStatusChange?: () => void;
+  onStatusChange?: (page?: number, limit?: number) => void;
   onTransferGRN?: (grn: GRNData) => void;
+  pagination: PaginationData;
 }
 
 export const GRNList: React.FC<GRNListProps> = ({
@@ -18,6 +33,7 @@ export const GRNList: React.FC<GRNListProps> = ({
   onViewGRN,
   onStatusChange,
   onTransferGRN,
+  pagination,
 }) => {
   const [grnFilter, setGrnFilter] = useState<"pending" | "completed">(
     "pending"
@@ -30,7 +46,7 @@ export const GRNList: React.FC<GRNListProps> = ({
       const res = await updateGRNStatus(grnId, newStatus);
       if (res.success) {
         toast.success("GRN status updated successfully");
-        onStatusChange?.();
+        onStatusChange?.(pagination.currentPage, pagination.itemsPerPage);
       } else {
         toast.error(res.message || "Failed to update status");
       }
@@ -55,6 +71,82 @@ export const GRNList: React.FC<GRNListProps> = ({
     }
   });
 
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      onStatusChange?.(page, pagination.itemsPerPage);
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    onStatusChange?.(1, newLimit);
+  };
+
+  const renderPagination = () => {
+    const { currentPage, totalPages, totalItems, itemsPerPage } = pagination;
+
+    if (totalPages <= 1 && totalItems <= 10) return null;
+
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-t">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-slate-600">
+            Showing {startItem} to {endItem} of {totalItems} results
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-600">Show:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => handleLimitChange(Number(e.target.value))}
+              className="text-sm border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-500"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-sm text-slate-600">entries</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-2 rounded-lg border text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                  page === currentPage
+                    ? "bg-slate-800 text-white"
+                    : "text-slate-600 hover:bg-slate-50 border"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-2 rounded-lg border text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "pending":
@@ -76,12 +168,12 @@ export const GRNList: React.FC<GRNListProps> = ({
         <h2 className="font-bold text-lg text-slate-800">
           Goods Received Notes List
         </h2>
-        <button
+        {/* <button
           onClick={() => setIsCreateModalOpen(true)}
           className="bg-btn-primary text-dark px-4 py-2 rounded-lg hover:bg-btn-primary-hover flex items-center gap-2"
         >
           <Plus className="w-5 h-5" /> Create New GRN
-        </button>
+        </button> */}
       </div>
 
       {/* Filter Tabs */}
@@ -209,6 +301,7 @@ export const GRNList: React.FC<GRNListProps> = ({
             )}
           </tbody>
         </table>
+        {renderPagination()}
       </div>
     </div>
   );

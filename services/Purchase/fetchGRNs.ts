@@ -62,9 +62,17 @@ interface FetchGRNsResponse {
   };
 }
 
-export const fetchGRNs = async (): Promise<FetchGRNsResponse> => {
+interface FetchGRNsParams {
+  page?: number;
+  limit?: number;
+}
+
+export const fetchGRNs = async (
+  params?: FetchGRNsParams
+): Promise<FetchGRNsResponse> => {
   try {
-    const response = await axios.get("/grn");
+    const { page = 1, limit = 10 } = params || {};
+    const response = await axios.get(`/grn?page=${page}&limit=${limit}`);
 
     return response.data;
   } catch (error: any) {

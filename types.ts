@@ -115,6 +115,11 @@ export interface ApiPurchaseOrder {
   updatedAt: string;
   __v?: number;
   id?: string;
+  poNumber: string;
+  totalRemainingQuantity?: number;
+  purchasedBy?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface PurchaseOrderItem {

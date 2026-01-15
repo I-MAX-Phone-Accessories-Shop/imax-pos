@@ -377,8 +377,8 @@ export const TransferWarehouseModal: React.FC<TransferWarehouseModalProps> = ({
             </div>
 
             <div className="mt-4 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
+              <div className="grid grid-cols-1 gap-2">
+                {/* <button
                   onClick={() => handleSubmit(false)}
                   disabled={
                     !selectedWarehouseId ||
@@ -389,7 +389,7 @@ export const TransferWarehouseModal: React.FC<TransferWarehouseModalProps> = ({
                 >
                   <Warehouse className="w-5 h-5" />
                   {isSubmitting ? "Transferring..." : "Transfer All"}
-                </button>
+                </button> */}
                 <button
                   onClick={() => handleSubmit(true)}
                   disabled={
