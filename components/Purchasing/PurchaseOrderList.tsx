@@ -30,6 +30,7 @@ interface PurchaseOrderListProps {
   loadDeletedPurchases: (page?: number, limit?: number) => Promise<void>;
   onViewPO?: (po: ApiPurchaseOrder) => void;
   pagination: PaginationData;
+  deletedPagination: PaginationData;
   onCreateGRN?: (po: ApiPurchaseOrder) => void;
 }
 
@@ -42,6 +43,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   loadDeletedPurchases,
   onViewPO,
   pagination,
+  deletedPagination,
   onCreateGRN,
 }) => {
   const [poFilter, setPoFilter] = useState<"pending" | "arrived" | "deleted">(
@@ -64,7 +66,10 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
 
   useEffect(() => {
     if (poFilter === "deleted") {
-      loadDeletedPurchases();
+      loadDeletedPurchases(
+        deletedPagination.currentPage,
+        deletedPagination.itemsPerPage
+      );
     }
   }, [poFilter]);
 
@@ -128,7 +133,10 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
       if (res.success) {
         toast.success("Purchase order restored successfully");
         loadPurchases(pagination.currentPage, pagination.itemsPerPage);
-        loadDeletedPurchases();
+        loadDeletedPurchases(
+          deletedPagination.currentPage,
+          deletedPagination.itemsPerPage
+        );
       } else {
         toast.error(res.message || "Failed to restore purchase order");
       }
@@ -138,8 +146,21 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
     }
   };
 
+  const handleDeletedPageChange = (page: number) => {
+    if (page >= 1 && page <= deletedPagination.totalPages) {
+      loadDeletedPurchases(page, deletedPagination.itemsPerPage);
+    }
+  };
+
+  const handleDeletedLimitChange = (newLimit: number) => {
+    loadDeletedPurchases(1, newLimit);
+  };
+
   const renderPagination = () => {
-    const { currentPage, totalPages, totalItems, itemsPerPage } = pagination;
+    const currentPagination =
+      poFilter === "deleted" ? deletedPagination : pagination;
+    const { currentPage, totalPages, totalItems, itemsPerPage } =
+      currentPagination;
 
     if (totalPages <= 1 && totalItems <= 10) return null;
 
@@ -156,7 +177,14 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
             <label className="text-sm text-slate-600">Show:</label>
             <select
               value={itemsPerPage}
-              onChange={(e) => handleLimitChange(Number(e.target.value))}
+              onChange={(e) => {
+                const newLimit = Number(e.target.value);
+                if (poFilter === "deleted") {
+                  handleDeletedLimitChange(newLimit);
+                } else {
+                  handleLimitChange(newLimit);
+                }
+              }}
               className="text-sm border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-500"
             >
               <option value={5}>5</option>
@@ -169,7 +197,13 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handlePageChange(currentPage - 1)}
+            onClick={() => {
+              if (poFilter === "deleted") {
+                handleDeletedPageChange(currentPage - 1);
+              } else {
+                handlePageChange(currentPage - 1);
+              }
+            }}
             disabled={currentPage === 1}
             className="p-2 rounded-lg border text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -180,7 +214,13 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
-                onClick={() => handlePageChange(page)}
+                onClick={() => {
+                  if (poFilter === "deleted") {
+                    handleDeletedPageChange(page);
+                  } else {
+                    handlePageChange(page);
+                  }
+                }}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   page === currentPage
                     ? "bg-slate-800 text-white"
@@ -193,7 +233,13 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
           </div>
 
           <button
-            onClick={() => handlePageChange(currentPage + 1)}
+            onClick={() => {
+              if (poFilter === "deleted") {
+                handleDeletedPageChange(currentPage + 1);
+              } else {
+                handlePageChange(currentPage + 1);
+              }
+            }}
             disabled={currentPage === totalPages}
             className="p-2 rounded-lg border text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -344,7 +390,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                                   onClick={() => onCreateGRN?.(po)}
                                   className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                                 >
-                                  <PackageCheck className="w-3 h-3" /> Create
+                                  <PackageCheck className="w-3 h-3" />
                                   GRN
                                 </button>
                               )}

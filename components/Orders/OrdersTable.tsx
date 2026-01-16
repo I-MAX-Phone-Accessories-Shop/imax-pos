@@ -57,13 +57,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
             <th className="p-4 font-semibold text-slate-600">Order Number</th>
             {/* <th className="p-4 font-semibold text-slate-600">Storefront</th> */}
             <th className="p-4 font-semibold text-slate-600">Items</th>
-            <th className="p-4 font-semibold text-slate-600 text-right">
-              Final Amount
-            </th>
-            <th className="p-4 font-semibold text-slate-600 text-right">
-              Paid
-            </th>
-            <th className="p-4 font-semibold text-slate-600 ">Type</th>
+            <th className="p-4 font-semibold text-slate-600">Final Amount</th>
+            <th className="p-4 font-semibold text-slate-600">Paid</th>
+            <th className="p-4 font-semibold text-slate-600">Type</th>
             <th className="p-4 font-semibold text-slate-600">Method</th>
             {/* <th className="p-4 font-semibold text-slate-600">Sold By</th> */}
             <th className="p-4 font-semibold text-slate-600">Credit Person</th>
@@ -93,10 +89,10 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   {order.ordersProducts?.length || 0} item(s)
                 </span>
               </td>
-              <td className="p-4 text-right font-bold text-slate-800">
+              <td className="p-4 font-bold text-slate-800">
                 {order.finalAmount?.toLocaleString()} MMK
               </td>
-              <td className="p-4 text-right font-bold text-green-600">
+              <td className="p-4 font-bold text-green-600">
                 {order.paidAmount?.toLocaleString()} MMK
               </td>
               <td className="p-4">

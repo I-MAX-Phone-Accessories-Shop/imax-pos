@@ -40,6 +40,12 @@ export const Purchasing: React.FC = () => {
     totalItems: 0,
     itemsPerPage: 10,
   });
+  const [deletedPoPagination, setDeletedPoPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
   const [isPODetailModalOpen, setIsPODetailModalOpen] = useState(false);
@@ -109,6 +115,7 @@ export const Purchasing: React.FC = () => {
       const res = await fetchPurchases({ page, limit });
       if (res.success) {
         setPOList(res.data);
+        console.log(res.data);
         setPoPagination(res.pagination);
       }
     } catch (error) {
@@ -121,7 +128,9 @@ export const Purchasing: React.FC = () => {
     try {
       const res = await fetchPurchases({ page, limit, isDeleted: true });
       if (res.success) {
-        setDeletedPOList(res.data.reverse());
+        setDeletedPOList(res.data);
+        setDeletedPoPagination(res.pagination);
+        console.log(res.data);
       }
     } catch (error) {
       console.error("Failed to load deleted POs", error);
@@ -242,6 +251,7 @@ export const Purchasing: React.FC = () => {
             loadDeletedPurchases={loadDeletedPurchases}
             onViewPO={handleViewPO}
             pagination={poPagination}
+            deletedPagination={deletedPoPagination}
             onCreateGRN={handleCreateGRNFromPO}
           />
           <CreatePOModal
