@@ -117,7 +117,7 @@ export const Storefront: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetchStorefrontProfiles();
-      console.log(response);
+      // console.log(response);
       if (response.success && response.data) {
         setStorefrontProfiles(response.data.reverse());
       }

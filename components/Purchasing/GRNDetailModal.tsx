@@ -18,12 +18,14 @@ interface GRNDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   grnId: string | null;
+  onGRNUpdate?: () => void; // Callback to refresh GRN list
 }
 
 export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
   isOpen,
   onClose,
   grnId,
+  onGRNUpdate,
 }) => {
   const [grn, setGrn] = useState<GRNData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -101,6 +103,8 @@ export const GRNDetailModal: React.FC<GRNDetailModalProps> = ({
       if (result.success) {
         // Refresh GRN data to show updated values
         await loadGRNDetails();
+        // Refresh GRN list in parent component
+        onGRNUpdate?.();
         setUpdateModalOpen(false);
         setSelectedLineItem(null);
       } else {

@@ -95,89 +95,91 @@ export const TransferList: React.FC<TransferListProps> = ({
       </div> */}
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 border-b">
-            <tr>
-              <th className="p-4">Transfer Number</th>
-              <th className="p-4">Source Type</th>
-              <th className="p-4">Transfer Date</th>
-              <th className="p-4">Items</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Notes</th>
-              <th className="p-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {filteredTransfers.length === 0 ? (
+        <div className="h-[calc(100vh-300px)] overflow-y-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-400">
-                  No {transferFilter} transfers found
-                </td>
+                <th className="p-4">Transfer Number</th>
+                <th className="p-4">Source Type</th>
+                <th className="p-4">Transfer Date</th>
+                <th className="p-4">Items</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Notes</th>
+                <th className="p-4">Actions</th>
               </tr>
-            ) : (
-              filteredTransfers.map((transfer) => (
-                <tr key={transfer._id} className="hover:bg-slate-50">
-                  <td className="p-4 font-medium text-primary">
-                    {transfer.transferNumber}
-                  </td>
-                  <td className="p-4">
-                    <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
-                      {transfer.sourceType}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {new Date(transfer.transferDate).toLocaleDateString()}
-                  </td>
-                  <td className="p-4">
-                    <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
-                      {transfer.lineItems.length} item(s)
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                        transfer.status
-                      )}`}
-                    >
-                      {transfer.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="p-4 text-slate-500 truncate max-w-xs">
-                    {transfer.notes || "-"}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => onViewTransfer?.(transfer)}
-                        className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
-                      >
-                        <Eye className="w-3 h-3" /> View
-                      </button>
-                      {transfer.status?.toLowerCase() === "pending" && (
-                        <button
-                          onClick={() => handleMarkCompleted(transfer)}
-                          disabled={updatingId === transfer._id}
-                          className="text-xs bg-green-50 text-status-success px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {updatingId === transfer._id ? (
-                            <>
-                              <Loader2 className="w-3 h-3 animate-spin" />{" "}
-                              Updating...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="w-3 h-3" /> Complete
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
+            </thead>
+            <tbody className="divide-y">
+              {filteredTransfers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    No {transferFilter} transfers found
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredTransfers.map((transfer) => (
+                  <tr key={transfer._id} className="hover:bg-slate-50">
+                    <td className="p-4 font-medium text-primary">
+                      {transfer.transferNumber}
+                    </td>
+                    <td className="p-4">
+                      <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
+                        {transfer.sourceType}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      {new Date(transfer.transferDate).toLocaleDateString()}
+                    </td>
+                    <td className="p-4">
+                      <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
+                        {transfer.lineItems.length} item(s)
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
+                          transfer.status
+                        )}`}
+                      >
+                        {transfer.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="p-4 text-slate-500 truncate max-w-xs">
+                      {transfer.notes || "-"}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => onViewTransfer?.(transfer)}
+                          className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" /> View
+                        </button>
+                        {transfer.status?.toLowerCase() === "pending" && (
+                          <button
+                            onClick={() => handleMarkCompleted(transfer)}
+                            disabled={updatingId === transfer._id}
+                            className="text-xs bg-green-50 text-status-success px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {updatingId === transfer._id ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />{" "}
+                                Updating...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-3 h-3" /> Complete
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

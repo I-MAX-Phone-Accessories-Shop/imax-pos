@@ -119,7 +119,7 @@ export const Purchasing: React.FC = () => {
       const res = await fetchPurchases({ page, limit, status });
       if (res.success) {
         setPOList(res.data);
-        console.log(res.data);
+        // console.log(res.data);
         setPoPagination(res.pagination);
       }
     } catch (error) {
@@ -134,7 +134,7 @@ export const Purchasing: React.FC = () => {
       if (res.success) {
         setDeletedPOList(res.data);
         setDeletedPoPagination(res.pagination);
-        console.log(res.data);
+        // console.log(res.data);
       }
     } catch (error) {
       console.error("Failed to load deleted POs", error);
@@ -317,6 +317,7 @@ export const Purchasing: React.FC = () => {
         isOpen={isGRNDetailModalOpen}
         onClose={() => setIsGRNDetailModalOpen(false)}
         grnId={selectedGRNId}
+        onGRNUpdate={loadGRNs}
       />
       <TransferWarehouseModal
         isOpen={isTransferModalOpen}

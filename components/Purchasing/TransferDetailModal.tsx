@@ -133,7 +133,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
     return "-";
   };
 
-  console.log(transfer);
+  // console.log(transfer);
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Transfer Details">

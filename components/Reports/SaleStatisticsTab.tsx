@@ -32,7 +32,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
   const { data } = productSalesStatistics;
   const { totals, products } = data;
 
-  console.log(data);
+  // console.log(data);
 
   return (
     <div className="space-y-6">

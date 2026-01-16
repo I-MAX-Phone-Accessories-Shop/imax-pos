@@ -62,7 +62,7 @@ export const Orders: React.FC = () => {
     try {
       const sfResponse = await fetchStorefrontProfiles();
       if (sfResponse.success && sfResponse.data) {
-        setStorefronts(sfResponse.data);
+        setStorefronts(sfResponse.data.reverse());
       }
     } catch (error) {
       console.error("Error loading storefronts:", error);
@@ -93,15 +93,15 @@ export const Orders: React.FC = () => {
       const startDateStr = formatDateForAPI(startDate);
       const endDateStr = formatDateForAPI(endDate);
 
-      console.log("Loading orders with dates:", {
-        startDateStr,
-        endDateStr,
-        selectedStorefrontId,
-      });
+      // console.log("Loading orders with dates:", {
+      //   startDateStr,
+      //   endDateStr,
+      //   selectedStorefrontId,
+      // });
 
       // Always fetch all orders with date filtering
       const response = await fetchOrders(startDateStr, endDateStr);
-      console.log("All orders response:", response);
+      // console.log("All orders response:", response);
 
       if (response.success && response.data) {
         let filteredOrders = response.data;
@@ -115,7 +115,7 @@ export const Orders: React.FC = () => {
           );
         }
 
-        console.log("Filtered orders count:", filteredOrders.length);
+        // console.log("Filtered orders count:", filteredOrders.length);
         setOrders(filteredOrders.reverse());
       } else {
         toast.error(response.message || t("orders.failedToLoad"));

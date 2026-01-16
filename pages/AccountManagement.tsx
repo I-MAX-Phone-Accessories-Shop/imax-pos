@@ -95,12 +95,12 @@ export const AccountManagement: React.FC = () => {
   const loadLocations = async () => {
     try {
       const response = await fetchLocationProfiles();
-      console.log("Location profiles response:", response);
+      // console.log("Location profiles response:", response);
       if (response.success && response.data) {
         // Ensure data is an array
         const locations = Array.isArray(response.data) ? response.data : [];
 
-        console.log("All locations from API:", locations);
+        // console.log("All locations from API:", locations);
 
         // Filter only active locations that are not deleted
         const activeLocations = locations.filter(
@@ -109,7 +109,7 @@ export const AccountManagement: React.FC = () => {
             !location.isDeleted &&
             !location.deletedAt
         );
-        console.log("Active locations after filter:", activeLocations);
+        // console.log("Active locations after filter:", activeLocations);
 
         // If we have active locations, use them; otherwise show all non-deleted
         if (activeLocations.length > 0) {
@@ -119,12 +119,12 @@ export const AccountManagement: React.FC = () => {
           const nonDeleted = locations.filter(
             (location) => !location.isDeleted && !location.deletedAt
           );
-          console.log("No active locations, using non-deleted:", nonDeleted);
+          // console.log("No active locations, using non-deleted:", nonDeleted);
           setLocationProfiles(nonDeleted);
 
           // If still empty, show all locations for debugging
           if (nonDeleted.length === 0 && locations.length > 0) {
-            console.log("No non-deleted locations, showing all:", locations);
+            // console.log("No non-deleted locations, showing all:", locations);
             setLocationProfiles(locations);
           }
         }

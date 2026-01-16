@@ -56,7 +56,7 @@ export const StorefrontDetail: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetchStorefrontStock(id);
-      console.log(response);
+      // console.log(response);
       if (response.success && response.data) {
         setStockItems(response.data);
 

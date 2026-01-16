@@ -24,8 +24,8 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   allStorefrontsReport,
   selectedStorefront,
 }) => {
-  console.log(saleReports);
-  console.log(allStorefrontsReport);
+  // console.log(saleReports);
+  // console.log(allStorefrontsReport);
 
   // Determine which reports to show in the breakdown table
   const reportsToShow =

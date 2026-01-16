@@ -97,7 +97,7 @@ export const WarehouseDetail: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetchWarehouseStock(id);
-      console.log(response);
+      // console.log(response);
       if (response.success && response.data) {
         setStockItems(response.data);
 

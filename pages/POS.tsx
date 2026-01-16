@@ -127,7 +127,7 @@ export const POS: React.FC = () => {
   const loadStockItems = async () => {
     try {
       const response = await fetchStorefrontStock();
-      console.log("response", response);
+      // console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
       }
