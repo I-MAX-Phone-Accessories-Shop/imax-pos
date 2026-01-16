@@ -14,13 +14,27 @@ interface OverallReportTabProps {
     paidOrderCount: number;
   };
   saleReports: SaleReportResponse[];
+  allStorefrontsReport: SaleReportResponse | null;
+  selectedStorefront: string;
 }
 
 export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   displayReport,
   saleReports,
+  allStorefrontsReport,
+  selectedStorefront,
 }) => {
   console.log(saleReports);
+  console.log(allStorefrontsReport);
+
+  // Determine which reports to show in the breakdown table
+  const reportsToShow =
+    selectedStorefront === "all"
+      ? saleReports.filter((report) => report.success)
+      : saleReports.filter(
+          (report) =>
+            report.success && report.data.storefront._id === selectedStorefront
+        );
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -93,12 +107,14 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
       </div> */}
 
       {/* Storefront Breakdown Table */}
-      {saleReports.filter((report) => report.success).length > 0 && (
+      {reportsToShow.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="p-4 border-b bg-slate-50">
             <h3 className="font-semibold text-slate-800 flex items-center gap-2">
               <Store className="w-5 h-5 text-primary" />
-              Storefront Breakdown
+              {selectedStorefront === "all"
+                ? "All Storefronts Breakdown"
+                : "Storefront Details"}
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -132,46 +148,44 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {saleReports
-                  .filter((report) => report.success)
-                  .map((report) => (
-                    <tr
-                      key={report.data.storefront._id}
-                      className="hover:bg-slate-50"
-                    >
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {report.data.storefront.locationName}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {report.data.storefront.locationCode}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-800">
-                        {report.data.report.finalAmount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-green-600">
-                        {report.data.report.paidAmount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-slate-600">
-                        {report.data.report.subTotal.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-amber-600">
-                        {report.data.report.discount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right text-blue-600">
-                        {report.data.report.orderCount}
-                      </td>
-                      <td className="px-4 py-3 text-right text-green-600">
-                        {report.data.report.paidOrderCount}
-                      </td>
-                      <td className="px-4 py-3 text-right text-red-600">
-                        {report.data.report.creditOrderCount}
-                      </td>
-                    </tr>
-                  ))}
+                {reportsToShow.map((report) => (
+                  <tr
+                    key={report.data.storefront._id}
+                    className="hover:bg-slate-50"
+                  >
+                    <td className="px-4 py-3">
+                      <div>
+                        <p className="font-medium text-slate-800">
+                          {report.data.storefront.locationName}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {report.data.storefront.locationCode}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right font-bold text-slate-800">
+                      {report.data.report.finalAmount.toLocaleString()} MMK
+                    </td>
+                    <td className="px-4 py-3 text-right text-green-600">
+                      {report.data.report.paidAmount.toLocaleString()} MMK
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-600">
+                      {report.data.report.subTotal.toLocaleString()} MMK
+                    </td>
+                    <td className="px-4 py-3 text-right text-amber-600">
+                      {report.data.report.discount.toLocaleString()} MMK
+                    </td>
+                    <td className="px-4 py-3 text-right text-blue-600">
+                      {report.data.report.orderCount}
+                    </td>
+                    <td className="px-4 py-3 text-right text-green-600">
+                      {report.data.report.paidOrderCount}
+                    </td>
+                    <td className="px-4 py-3 text-right text-red-600">
+                      {report.data.report.creditOrderCount}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

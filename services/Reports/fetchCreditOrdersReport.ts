@@ -58,20 +58,20 @@ export const fetchCreditOrdersReport = async (
   endDate?: string | null
 ): Promise<CreditOrdersReportResponse> => {
   try {
-    let url = `/sale-report/storefront/${storefrontId}/credit-orders`;
+    let url = `/sale-report/credit-orders?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
-    
+
     if (startDate) {
       params.append("startDate", startDate);
     }
     if (endDate) {
       params.append("endDate", endDate);
     }
-    
+
     if (params.toString()) {
-      url += `?${params.toString()}`;
+      url += `&${params.toString()}`;
     }
-    
+
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
@@ -79,8 +79,7 @@ export const fetchCreditOrdersReport = async (
     return {
       success: false,
       message:
-        error.response?.data?.message ||
-        "Failed to fetch credit orders report",
+        error.response?.data?.message || "Failed to fetch credit orders report",
       data: {
         storefront: {
           _id: storefrontId,
@@ -107,3 +106,65 @@ export const fetchCreditOrdersReport = async (
   }
 };
 
+/**
+ * Fetch credit orders report for all storefronts
+ * @param {string | null} startDate - Start date in YYYY-MM-DD format
+ * @param {string | null} endDate - End date in YYYY-MM-DD format
+ * @returns {Promise<CreditOrdersReportResponse>} Response from API
+ */
+export const fetchAllStorefrontsCreditOrdersReport = async (
+  startDate?: string | null,
+  endDate?: string | null
+): Promise<CreditOrdersReportResponse> => {
+  try {
+    let url = `/sale-report/credit-orders`;
+    const params = new URLSearchParams();
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching all storefronts credit orders report:",
+      error
+    );
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Failed to fetch all storefronts credit orders report",
+      data: {
+        storefront: {
+          _id: "all",
+          locationName: "All Storefronts",
+          locationCode: "ALL",
+        },
+        dateRange: {
+          startDate: null,
+          endDate: null,
+        },
+        totals: {
+          totalFinalAmount: 0,
+          totalPaidAmount: 0,
+          totalInitialPaidAmount: 0,
+          totalCreditPaidAmount: 0,
+          totalRemainingBalance: 0,
+          orderCount: 0,
+          creditRecordCount: 0,
+        },
+        initialPayments: [],
+        creditPayments: [],
+      },
+    };
+  }
+};

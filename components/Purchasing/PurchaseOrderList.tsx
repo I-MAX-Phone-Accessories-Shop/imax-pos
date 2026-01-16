@@ -54,19 +54,8 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   const [poToDelete, setPoToDelete] = useState<ApiPurchaseOrder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const filteredPOs = poList.filter((po) => {
-    const status = po.status?.toLowerCase() || "";
-    if (poFilter === "pending") {
-      return status === "pending" && !po.isDeleted;
-    } else if (poFilter === "arrived") {
-      return (status === "arrived" || status === "received") && !po.isDeleted;
-    } else if (poFilter === "deleted") {
-      return po.isDeleted === true;
-    }
-    return false;
-  });
-
-  const displayList = poFilter === "deleted" ? deletedPOList : filteredPOs;
+  // Use the filtered data from API instead of client-side filtering
+  const displayList = poFilter === "deleted" ? deletedPOList : poList;
 
   useEffect(() => {
     if (poFilter === "deleted") {
@@ -74,6 +63,9 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         deletedPagination.currentPage,
         deletedPagination.itemsPerPage
       );
+    } else {
+      // Load purchases with status filter
+      loadPurchases(pagination.currentPage, pagination.itemsPerPage, poFilter);
     }
   }, [poFilter]);
 
@@ -82,7 +74,12 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
       const res = await updatePurchaseStatus(id, status);
       if (res.success) {
         toast.success("Status updated successfully");
-        loadPurchases(pagination.currentPage);
+        // Reload with current filter status
+        loadPurchases(
+          pagination.currentPage,
+          pagination.itemsPerPage,
+          poFilter
+        );
       } else {
         toast.error(res.message || "Failed to update status");
       }
@@ -94,12 +91,12 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
-      loadPurchases(page, pagination.itemsPerPage);
+      loadPurchases(page, pagination.itemsPerPage, poFilter);
     }
   };
 
   const handleLimitChange = (newLimit: number) => {
-    loadPurchases(1, newLimit);
+    loadPurchases(1, newLimit, poFilter);
   };
 
   const handleSoftDelete = async (po: ApiPurchaseOrder) => {
@@ -313,119 +310,121 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 border-b">
-            <tr>
-              <th className="p-4">PO ID</th>
-              <th className="p-4">Date</th>
-              <th className="p-4">Supplier</th>
-              <th className="p-4">Total Amount</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Note</th>
-              <th className="p-4">Total Remaining</th>
-              <th className="p-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {displayList.length === 0 ? (
+        <div className="h-[calc(100vh-450px)] overflow-y-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-400">
-                  No {poFilter} purchase orders found
-                </td>
+                <th className="p-4">PO ID</th>
+                <th className="p-4">Date</th>
+                <th className="p-4">Supplier</th>
+                <th className="p-4">Total Amount</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Note</th>
+                <th className="p-4">Total Remaining</th>
+                <th className="p-4">Actions</th>
               </tr>
-            ) : (
-              displayList.map((po) => {
-                return (
-                  <tr key={po._id} className="hover:bg-slate-50">
-                    <td className="p-4  ">{po.poNumber}</td>
-                    <td className="p-4">
-                      {new Date(po.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4">
-                      {po.supplierId?.supplierName || "Unknown Supplier"}
-                    </td>
-                    <td className="p-4 font-medium">
-                      {po.totalAmount.toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          po.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {po.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-500 truncate max-w-xs">
-                      {po.note}
-                    </td>
-                    <td className="p-4">{po.totalRemainingQuantity}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        {poFilter === "deleted" ? (
-                          <>
-                            <button
-                              onClick={() => onViewPO?.(po)}
-                              className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
-                            >
-                              <Eye className="w-3 h-3" /> View
-                            </button>
-                            <button
-                              onClick={() => handleRestore(po)}
-                              className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                            >
-                              <RotateCcw className="w-3 h-3" /> Restore
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => onViewPO?.(po)}
-                              className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
-                            >
-                              <Eye className="w-3 h-3" /> View
-                            </button>
-                            {po.status === "pending" && (
+            </thead>
+            <tbody className="divide-y">
+              {displayList.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    No {poFilter} purchase orders found
+                  </td>
+                </tr>
+              ) : (
+                displayList.map((po) => {
+                  return (
+                    <tr key={po._id} className="hover:bg-slate-50">
+                      <td className="p-4  ">{po.poNumber}</td>
+                      <td className="p-4">
+                        {new Date(po.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-4">
+                        {po.supplierId?.supplierName || "Unknown Supplier"}
+                      </td>
+                      <td className="p-4 font-medium">
+                        {po.totalAmount.toLocaleString()}
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            po.status === "pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-green-100 text-green-700"
+                          }`}
+                        >
+                          {po.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-500 truncate max-w-xs">
+                        {po.note}
+                      </td>
+                      <td className="p-4">{po.totalRemainingQuantity}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          {poFilter === "deleted" ? (
+                            <>
                               <button
-                                onClick={() =>
-                                  handleUpdateStatus(po._id, "arrived")
-                                }
-                                className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors"
+                                onClick={() => onViewPO?.(po)}
+                                className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                               >
-                                Mark Arrived
+                                <Eye className="w-3 h-3" /> View
                               </button>
-                            )}
-                            {(po.status === "arrived" ||
-                              po.status === "received") &&
-                              po.totalRemainingQuantity > 0 && (
+                              <button
+                                onClick={() => handleRestore(po)}
+                                className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <RotateCcw className="w-3 h-3" /> Restore
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => onViewPO?.(po)}
+                                className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <Eye className="w-3 h-3" /> View
+                              </button>
+                              {po.status === "pending" && (
                                 <button
-                                  onClick={() => onCreateGRN?.(po)}
-                                  className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                                  onClick={() =>
+                                    handleUpdateStatus(po._id, "arrived")
+                                  }
+                                  className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors"
                                 >
-                                  <PackageCheck className="w-3 h-3" />
-                                  GRN
+                                  Mark Arrived
                                 </button>
                               )}
-                            {po.status === "pending" && (
-                              <button
-                                onClick={() => handleSoftDelete(po)}
-                                className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1"
-                              >
-                                <Trash2 className="w-3 h-3" /> Delete
-                              </button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                              {(po.status === "arrived" ||
+                                po.status === "received") &&
+                                po.totalRemainingQuantity > 0 && (
+                                  <button
+                                    onClick={() => onCreateGRN?.(po)}
+                                    className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                                  >
+                                    <PackageCheck className="w-3 h-3" />
+                                    GRN
+                                  </button>
+                                )}
+                              {po.status === "pending" && (
+                                <button
+                                  onClick={() => handleSoftDelete(po)}
+                                  className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1"
+                                >
+                                  <Trash2 className="w-3 h-3" /> Delete
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
         {renderPagination()}
       </div>
 

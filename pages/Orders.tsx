@@ -93,26 +93,32 @@ export const Orders: React.FC = () => {
       const startDateStr = formatDateForAPI(startDate);
       const endDateStr = formatDateForAPI(endDate);
 
-      if (selectedStorefrontId === "all") {
-        // Fetch all orders
-        const response = await fetchOrders(startDateStr, endDateStr);
-        if (response.success && response.data) {
-          setOrders(response.data.reverse());
-        } else {
-          toast.error(response.message || t("orders.failedToLoad"));
+      console.log("Loading orders with dates:", {
+        startDateStr,
+        endDateStr,
+        selectedStorefrontId,
+      });
+
+      // Always fetch all orders with date filtering
+      const response = await fetchOrders(startDateStr, endDateStr);
+      console.log("All orders response:", response);
+
+      if (response.success && response.data) {
+        let filteredOrders = response.data;
+
+        // If a specific storefront is selected, filter the results
+        if (selectedStorefrontId !== "all") {
+          filteredOrders = response.data.filter(
+            (order) =>
+              order.storefrontId?._id === selectedStorefrontId ||
+              order.storefrontId?.id === selectedStorefrontId
+          );
         }
+
+        console.log("Filtered orders count:", filteredOrders.length);
+        setOrders(filteredOrders.reverse());
       } else {
-        // Fetch orders by storefront
-        const response = await fetchOrdersByStorefront(
-          selectedStorefrontId,
-          startDateStr,
-          endDateStr
-        );
-        if (response.success && response.data) {
-          setOrders(response.data.orders.reverse());
-        } else {
-          toast.error(response.message || t("orders.failedToLoad"));
-        }
+        toast.error(response.message || t("orders.failedToLoad"));
       }
     } catch (error) {
       console.error("Error loading orders:", error);

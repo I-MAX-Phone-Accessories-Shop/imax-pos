@@ -33,6 +33,7 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
           onChange={(e) => onStorefrontChange(e.target.value)}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
         >
+          <option value="all">All Storefronts</option>
           {storefronts.map((sf) => (
             <option key={sf._id} value={sf._id}>
               {sf.locationName} ({sf.locationCode})

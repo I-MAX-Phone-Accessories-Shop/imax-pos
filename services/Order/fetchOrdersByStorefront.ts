@@ -16,7 +16,7 @@ export const fetchOrdersByStorefront = async (
   endDate?: string | null
 ): Promise<FetchOrdersByStorefrontResponse> => {
   try {
-    let url = `/order/storefront/${storefrontId}`;
+    let url = `/order?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
 
     if (startDate) {
@@ -27,7 +27,7 @@ export const fetchOrdersByStorefront = async (
     }
 
     if (params.toString()) {
-      url += `?${params.toString()}`;
+      url += `&${params.toString()}`;
     }
 
     const response = await axios.get(url);
@@ -41,4 +41,3 @@ export const fetchOrdersByStorefront = async (
     };
   }
 };
-

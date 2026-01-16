@@ -46,28 +46,27 @@ export const fetchSaleReport = async (
   endDate?: string | null
 ): Promise<SaleReportResponse> => {
   try {
-    let url = `/sale-report/storefront/${storefrontId}`;
+    let url = `/sale-report?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
-    
+
     if (startDate) {
       params.append("startDate", startDate);
     }
     if (endDate) {
       params.append("endDate", endDate);
     }
-    
+
     if (params.toString()) {
-      url += `?${params.toString()}`;
+      url += `&${params.toString()}`;
     }
-    
+
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching sale report:", error);
     return {
       success: false,
-      message:
-        error.response?.data?.message || "Failed to fetch sale report",
+      message: error.response?.data?.message || "Failed to fetch sale report",
       data: {
         storefront: {
           _id: storefrontId,
@@ -94,3 +93,62 @@ export const fetchSaleReport = async (
   }
 };
 
+/**
+ * Fetch sale report for all storefronts
+ * @param {string | null} startDate - Start date in YYYY-MM-DD format
+ * @param {string | null} endDate - End date in YYYY-MM-DD format
+ * @returns {Promise<SaleReportResponse>} Response from API
+ */
+export const fetchAllStorefrontsSaleReport = async (
+  startDate?: string | null,
+  endDate?: string | null
+): Promise<SaleReportResponse> => {
+  try {
+    let url = `/sale-report`;
+    const params = new URLSearchParams();
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching all storefronts sale report:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Failed to fetch all storefronts sale report",
+      data: {
+        storefront: {
+          _id: "all",
+          locationName: "All Storefronts",
+          locationCode: "ALL",
+        },
+        dateRange: {
+          startDate: null,
+          endDate: null,
+        },
+        report: {
+          finalAmount: 0,
+          paidAmount: 0,
+          subTotal: 0,
+          tax: 0,
+          discount: 0,
+          extraChange: 0,
+          orderCount: 0,
+          creditOrderCount: 0,
+          paidOrderCount: 0,
+        },
+      },
+    };
+  }
+};

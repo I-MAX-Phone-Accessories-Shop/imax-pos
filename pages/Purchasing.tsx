@@ -110,9 +110,13 @@ export const Purchasing: React.FC = () => {
     loadData();
   }, []);
 
-  const loadPurchases = async (page: number = 1, limit: number = 10) => {
+  const loadPurchases = async (
+    page: number = 1,
+    limit: number = 10,
+    status: "pending" | "arrived" = "pending"
+  ) => {
     try {
-      const res = await fetchPurchases({ page, limit });
+      const res = await fetchPurchases({ page, limit, status });
       if (res.success) {
         setPOList(res.data);
         console.log(res.data);

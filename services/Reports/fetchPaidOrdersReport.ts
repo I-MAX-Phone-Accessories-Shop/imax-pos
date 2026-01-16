@@ -48,20 +48,20 @@ export const fetchPaidOrdersReport = async (
   endDate?: string | null
 ): Promise<PaidOrdersReportResponse> => {
   try {
-    let url = `/sale-report/storefront/${storefrontId}/paid-orders`;
+    let url = `/sale-report/paid-orders?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
-    
+
     if (startDate) {
       params.append("startDate", startDate);
     }
     if (endDate) {
       params.append("endDate", endDate);
     }
-    
+
     if (params.toString()) {
-      url += `?${params.toString()}`;
+      url += `&${params.toString()}`;
     }
-    
+
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
@@ -91,3 +91,57 @@ export const fetchPaidOrdersReport = async (
   }
 };
 
+/**
+ * Fetch paid orders report for all storefronts
+ * @param {string | null} startDate - Start date in YYYY-MM-DD format
+ * @param {string | null} endDate - End date in YYYY-MM-DD format
+ * @returns {Promise<PaidOrdersReportResponse>} Response from API
+ */
+export const fetchAllStorefrontsPaidOrdersReport = async (
+  startDate?: string | null,
+  endDate?: string | null
+): Promise<PaidOrdersReportResponse> => {
+  try {
+    let url = `/sale-report/paid-orders`;
+    const params = new URLSearchParams();
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching all storefronts paid orders report:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Failed to fetch all storefronts paid orders report",
+      data: {
+        storefront: {
+          _id: "all",
+          locationName: "All Storefronts",
+          locationCode: "ALL",
+        },
+        dateRange: {
+          startDate: null,
+          endDate: null,
+        },
+        totals: {
+          totalPaidAmount: 0,
+          totalFinalAmount: 0,
+          totalOrderCount: 0,
+        },
+        paymentMethods: [],
+      },
+    };
+  }
+};

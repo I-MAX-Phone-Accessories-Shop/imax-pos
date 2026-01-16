@@ -7,18 +7,22 @@ import {
 } from "../services/Location/fetchLocationProfiles";
 import {
   fetchSaleReport,
+  fetchAllStorefrontsSaleReport,
   SaleReportResponse,
 } from "../services/Reports/fetchSaleReport";
 import {
   fetchPaidOrdersReport,
+  fetchAllStorefrontsPaidOrdersReport,
   PaidOrdersReportResponse,
 } from "../services/Reports/fetchPaidOrdersReport";
 import {
   fetchCreditOrdersReport,
+  fetchAllStorefrontsCreditOrdersReport,
   CreditOrdersReportResponse,
 } from "../services/Reports/fetchCreditOrdersReport";
 import {
   fetchProductSalesStatistics,
+  fetchAllStorefrontsProductSalesStatistics,
   ProductSalesStatisticsResponse,
 } from "../services/Reports/fetchProductSalesStatistics";
 import { ReportsHeader } from "../components/Reports/ReportsHeader";
@@ -40,12 +44,24 @@ const getToday = () => {
 export const Reports: React.FC = () => {
   const [storefronts, setStorefronts] = useState<LocationProfile[]>([]);
   const [saleReports, setSaleReports] = useState<SaleReportResponse[]>([]);
+  const [allStorefrontsReport, setAllStorefrontsReport] =
+    useState<SaleReportResponse | null>(null);
   const [paidOrdersReport, setPaidOrdersReport] =
+    useState<PaidOrdersReportResponse | null>(null);
+  const [allStorefrontsPaidOrdersReport, setAllStorefrontsPaidOrdersReport] =
     useState<PaidOrdersReportResponse | null>(null);
   const [creditOrdersReport, setCreditOrdersReport] =
     useState<CreditOrdersReportResponse | null>(null);
+  const [
+    allStorefrontsCreditOrdersReport,
+    setAllStorefrontsCreditOrdersReport,
+  ] = useState<CreditOrdersReportResponse | null>(null);
   const [productSalesStatistics, setProductSalesStatistics] =
     useState<ProductSalesStatisticsResponse | null>(null);
+  const [
+    allStorefrontsProductSalesStatistics,
+    setAllStorefrontsProductSalesStatistics,
+  ] = useState<ProductSalesStatisticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingPaidOrders, setLoadingPaidOrders] = useState(false);
   const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
@@ -72,9 +88,16 @@ export const Reports: React.FC = () => {
         loadReports();
       }
     } else {
-      setPaidOrdersReport(null);
-      setCreditOrdersReport(null);
-      setProductSalesStatistics(null);
+      // Load all storefronts reports when "all" is selected
+      if (activeTab === "paid") {
+        loadAllStorefrontsPaidOrdersReport();
+      } else if (activeTab === "credit") {
+        loadAllStorefrontsCreditOrdersReport();
+      } else if (activeTab === "statistics") {
+        loadAllStorefrontsProductSalesStatistics();
+      } else if (activeTab === "overall") {
+        loadReports();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStorefront, activeTab, startDate, endDate]);
@@ -100,6 +123,14 @@ export const Reports: React.FC = () => {
         const startDateStr = formatDateForAPI(startDate);
         const endDateStr = formatDateForAPI(endDate);
 
+        // Load all storefronts report
+        const allReportResponse = await fetchAllStorefrontsSaleReport(
+          startDateStr,
+          endDateStr
+        );
+        setAllStorefrontsReport(allReportResponse);
+
+        // Load individual storefront reports
         const reports = await Promise.all(
           storefrontList.map((storefront) =>
             fetchSaleReport(storefront._id, startDateStr, endDateStr)
@@ -142,6 +173,24 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const loadAllStorefrontsPaidOrdersReport = async () => {
+    setLoadingPaidOrders(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchAllStorefrontsPaidOrdersReport(
+        startDateStr,
+        endDateStr
+      );
+      setAllStorefrontsPaidOrdersReport(response);
+    } catch (error) {
+      console.error("Error loading all storefronts paid orders report:", error);
+      toast.error("Failed to load all storefronts paid orders report");
+    } finally {
+      setLoadingPaidOrders(false);
+    }
+  };
+
   const loadCreditOrdersReport = async () => {
     if (selectedStorefront === "all") return;
 
@@ -158,6 +207,27 @@ export const Reports: React.FC = () => {
     } catch (error) {
       console.error("Error loading credit orders report:", error);
       toast.error("Failed to load credit orders report");
+    } finally {
+      setLoadingCreditOrders(false);
+    }
+  };
+
+  const loadAllStorefrontsCreditOrdersReport = async () => {
+    setLoadingCreditOrders(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchAllStorefrontsCreditOrdersReport(
+        startDateStr,
+        endDateStr
+      );
+      setAllStorefrontsCreditOrdersReport(response);
+    } catch (error) {
+      console.error(
+        "Error loading all storefronts credit orders report:",
+        error
+      );
+      toast.error("Failed to load all storefronts credit orders report");
     } finally {
       setLoadingCreditOrders(false);
     }
@@ -201,6 +271,41 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const loadAllStorefrontsProductSalesStatistics = async () => {
+    setLoadingStatistics(true);
+    try {
+      const today = getToday();
+      const startDateToUse = startDate || today;
+      const endDateToUse = endDate || today;
+
+      const startDateStr = formatDateForAPI(startDateToUse);
+      const endDateStr = formatDateForAPI(endDateToUse);
+
+      if (!startDateStr || !endDateStr) {
+        const todayStr = formatDateForAPI(today);
+        const response = await fetchAllStorefrontsProductSalesStatistics(
+          todayStr,
+          todayStr
+        );
+        setAllStorefrontsProductSalesStatistics(response);
+      } else {
+        const response = await fetchAllStorefrontsProductSalesStatistics(
+          startDateStr,
+          endDateStr
+        );
+        setAllStorefrontsProductSalesStatistics(response);
+      }
+    } catch (error) {
+      console.error(
+        "Error loading all storefronts product sales statistics:",
+        error
+      );
+      toast.error("Failed to load all storefronts product sales statistics");
+    } finally {
+      setLoadingStatistics(false);
+    }
+  };
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     if (selectedStorefront !== "all") {
@@ -211,17 +316,40 @@ export const Reports: React.FC = () => {
       } else if (tab === "statistics" && !productSalesStatistics) {
         loadProductSalesStatistics();
       }
+    } else {
+      if (tab === "paid" && !allStorefrontsPaidOrdersReport) {
+        loadAllStorefrontsPaidOrdersReport();
+      } else if (tab === "credit" && !allStorefrontsCreditOrdersReport) {
+        loadAllStorefrontsCreditOrdersReport();
+      } else if (
+        tab === "statistics" &&
+        !allStorefrontsProductSalesStatistics
+      ) {
+        loadAllStorefrontsProductSalesStatistics();
+      }
     }
   };
 
   const handleRefresh = () => {
     loadReports();
-    if (activeTab === "paid" && selectedStorefront !== "all") {
-      loadPaidOrdersReport();
-    } else if (activeTab === "credit" && selectedStorefront !== "all") {
-      loadCreditOrdersReport();
-    } else if (activeTab === "statistics" && selectedStorefront !== "all") {
-      loadProductSalesStatistics();
+    if (activeTab === "paid") {
+      if (selectedStorefront === "all") {
+        loadAllStorefrontsPaidOrdersReport();
+      } else {
+        loadPaidOrdersReport();
+      }
+    } else if (activeTab === "credit") {
+      if (selectedStorefront === "all") {
+        loadAllStorefrontsCreditOrdersReport();
+      } else {
+        loadCreditOrdersReport();
+      }
+    } else if (activeTab === "statistics") {
+      if (selectedStorefront === "all") {
+        loadAllStorefrontsProductSalesStatistics();
+      } else {
+        loadProductSalesStatistics();
+      }
     }
   };
 
@@ -233,7 +361,7 @@ export const Reports: React.FC = () => {
     setEndDate(newEndDate);
   };
 
-  // Aggregate data from all storefronts
+  // Aggregate data from all storefronts (fallback)
   const aggregatedReport = saleReports.reduce(
     (acc, report) => {
       if (report.success) {
@@ -270,9 +398,10 @@ export const Reports: React.FC = () => {
           (report) => report.data.storefront._id === selectedStorefront
         );
 
+  // Use the appropriate report based on selection
   const displayReport =
     selectedStorefront === "all"
-      ? aggregatedReport
+      ? allStorefrontsReport?.data.report || aggregatedReport
       : filteredReports[0]?.data.report || aggregatedReport;
 
   if (loading) {
@@ -306,49 +435,74 @@ export const Reports: React.FC = () => {
         <OverallReportTab
           displayReport={displayReport}
           saleReports={saleReports}
+          allStorefrontsReport={allStorefrontsReport}
+          selectedStorefront={selectedStorefront}
         />
       )}
 
       {/* Paid Orders Tab */}
-      {activeTab === "paid" && selectedStorefront !== "all" && (
+      {activeTab === "paid" && (
         <PaidOrdersTab
-          paidOrdersReport={paidOrdersReport}
+          paidOrdersReport={
+            selectedStorefront === "all"
+              ? allStorefrontsPaidOrdersReport
+              : paidOrdersReport
+          }
           loading={loadingPaidOrders}
         />
       )}
 
       {/* Credit Orders Tab */}
-      {activeTab === "credit" && selectedStorefront !== "all" && (
+      {activeTab === "credit" && (
         <CreditOrdersTab
-          creditOrdersReport={creditOrdersReport}
+          creditOrdersReport={
+            selectedStorefront === "all"
+              ? allStorefrontsCreditOrdersReport
+              : creditOrdersReport
+          }
           loading={loadingCreditOrders}
         />
       )}
 
       {/* Sale Statistics Tab */}
-      {activeTab === "statistics" && selectedStorefront !== "all" && (
+      {activeTab === "statistics" && (
         <SaleStatisticsTab
-          productSalesStatistics={productSalesStatistics}
+          productSalesStatistics={
+            selectedStorefront === "all"
+              ? allStorefrontsProductSalesStatistics
+              : productSalesStatistics
+          }
           loading={loadingStatistics}
         />
       )}
 
-      {/* Show message if no storefront selected for paid/credit/statistics tabs */}
-      {(activeTab === "paid" ||
-        activeTab === "credit" ||
-        activeTab === "statistics") &&
-        selectedStorefront === "all" && (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-            <Store className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600">
-              Please select a storefront to view{" "}
-              {activeTab === "statistics"
-                ? "sale statistics"
-                : `${activeTab} orders`}{" "}
-              report
-            </p>
-          </div>
-        )}
+      {/* Show message if no data available */}
+      {((activeTab === "paid" &&
+        ((selectedStorefront === "all" && !allStorefrontsPaidOrdersReport) ||
+          (selectedStorefront !== "all" && !paidOrdersReport))) ||
+        (activeTab === "credit" &&
+          ((selectedStorefront === "all" &&
+            !allStorefrontsCreditOrdersReport) ||
+            (selectedStorefront !== "all" && !creditOrdersReport))) ||
+        (activeTab === "statistics" &&
+          ((selectedStorefront === "all" &&
+            !allStorefrontsProductSalesStatistics) ||
+            (selectedStorefront !== "all" && !productSalesStatistics)))) && (
+        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+          <Store className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <p className="text-slate-600">
+            Loading{" "}
+            {activeTab === "statistics"
+              ? "sale statistics"
+              : `${activeTab} orders`}{" "}
+            report for{" "}
+            {selectedStorefront === "all"
+              ? "all storefronts"
+              : "selected storefront"}
+            ...
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -52,7 +52,7 @@ export const fetchProductSalesStatistics = async (
   endDate?: string | null
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
-    let url = `/sale-report/storefront/${storefrontId}/products`;
+    let url = `/sale-report/products?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
 
     if (startDate) {
@@ -63,7 +63,7 @@ export const fetchProductSalesStatistics = async (
     }
 
     if (params.toString()) {
-      url += `?${params.toString()}`;
+      url += `&${params.toString()}`;
     }
 
     const response = await axios.get(url);
@@ -80,6 +80,64 @@ export const fetchProductSalesStatistics = async (
           _id: storefrontId,
           locationName: "Unknown",
           locationCode: "N/A",
+        },
+        dateRange: {
+          startDate: null,
+          endDate: null,
+        },
+        totals: {
+          totalQuantity: 0,
+          totalRevenue: 0,
+          totalUniqueProducts: 0,
+        },
+        products: [],
+      },
+    };
+  }
+};
+
+/**
+ * Fetch product sales statistics for all storefronts
+ * @param {string | null} startDate - Start date in YYYY-MM-DD format
+ * @param {string | null} endDate - End date in YYYY-MM-DD format
+ * @returns {Promise<ProductSalesStatisticsResponse>} Response from API
+ */
+export const fetchAllStorefrontsProductSalesStatistics = async (
+  startDate?: string | null,
+  endDate?: string | null
+): Promise<ProductSalesStatisticsResponse> => {
+  try {
+    let url = `/sale-report/products`;
+    const params = new URLSearchParams();
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching all storefronts product sales statistics:",
+      error
+    );
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Failed to fetch all storefronts product sales statistics",
+      data: {
+        storefront: {
+          _id: "all",
+          locationName: "All Storefronts",
+          locationCode: "ALL",
         },
         dateRange: {
           startDate: null,
