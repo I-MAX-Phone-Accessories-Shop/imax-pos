@@ -13,6 +13,7 @@ import { updatePurchaseStatus } from "../../services/Purchase/updatePurchaseStat
 import { softDeletePurchase } from "../../services/Purchase/softDeletePurchase";
 import { restorePurchase } from "../../services/Purchase/restorePurchase";
 import { toast } from "sonner";
+import { ConfirmModal } from "../Common/ConfirmModal";
 
 interface PaginationData {
   currentPage: number;
@@ -49,6 +50,9 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   const [poFilter, setPoFilter] = useState<"pending" | "arrived" | "deleted">(
     "pending"
   );
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [poToDelete, setPoToDelete] = useState<ApiPurchaseOrder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredPOs = poList.filter((po) => {
     const status = po.status?.toLowerCase() || "";
@@ -99,26 +103,35 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   };
 
   const handleSoftDelete = async (po: ApiPurchaseOrder) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete PO ${po.poNumber}? This action can be undone.`
-      )
-    ) {
-      return;
-    }
+    setPoToDelete(po);
+    setDeleteModalOpen(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!poToDelete) return;
+
+    setIsDeleting(true);
     try {
-      const res = await softDeletePurchase(po._id);
+      const res = await softDeletePurchase(poToDelete._id);
       if (res.success) {
         toast.success("Purchase order deleted successfully");
         loadPurchases(pagination.currentPage, pagination.itemsPerPage);
+        setDeleteModalOpen(false);
+        setPoToDelete(null);
       } else {
         toast.error(res.message || "Failed to delete purchase order");
       }
     } catch (error: any) {
       console.error("Failed to delete purchase order", error);
       toast.error(error.message || "Failed to delete purchase order");
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setPoToDelete(null);
   };
 
   const handleRestore = async (po: ApiPurchaseOrder) => {
@@ -162,7 +175,8 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
     const { currentPage, totalPages, totalItems, itemsPerPage } =
       currentPagination;
 
-    if (totalPages <= 1 && totalItems <= 10) return null;
+    // Hide pagination if total items are 10 or less
+    if (totalItems <= 10) return null;
 
     const startItem = (currentPage - 1) * itemsPerPage + 1;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -414,6 +428,19 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         </table>
         {renderPagination()}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Delete Purchase Order"
+        message={`Are you sure you want to delete PO ${poToDelete?.poNumber}? This action can be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonColor="red"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

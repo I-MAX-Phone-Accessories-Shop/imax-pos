@@ -163,7 +163,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                     onClick={() => onViewOrder(order._id)}
                     className="text-xs bg-primary/20 text-yellow-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
                   >
-                    <Eye className="w-3 h-3" /> View
+                    <Eye className="w-3 h-3" />{" "}
+                    <span className="hidden xl:block">View</span>
                   </button>
                   {order.paymentType?.toLowerCase() === "credit" &&
                     (!order.creditPersonId ||
@@ -173,7 +174,10 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         onClick={() => onOpenCreditPersonModal(order)}
                         className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-200 border border-orange-200 font-medium transition-colors flex items-center gap-1"
                       >
-                        <UserPlus className="w-3 h-3" /> Add Person
+                        <UserPlus className="w-3 h-3" />
+                        <span className="hidden xl:block">
+                          Add Credit Person
+                        </span>
                       </button>
                     )}
                   {order.paymentType?.toLowerCase() === "credit" &&
@@ -181,8 +185,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                     (typeof order.creditPersonId === "object" ||
                       (typeof order.creditPersonId === "string" &&
                         order.creditPersonId)) && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded flex items-center gap-1">
-                        <User className="w-3 h-3" /> Assigned
+                      <span className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded flex items-center gap-1">
+                        <User className="w-3 h-3" />{" "}
+                        <span className="hidden xl:block">Assigned</span>
                       </span>
                     )}
                 </div>
