@@ -295,7 +295,7 @@ export const StorefrontDetail: React.FC = () => {
                 <th className="px-4 py-3 font-medium text-slate-600">
                   Product Code
                 </th>
-                <th className="px-4 py-3 font-medium text-slate-600">SKU</th>
+                {/* <th className="px-4 py-3 font-medium text-slate-600">SKU</th> */}
                 <th className="px-4 py-3 font-medium text-slate-600">
                   Category
                 </th>
@@ -331,9 +331,9 @@ export const StorefrontDetail: React.FC = () => {
                       {item.inventoryId.productCode}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-500 font-mono text-xs">
+                  {/* <td className="px-4 py-3 text-slate-500 font-mono text-xs">
                     {item.inventoryId.SKU}
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3">
                     <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                       {item.inventoryId.category}
