@@ -105,16 +105,8 @@ const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
               letterSpacing: "0",
             }}
           >
-            {order.storefrontName}
+            i-mas ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်
           </h2>
-          <div
-            style={{
-              fontSize: fontSize.header,
-              marginBottom: "1mm",
-            }}
-          >
-            IMAS POS System
-          </div>
         </div>
 
         {/* Order Info */}
@@ -526,6 +518,13 @@ export const printThermalReceipt = (
           text-transform: uppercase;
           letter-spacing: 0;
         }
+        .store-address {
+          font-size: 14px;
+          font-weight: 800;
+          margin-bottom: 1mm;
+          text-transform: uppercase;
+          letter-spacing: 0;
+        }
         .system-name {
           font-size: 12px;
           margin-bottom: 1mm;
@@ -620,8 +619,10 @@ export const printThermalReceipt = (
       <div class="thermal-receipt-page">
         <!-- Header -->
         <div class="header">
-          <div class="store-name">${receiptData.storefrontName}</div>
-          <div class="system-name">IMAS POS System</div>
+          <div class="store-name">IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)</div>
+          <div class="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ </br>&nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ</div>
+          <div class="store-address">ဖုန်း-09780511511(Viber)</div>
+          <div class="store-address">ဖုန်း-09440064007(Viber)</div>
         </div>
         
         <!-- Order Info -->
