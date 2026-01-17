@@ -18,6 +18,9 @@ export const TransferList: React.FC<TransferListProps> = ({
   const [transferFilter, setTransferFilter] = useState<"pending" | "completed">(
     "completed"
   );
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<
+    "all" | "GRN" | "WAREHOUSE"
+  >("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const handleMarkCompleted = async (transfer: TransferData) => {
@@ -41,11 +44,21 @@ export const TransferList: React.FC<TransferListProps> = ({
 
   const filteredTransfers = transferList.filter((transfer) => {
     const status = transfer.status?.toLowerCase() || "";
-    if (transferFilter === "pending") {
-      return status === "pending";
-    } else {
-      return status === "completed" || status === "received";
-    }
+    const sourceType = transfer.sourceType?.toLowerCase() || "";
+
+    // Filter by status
+    const statusMatch =
+      transferFilter === "pending"
+        ? status === "pending"
+        : status === "completed" || status === "received";
+
+    // Filter by source type
+    const sourceTypeMatch =
+      sourceTypeFilter === "all"
+        ? true
+        : sourceType === sourceTypeFilter.toLowerCase();
+
+    return statusMatch && sourceTypeMatch;
   });
 
   const getStatusColor = (status: string) => {
@@ -68,34 +81,46 @@ export const TransferList: React.FC<TransferListProps> = ({
           <Truck className="w-5 h-5 text-status-success" />
           Transfer List
         </h2>
+
+        {/* Filter Tabs */}
+        <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
+            <button
+              onClick={() => setSourceTypeFilter("all")}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                sourceTypeFilter === "all"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-600 hover:text-slate-800"
+              }`}
+            >
+              All Sources
+            </button>
+            <button
+              onClick={() => setSourceTypeFilter("GRN")}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                sourceTypeFilter === "GRN"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-600 hover:text-slate-800"
+              }`}
+            >
+              GRN
+            </button>
+            <button
+              onClick={() => setSourceTypeFilter("WAREHOUSE")}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                sourceTypeFilter === "WAREHOUSE"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-600 hover:text-slate-800"
+              }`}
+            >
+              Warehouse
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Filter Tabs */}
-      {/* <div className="flex gap-2">
-        <button
-          onClick={() => setTransferFilter("pending")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            transferFilter === "pending"
-              ? "bg-slate-800 text-white"
-              : "bg-white text-slate-600 hover:bg-slate-50 border"
-          }`}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setTransferFilter("completed")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            transferFilter === "completed"
-              ? "bg-green-600 text-white"
-              : "bg-white text-slate-600 hover:bg-slate-50 border"
-          }`}
-        >
-          Completed
-        </button>
-      </div> */}
-
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="h-[calc(100vh-300px)] overflow-y-auto">
+        <div className="h-[calc(100vh-450px)] overflow-y-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>

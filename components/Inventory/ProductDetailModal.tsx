@@ -174,14 +174,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                   {/* Product Details Grid */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    {/* <div>
                       <p className="text-xs text-slate-500 font-medium mb-1">
                         SKU
                       </p>
                       <p className="text-sm font-mono text-slate-800">
                         {product.SKU}
                       </p>
-                    </div>
+                    </div> */}
                     <div>
                       <p className="text-xs text-slate-500 font-medium mb-1">
                         {t("inventory.category")}

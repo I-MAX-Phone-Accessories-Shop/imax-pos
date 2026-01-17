@@ -209,28 +209,54 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                 </div>
               )}
             </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="flex items-center gap-2 text-green-700 text-sm font-semibold mb-2">
-                <Warehouse className="w-4 h-4" />
-                Destination Warehouse
+
+            {transfer.destinationWarehouseId === null ? (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2 text-green-700 text-sm font-semibold mb-2">
+                  <Warehouse className="w-4 h-4" />
+                  Destination Storefront
+                </div>
+                <div
+                  className="text-green-800 font-mono text-sm truncate"
+                  title={getDisplayId(transfer.destinationStorefrontId as any)}
+                >
+                  {getDisplayName(transfer.destinationStorefrontId as any)}
+                </div>
+                {typeof transfer.destinationStorefrontId === "object" &&
+                  transfer.destinationStorefrontId && (
+                    <div className="text-green-600 text-xs mt-1">
+                      ID:{" "}
+                      {(transfer.destinationStorefrontId as any)._id?.substring(
+                        0,
+                        12
+                      ) || "-"}
+                    </div>
+                  )}
               </div>
-              <div
-                className="text-green-800 font-mono text-sm truncate"
-                title={getDisplayId(transfer.destinationWarehouseId as any)}
-              >
-                {getDisplayName(transfer.destinationWarehouseId as any)}
+            ) : (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2 text-green-700 text-sm font-semibold mb-2">
+                  <Warehouse className="w-4 h-4" />
+                  Destination Warehouse
+                </div>
+                <div
+                  className="text-green-800 font-mono text-sm truncate"
+                  title={getDisplayId(transfer.destinationWarehouseId as any)}
+                >
+                  {getDisplayName(transfer.destinationWarehouseId as any)}
+                </div>
+                {typeof transfer.destinationWarehouseId === "object" &&
+                  transfer.destinationWarehouseId && (
+                    <div className="text-green-600 text-xs mt-1">
+                      ID:{" "}
+                      {(transfer.destinationWarehouseId as any)._id?.substring(
+                        0,
+                        12
+                      ) || "-"}
+                    </div>
+                  )}
               </div>
-              {typeof transfer.destinationWarehouseId === "object" &&
-                transfer.destinationWarehouseId && (
-                  <div className="text-green-600 text-xs mt-1">
-                    ID:{" "}
-                    {(transfer.destinationWarehouseId as any)._id?.substring(
-                      0,
-                      12
-                    ) || "-"}
-                  </div>
-                )}
-            </div>
+            )}
           </div>
 
           {/* Summary Stats */}

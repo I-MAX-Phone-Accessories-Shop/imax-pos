@@ -189,7 +189,7 @@ export const Credits: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
@@ -218,7 +218,7 @@ export const Credits: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
+        {/* <div className="bg-white p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-100 rounded-lg">
               <Ban className="w-5 h-5 text-red-600" />
@@ -232,7 +232,7 @@ export const Credits: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Search Bar */}

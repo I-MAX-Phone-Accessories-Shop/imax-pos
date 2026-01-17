@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { ShoppingBag, FileText, PackageCheck, Truck } from "lucide-react";
+import { ShoppingBag, FileText, PackageCheck } from "lucide-react";
 import { Supplier, Product, ApiPurchaseOrder } from "../types";
 import { fetchSuppliers } from "../services/Supplier/fetchSuppliers";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
 import { fetchPurchases } from "../services/Purchase/fetchPurchases";
 import { fetchGRNs, GRNData } from "../services/Purchase/fetchGRNs";
-import {
-  fetchTransfers,
-  TransferData,
-} from "../services/Purchase/fetchTransfers";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
 import { PurchaseOrderList } from "../components/Purchasing/PurchaseOrderList";
@@ -16,12 +12,10 @@ import { CreatePOModal } from "../components/Purchasing/CreatePOModal";
 import { GRNList } from "../components/Purchasing/GRNList";
 import { CreateGRNModal } from "../components/Purchasing/CreateGRNModal";
 import { GRNDetailModal } from "../components/Purchasing/GRNDetailModal";
-import { TransferWarehouseModal } from "../components/Purchasing/TransferWarehouseModal";
-import { TransferList } from "../components/Purchasing/TransferList";
 import { PODetailModal } from "../components/Purchasing/PODetailModal";
-import { TransferDetailModal } from "../components/Purchasing/TransferDetailModal";
+import { TransferWarehouseModal } from "../components/Purchasing/TransferWarehouseModal";
 
-type TabType = "po" | "grn" | "transfer";
+type TabType = "po" | "grn";
 
 export const Purchasing: React.FC = () => {
   const { t } = useLanguage();
@@ -64,14 +58,6 @@ export const Purchasing: React.FC = () => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferGRNId, setTransferGRNId] = useState<string | null>(null);
 
-  // Transfer State
-  const [transferList, setTransferList] = useState<TransferData[]>([]);
-  const [selectedTransferId, setSelectedTransferId] = useState<string | null>(
-    null
-  );
-  const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] =
-    useState(false);
-
   // Fetch Suppliers and Products
   useEffect(() => {
     const loadData = async () => {
@@ -100,9 +86,6 @@ export const Purchasing: React.FC = () => {
 
         // Fetch GRNs
         loadGRNs();
-
-        // Fetch Transfers
-        loadTransfers();
       } catch (error) {
         console.error("Failed to load data", error);
       }
@@ -155,18 +138,6 @@ export const Purchasing: React.FC = () => {
     }
   };
 
-  const loadTransfers = async () => {
-    try {
-      const res = await fetchTransfers();
-      if (res.success) {
-        setTransferList(res.data.reverse());
-      }
-    } catch (error) {
-      console.error("Failed to load transfers", error);
-      toast.error(t("purchasing.failedToLoadTransfer"));
-    }
-  };
-
   const handleGRNSuccess = () => {
     loadGRNs(grnPagination.currentPage);
     loadPurchases(poPagination.currentPage);
@@ -190,16 +161,6 @@ export const Purchasing: React.FC = () => {
   const handleTransferGRN = (grn: GRNData) => {
     setTransferGRNId(grn._id);
     setIsTransferModalOpen(true);
-  };
-
-  const handleTransferSuccess = () => {
-    loadGRNs();
-    loadTransfers();
-  };
-
-  const handleViewTransfer = (transfer: TransferData) => {
-    setSelectedTransferId(transfer._id);
-    setIsTransferDetailModalOpen(true);
   };
 
   return (
@@ -230,16 +191,6 @@ export const Purchasing: React.FC = () => {
         >
           <PackageCheck className="w-4 h-4" />{" "}
           {t("purchasing.goodsReceivedNote")}
-        </button>
-        <button
-          onClick={() => setActiveTab("transfer")}
-          className={`px-4 py-2 font-semibold flex items-center gap-2 ${
-            activeTab === "transfer"
-              ? "border-b-2 border-yellow-800 text-yellow-800"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <Truck className="w-4 h-4" /> {t("purchasing.transfer")}
         </button>
       </div>
 
@@ -288,22 +239,6 @@ export const Purchasing: React.FC = () => {
         </>
       )}
 
-      {/* Transfer Tab */}
-      {activeTab === "transfer" && (
-        <>
-          <TransferList
-            transferList={transferList}
-            onViewTransfer={handleViewTransfer}
-            onStatusChange={loadTransfers}
-          />
-          <TransferDetailModal
-            isOpen={isTransferDetailModalOpen}
-            onClose={() => setIsTransferDetailModalOpen(false)}
-            transferId={selectedTransferId}
-          />
-        </>
-      )}
-
       {/* Global Modals - accessible from any tab */}
       <CreateGRNModal
         isOpen={isCreateGRNModalOpen}
@@ -323,7 +258,7 @@ export const Purchasing: React.FC = () => {
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}
         grnId={transferGRNId}
-        onSuccess={handleTransferSuccess}
+        onSuccess={handleGRNSuccess}
       />
     </div>
   );
