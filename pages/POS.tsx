@@ -70,9 +70,11 @@ export const POS: React.FC = () => {
     useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [markup, setMarkup] = useState(0);
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
+  const [useMarkup, setUseMarkup] = useState(false); // Toggle between discount and markup
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
   );
@@ -300,7 +302,12 @@ export const POS: React.FC = () => {
     (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
     0,
   );
-  const total = subtotal * (1 - discount / 100);
+
+  const totalAfterDiscount = subtotal * (1 - discount / 100);
+  const totalAfterMarkup = subtotal * (1 + markup / 100);
+
+  const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
+  const combinedDiscountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
 
   // Auto-update paid amount when discount or subtotal changes in checkout modal
   useEffect(() => {
@@ -334,7 +341,7 @@ export const POS: React.FC = () => {
         [PaymentMethod.HOT]: "hot",
       };
 
-      const discountAmount = (subtotal * discount) / 100;
+      const discountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
 
       const orderPayload = {
         storefrontId: selectedStorefrontId,
@@ -383,6 +390,7 @@ export const POS: React.FC = () => {
         printThermalReceipt(receiptData, "58mm");
         setCart([]);
         setDiscount(0);
+        setMarkup(0);
         setNote("");
         setPaidAmount(0);
         setPaymentMethod(
@@ -851,20 +859,68 @@ export const POS: React.FC = () => {
                 </select>
               </div>
 
-              {/* Discount */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("pos.discount")} (%)
+              {/* Discount/Markup Toggle */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Pricing Option
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  value={discount}
-                  onChange={(e) => setDiscount(Number(e.target.value))}
-                />
+                <div className="flex gap-4">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pricingOption"
+                      checked={!useMarkup}
+                      onChange={() => setUseMarkup(false)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Discount</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pricingOption"
+                      checked={useMarkup}
+                      onChange={() => setUseMarkup(true)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Markup</span>
+                  </label>
+                </div>
               </div>
+
+              {/* Discount */}
+              {!useMarkup && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("pos.discount")} (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    value={discount}
+                    onChange={(e) => setDiscount(Number(e.target.value))}
+                  />
+                </div>
+              )}
+
+              {/* Markup */}
+              {useMarkup && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Markup (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    value={markup}
+                    onChange={(e) => setMarkup(Number(e.target.value))}
+                  />
+                </div>
+              )}
 
               {/* Paid Amount */}
               <div>
@@ -904,13 +960,19 @@ export const POS: React.FC = () => {
                   <span className="text-gray-600">{t("common.subtotal")}</span>
                   <span>{subtotal.toLocaleString()} MMK</span>
                 </div>
-                {discount > 0 && (
+                {!useMarkup && discount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>
                       {t("common.discount")} ({discount}%)
                     </span>
+                    <span>-{combinedDiscountAmount.toLocaleString()} MMK</span>
+                  </div>
+                )}
+                {useMarkup && markup > 0 && (
+                  <div className="flex justify-between text-sm text-blue-600">
+                    <span>Markup ({markup}%)</span>
                     <span>
-                      -{((subtotal * discount) / 100).toLocaleString()} MMK
+                      +{((subtotal * markup) / 100).toLocaleString()} MMK
                     </span>
                   </div>
                 )}

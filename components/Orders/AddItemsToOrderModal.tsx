@@ -51,12 +51,14 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   const [searchProduct, setSearchProduct] = useState("");
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [tax, setTax] = useState(0);
-  const [discount, setDiscount] = useState(0); // Keep for API (absolute amount)
+  const [discount, setDiscount] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0); // Percentage for display
+  const [markup, setMarkup] = useState(0); // Add markup state
   const [paidAmount, setPaidAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
   const [taxManuallyChanged, setTaxManuallyChanged] = useState(false);
+  const [useMarkup, setUseMarkup] = useState(false); // Add useMarkup state
 
   useEffect(() => {
     if (isOpen && order) {
@@ -65,11 +67,16 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       setTax(order.tax || 0);
       const existingDiscount = order.discount || 0;
       setDiscount(existingDiscount);
-      // Calculate discount percentage from existing order
-      const existingSubtotal = order.subTotal || 0;
+      const subtotal = order.subTotal || 0;
+      const totalAfterDiscount = subtotal * (1 - existingDiscount / 100);
+      const totalAfterMarkup = subtotal * (1 + markup / 100);
+      const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
+      const combinedDiscountAmount = useMarkup
+        ? 0
+        : subtotal - totalAfterDiscount;
       const calculatedPercent =
-        existingSubtotal > 0
-          ? Math.round((existingDiscount / existingSubtotal) * 100 * 100) / 100
+        subtotal > 0
+          ? Math.round((existingDiscount / subtotal) * 100 * 100) / 100
           : 0;
       setDiscountPercent(calculatedPercent);
       setPaidAmount(order.paidAmount || 0);
@@ -95,7 +102,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       const existingTax = order.tax || 0;
       const newItemsSubtotal = selectedItems.reduce(
         (sum, item) => sum + item.subtotal,
-        0
+        0,
       );
       const totalSubtotal = existingSubtotal + newItemsSubtotal;
 
@@ -104,7 +111,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
         const calculatedTax = Math.max(
           0,
           Math.round(((totalSubtotal * existingTax) / existingSubtotal) * 100) /
-            100
+            100,
         );
         setTax(calculatedTax);
       }
@@ -118,14 +125,14 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       const existingSubtotal = order.subTotal || 0;
       const newItemsSubtotal = selectedItems.reduce(
         (sum, item) => sum + item.subtotal,
-        0
+        0,
       );
       const totalSubtotal = existingSubtotal + newItemsSubtotal;
 
       // Calculate discount from percentage
       const calculatedDiscount = Math.max(
         0,
-        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
+        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100,
       );
       setDiscount(calculatedDiscount);
     }
@@ -146,7 +153,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
         // Filter by order's storefront ID
         const storefrontStockItems = response.data.filter(
           (item: StorefrontStockItem) =>
-            item.storefrontId?._id === order.storefrontId._id
+            item.storefrontId?._id === order.storefrontId._id,
         );
 
         // Map storefront stock items to InventoryProduct format
@@ -158,7 +165,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
             sellingPrice: item.inventoryId.sellingPrice || 0,
             buyingPrice: 0, // Not needed for adding items, but keeping for interface consistency
             availableQuantity: item.quantity || item.availableQuantity || 0,
-          })
+          }),
         );
         setInventoryProducts(products);
 
@@ -166,14 +173,15 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
           console.warn(
             `No products found for storefront: ${
               order.storefrontId.storefrontName || order.storefrontId._id
-            }`
+            }`,
           );
         }
       }
     } catch (error) {
       console.error("Error loading storefront products:", error);
       toast.error(
-        t("orders.failedToLoadProducts") || "Failed to load storefront products"
+        t("orders.failedToLoadProducts") ||
+          "Failed to load storefront products",
       );
       setInventoryProducts([]);
     } finally {
@@ -184,12 +192,12 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   const filteredProducts = inventoryProducts.filter(
     (product) =>
       product.productName.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.productCode.toLowerCase().includes(searchProduct.toLowerCase())
+      product.productCode.toLowerCase().includes(searchProduct.toLowerCase()),
   );
 
   const handleAddItem = (product: InventoryProduct) => {
     const existingItem = selectedItems.find(
-      (item) => item.inventoryId === product._id
+      (item) => item.inventoryId === product._id,
     );
     if (existingItem) {
       // Increase quantity if item already exists
@@ -200,7 +208,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
               quantity: item.quantity + 1,
               subtotal: (item.quantity + 1) * item.unitPrice,
             }
-          : item
+          : item,
       );
       setSelectedItems(updatedItems);
     } else {
@@ -219,7 +227,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
 
   const handleRemoveItem = (inventoryId: string) => {
     setSelectedItems(
-      selectedItems.filter((item) => item.inventoryId !== inventoryId)
+      selectedItems.filter((item) => item.inventoryId !== inventoryId),
     );
   };
 
@@ -235,7 +243,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
             quantity,
             subtotal: quantity * item.unitPrice,
           }
-        : item
+        : item,
     );
     setSelectedItems(updatedItems);
   };
@@ -243,7 +251,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   const calculateTotals = () => {
     const newItemsSubtotal = selectedItems.reduce(
       (sum, item) => sum + item.subtotal,
-      0
+      0,
     );
     const existingSubtotal = order?.subTotal || 0;
     const existingTax = order?.tax || 0;
@@ -257,21 +265,37 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
     const calculatedTax = taxManuallyChanged
       ? tax
       : existingSubtotal > 0
-      ? Math.max(
-          0,
-          Math.round(((totalSubtotal * existingTax) / existingSubtotal) * 100) /
-            100
-        )
-      : 0;
+        ? Math.max(
+            0,
+            Math.round(
+              ((totalSubtotal * existingTax) / existingSubtotal) * 100,
+            ) / 100,
+          )
+        : 0;
 
-    // Discount: Calculate from percentage
-    const calculatedDiscount = Math.max(
-      0,
-      Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
-    );
+    // Calculate discount or markup based on toggle
+    let calculatedDiscount = 0;
+    if (useMarkup) {
+      // When using markup, no discount is applied
+      calculatedDiscount = 0;
+    } else {
+      // When using discount, calculate from percentage
+      calculatedDiscount = Math.max(
+        0,
+        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100,
+      );
+    }
 
-    // Final amount after tax and discount
-    const finalAmount = totalSubtotal + calculatedTax - calculatedDiscount;
+    // Final amount calculation
+    let finalAmount;
+    if (useMarkup) {
+      // Apply markup to total
+      const markupAmount = (totalSubtotal * markup) / 100;
+      finalAmount = totalSubtotal + calculatedTax + markupAmount;
+    } else {
+      // Apply discount to total
+      finalAmount = totalSubtotal + calculatedTax - calculatedDiscount;
+    }
 
     // Extra change = paidAmount - finalAmount (if paidAmount > finalAmount)
     const extraChange = Math.max(0, paidAmount - finalAmount);
@@ -289,7 +313,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   const handleSubmitAddItems = async () => {
     if (selectedItems.length === 0) {
       toast.error(
-        t("orders.noItemsSelected") || "Please select at least one item"
+        t("orders.noItemsSelected") || "Please select at least one item",
       );
       return;
     }
@@ -317,7 +341,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
 
       if (response.success) {
         toast.success(
-          t("orders.itemsAddedSuccess") || "Items added successfully"
+          t("orders.itemsAddedSuccess") || "Items added successfully",
         );
         onClose();
         setSelectedItems([]);
@@ -328,13 +352,13 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
         toast.error(
           response.message ||
             t("orders.failedToAddItems") ||
-            "Failed to add items"
+            "Failed to add items",
         );
       }
     } catch (error: any) {
       console.error("Error adding items to order:", error);
       toast.error(
-        error.message || t("orders.failedToAddItems") || "Failed to add items"
+        error.message || t("orders.failedToAddItems") || "Failed to add items",
       );
     } finally {
       setSubmitting(false);
@@ -554,7 +578,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                             onClick={() =>
                               handleQuantityChange(
                                 item.inventoryId,
-                                item.quantity - 1
+                                item.quantity - 1,
                               )
                             }
                             className="w-6 h-6 rounded border flex items-center justify-center hover:bg-slate-200 text-sm"
@@ -568,7 +592,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                             onChange={(e) =>
                               handleQuantityChange(
                                 item.inventoryId,
-                                parseInt(e.target.value) || 1
+                                parseInt(e.target.value) || 1,
                               )
                             }
                             className="w-12 text-center border rounded py-1 text-sm"
@@ -577,7 +601,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                             onClick={() =>
                               handleQuantityChange(
                                 item.inventoryId,
-                                item.quantity + 1
+                                item.quantity + 1,
                               )
                             }
                             className="w-6 h-6 rounded border flex items-center justify-center hover:bg-slate-200 text-sm"
@@ -607,6 +631,35 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
 
         {/* Totals & Financial Inputs */}
         <div className="p-4 border-t bg-white">
+          {/* Discount/Markup Toggle */}
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-slate-700 mb-2">
+              Pricing Option
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="pricingOption"
+                  checked={!useMarkup}
+                  onChange={() => setUseMarkup(false)}
+                  className="mr-2"
+                />
+                <span className="text-sm">Discount</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="pricingOption"
+                  checked={useMarkup}
+                  onChange={() => setUseMarkup(true)}
+                  className="mr-2"
+                />
+                <span className="text-sm">Markup</span>
+              </label>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -624,29 +677,58 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                 className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                {t("orders.discount") || "Discount"} (%)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={discountPercent}
-                  onChange={(e) => {
-                    const percent = parseFloat(e.target.value) || 0;
-                    setDiscountPercent(Math.min(100, Math.max(0, percent)));
-                    setDiscountManuallyChanged(true);
-                  }}
-                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                />
-                <span className="text-xs text-slate-500 whitespace-nowrap">
-                  = {discount.toLocaleString()} MMK
-                </span>
+            {!useMarkup && (
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  {t("orders.discount") || "Discount"} (%)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={discountPercent}
+                    onChange={(e) => {
+                      const percent = parseFloat(e.target.value) || 0;
+                      setDiscountPercent(Math.min(100, Math.max(0, percent)));
+                      setDiscountManuallyChanged(true);
+                    }}
+                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  />
+                  <span className="text-xs text-slate-500 whitespace-nowrap">
+                    = {discount.toLocaleString()} MMK
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
+            {useMarkup && (
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Markup (%)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={markup}
+                    onChange={(e) => {
+                      const percent = parseFloat(e.target.value) || 0;
+                      setMarkup(Math.min(100, Math.max(0, percent)));
+                      setDiscountManuallyChanged(true);
+                    }}
+                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  />
+                  <span className="text-xs text-slate-500 whitespace-nowrap">
+                    ={" "}
+                    {(((order?.subTotal || 0) * markup) / 100).toLocaleString()}{" "}
+                    MMK
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="mb-3">
             <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -666,7 +748,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
               const totals = calculateTotals();
               const newItemsSubtotal = selectedItems.reduce(
                 (sum, item) => sum + item.subtotal,
-                0
+                0,
               );
               const existingSubtotal = order?.subTotal || 0;
               return (
@@ -702,10 +784,19 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                       <span>+{totals.tax.toLocaleString()} MMK</span>
                     </div>
                   )}
-                  {totals.discount > 0 && (
+                  {!useMarkup && totals.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>{t("orders.discount") || "Discount"}</span>
                       <span>-{totals.discount.toLocaleString()} MMK</span>
+                    </div>
+                  )}
+                  {useMarkup && markup > 0 && (
+                    <div className="flex justify-between text-blue-600">
+                      <span>Markup</span>
+                      <span>
+                        +{((totals.subTotal * markup) / 100).toLocaleString()}{" "}
+                        MMK
+                      </span>
                     </div>
                   )}
                   <div className="border-t pt-2 flex justify-between font-bold text-base text-primary">

@@ -28,14 +28,16 @@ export const RemoveItemsFromOrderModal: React.FC<
 > = ({ isOpen, order, onClose, onSuccess }) => {
   const { t } = useLanguage();
   const [selectedItems, setSelectedItems] = useState<SelectedItemToRemove[]>(
-    []
+    [],
   );
   const [tax, setTax] = useState(0);
   const [discount, setDiscount] = useState(0); // Keep for API (absolute amount)
   const [discountPercent, setDiscountPercent] = useState(0); // Percentage for display
+  const [markup, setMarkup] = useState(0); // Add markup state
   const [paidAmount, setPaidAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
+  const [useMarkup, setUseMarkup] = useState(false); // Add useMarkup state
 
   useEffect(() => {
     if (isOpen && order) {
@@ -77,14 +79,14 @@ export const RemoveItemsFromOrderModal: React.FC<
 
   const handleQuantityChange = (
     inventoryId: string,
-    removeQuantity: number
+    removeQuantity: number,
   ) => {
     const updatedItems = selectedItems.map((item) => {
       if (item.inventoryId === inventoryId) {
         // Ensure removeQuantity doesn't exceed currentQuantity and is not negative
         const validQuantity = Math.max(
           0,
-          Math.min(removeQuantity, item.currentQuantity)
+          Math.min(removeQuantity, item.currentQuantity),
         );
         return {
           ...item,
@@ -102,18 +104,18 @@ export const RemoveItemsFromOrderModal: React.FC<
     if (order) {
       const itemsToRemoveSubtotal = selectedItems.reduce(
         (sum, item) => sum + item.subtotalToRemove,
-        0
+        0,
       );
       const existingSubtotal = order.subTotal || 0;
       const totalSubtotal = Math.max(
         0,
-        existingSubtotal - itemsToRemoveSubtotal
+        existingSubtotal - itemsToRemoveSubtotal,
       );
 
       // Calculate discount from percentage
       const calculatedDiscount = Math.max(
         0,
-        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
+        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100,
       );
       setDiscount(calculatedDiscount);
     }
@@ -128,7 +130,7 @@ export const RemoveItemsFromOrderModal: React.FC<
   const calculateTotals = () => {
     const itemsToRemoveSubtotal = selectedItems.reduce(
       (sum, item) => sum + item.subtotalToRemove,
-      0
+      0,
     );
     const existingSubtotal = order?.subTotal || 0;
     const existingTax = order?.tax || 0;
@@ -143,25 +145,40 @@ export const RemoveItemsFromOrderModal: React.FC<
       tax !== existingTax
         ? tax
         : existingSubtotal > 0
-        ? Math.max(
-            0,
-            Math.round(
-              ((totalSubtotal * existingTax) / existingSubtotal) * 100
-            ) / 100
-          )
-        : 0;
+          ? Math.max(
+              0,
+              Math.round(
+                ((totalSubtotal * existingTax) / existingSubtotal) * 100,
+              ) / 100,
+            )
+          : 0;
 
-    // Discount: Calculate from percentage
-    const calculatedDiscount = Math.max(
-      0,
-      Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100
-    );
+    // Calculate discount or markup based on toggle
+    let calculatedDiscount = 0;
+    if (useMarkup) {
+      // When using markup, no discount is applied
+      calculatedDiscount = 0;
+    } else {
+      // When using discount, calculate from percentage
+      calculatedDiscount = Math.max(
+        0,
+        Math.round(((totalSubtotal * discountPercent) / 100) * 100) / 100,
+      );
+    }
 
-    // Final amount after tax and discount
-    const finalAmount = Math.max(
-      0,
-      totalSubtotal + calculatedTax - calculatedDiscount
-    );
+    // Final amount calculation
+    let finalAmount;
+    if (useMarkup) {
+      // Apply markup to total
+      const markupAmount = (totalSubtotal * markup) / 100;
+      finalAmount = Math.max(0, totalSubtotal + calculatedTax + markupAmount);
+    } else {
+      // Apply discount to total
+      finalAmount = Math.max(
+        0,
+        totalSubtotal + calculatedTax - calculatedDiscount,
+      );
+    }
 
     // Extra change = paidAmount - finalAmount (if paidAmount > finalAmount)
     const extraChange = Math.max(0, paidAmount - finalAmount);
@@ -179,12 +196,12 @@ export const RemoveItemsFromOrderModal: React.FC<
   const handleSubmitRemoveItems = async () => {
     // Filter items where removeQuantity > 0
     const itemsToRemove = selectedItems.filter(
-      (item) => item.removeQuantity > 0
+      (item) => item.removeQuantity > 0,
     );
 
     if (itemsToRemove.length === 0) {
       toast.error(
-        t("orders.noItemsSelectedToRemove") || "Please select items to remove"
+        t("orders.noItemsSelectedToRemove") || "Please select items to remove",
       );
       return;
     }
@@ -212,7 +229,7 @@ export const RemoveItemsFromOrderModal: React.FC<
 
       if (response.success) {
         toast.success(
-          t("orders.itemsRemovedSuccess") || "Items removed successfully"
+          t("orders.itemsRemovedSuccess") || "Items removed successfully",
         );
         onClose();
         setSelectedItems([]);
@@ -223,7 +240,7 @@ export const RemoveItemsFromOrderModal: React.FC<
         toast.error(
           response.message ||
             t("orders.failedToRemoveItems") ||
-            "Failed to remove items"
+            "Failed to remove items",
         );
       }
     } catch (error: any) {
@@ -231,7 +248,7 @@ export const RemoveItemsFromOrderModal: React.FC<
       toast.error(
         error.message ||
           t("orders.failedToRemoveItems") ||
-          "Failed to remove items"
+          "Failed to remove items",
       );
     } finally {
       setSubmitting(false);
@@ -315,7 +332,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                               onClick={() =>
                                 handleQuantityChange(
                                   item.inventoryId,
-                                  item.removeQuantity - 1
+                                  item.removeQuantity - 1,
                                 )
                               }
                               disabled={item.removeQuantity <= 0}
@@ -331,7 +348,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                               onChange={(e) =>
                                 handleQuantityChange(
                                   item.inventoryId,
-                                  parseInt(e.target.value) || 0
+                                  parseInt(e.target.value) || 0,
                                 )
                               }
                               className="w-16 text-center border rounded py-1 text-sm"
@@ -340,7 +357,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                               onClick={() =>
                                 handleQuantityChange(
                                   item.inventoryId,
-                                  item.removeQuantity + 1
+                                  item.removeQuantity + 1,
                                 )
                               }
                               disabled={
@@ -421,6 +438,35 @@ export const RemoveItemsFromOrderModal: React.FC<
 
             {/* Totals & Financial Inputs */}
             <div className="p-4 border-t bg-white">
+              {/* Discount/Markup Toggle */}
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-slate-700 mb-2">
+                  Pricing Option
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pricingOption"
+                      checked={!useMarkup}
+                      onChange={() => setUseMarkup(false)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Discount</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pricingOption"
+                      checked={useMarkup}
+                      onChange={() => setUseMarkup(true)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Markup</span>
+                  </label>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -435,29 +481,63 @@ export const RemoveItemsFromOrderModal: React.FC<
                     className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    {t("orders.discount") || "Discount"} (%)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      value={discountPercent}
-                      onChange={(e) => {
-                        const percent = parseFloat(e.target.value) || 0;
-                        setDiscountPercent(Math.min(100, Math.max(0, percent)));
-                        setDiscountManuallyChanged(true);
-                      }}
-                      className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                    />
-                    <span className="text-xs text-slate-500 whitespace-nowrap">
-                      = {discount.toLocaleString()} MMK
-                    </span>
+                {!useMarkup && (
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      {t("orders.discount") || "Discount"} (%)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={discountPercent}
+                        onChange={(e) => {
+                          const percent = parseFloat(e.target.value) || 0;
+                          setDiscountPercent(
+                            Math.min(100, Math.max(0, percent)),
+                          );
+                          setDiscountManuallyChanged(true);
+                        }}
+                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      />
+                      <span className="text-xs text-slate-500 whitespace-nowrap">
+                        = {discount.toLocaleString()} MMK
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
+                {useMarkup && (
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Markup (%)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={markup}
+                        onChange={(e) => {
+                          const percent = parseFloat(e.target.value) || 0;
+                          setMarkup(Math.min(100, Math.max(0, percent)));
+                          setDiscountManuallyChanged(true);
+                        }}
+                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      />
+                      <span className="text-xs text-slate-500 whitespace-nowrap">
+                        ={" "}
+                        {(
+                          ((order?.subTotal || 0) * markup) /
+                          100
+                        ).toLocaleString()}{" "}
+                        MMK
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="mb-3">
                 <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -479,7 +559,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                   const totals = calculateTotals();
                   const itemsToRemoveSubtotal = selectedItems.reduce(
                     (sum, item) => sum + item.subtotalToRemove,
-                    0
+                    0,
                   );
                   const existingSubtotal = order?.subTotal || 0;
                   return (
@@ -520,10 +600,23 @@ export const RemoveItemsFromOrderModal: React.FC<
                           <span>+{totals.tax.toLocaleString()} MMK</span>
                         </div>
                       )}
-                      {totals.discount > 0 && (
+                      {!useMarkup && totals.discount > 0 && (
                         <div className="flex justify-between text-green-600">
                           <span>{t("orders.discount") || "Discount"}</span>
                           <span>-{totals.discount.toLocaleString()} MMK</span>
+                        </div>
+                      )}
+                      {useMarkup && markup > 0 && (
+                        <div className="flex justify-between text-blue-600">
+                          <span>Markup</span>
+                          <span>
+                            +
+                            {(
+                              (totals.subTotal * markup) /
+                              100
+                            ).toLocaleString()}{" "}
+                            MMK
+                          </span>
                         </div>
                       )}
                       <div className="border-t pt-2 flex justify-between font-bold text-base text-primary">
