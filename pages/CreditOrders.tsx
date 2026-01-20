@@ -280,7 +280,7 @@ export const CreditOrders: React.FC = () => {
                   <th className="p-4 font-semibold text-slate-600">
                     Order Number
                   </th>
-                  <th className="p-4 font-semibold text-slate-600">Date</th>
+
                   <th className="p-4 font-semibold text-slate-600">
                     Storefront
                   </th>
@@ -302,9 +302,7 @@ export const CreditOrders: React.FC = () => {
                         {order.orderNumber}
                       </div>
                     </td>
-                    <td className="p-4 text-slate-600">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
+
                     <td className="p-4">
                       <div className="font-medium text-slate-800">
                         {order.storefrontId?.locationName ||
