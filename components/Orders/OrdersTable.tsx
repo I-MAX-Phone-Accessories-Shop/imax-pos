@@ -59,10 +59,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
             <th className="p-4 font-semibold text-slate-600">Items</th>
             <th className="p-4 font-semibold text-slate-600">Final Amount</th>
             <th className="p-4 font-semibold text-slate-600">Paid</th>
-            <th className="p-4 font-semibold text-slate-600">Type</th>
             <th className="p-4 font-semibold text-slate-600">Method</th>
             {/* <th className="p-4 font-semibold text-slate-600">Sold By</th> */}
-            <th className="p-4 font-semibold text-slate-600">Credit Person</th>
+            {/* <th className="p-4 font-semibold text-slate-600">Credit Person</th> */}
             {/* <th className="p-4 font-semibold text-slate-600">Status</th> */}
             {/* <th className="p-4 font-semibold text-slate-600">Date</th> */}
             <th className="p-4 font-semibold text-slate-600">Actions</th>
@@ -95,15 +94,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               <td className="p-4 font-bold text-green-600">
                 {order.paidAmount?.toLocaleString()} MMK
               </td>
-              <td className="p-4">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-bold ${getPaymentTypeColor(
-                    order.paymentType
-                  )}`}
-                >
-                  {getPaymentTypeLabel(order.paymentType)}
-                </span>
-              </td>
+
               <td className="p-4">
                 <div className="flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-slate-400" />
@@ -127,7 +118,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   <span className="text-slate-400 text-xs">-</span>
                 )}
               </td> */}
-              <td className="p-4">
+              {/* <td className="p-4">
                 {order.creditPersonId &&
                 typeof order.creditPersonId === "object" ? (
                   <div className="flex items-center gap-2">
@@ -144,7 +135,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 ) : (
                   <span className="text-slate-400 text-xs">-</span>
                 )}
-              </td>
+              </td> */}
               {/* <td className="p-4">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
@@ -166,30 +157,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                     <Eye className="w-3 h-3" />{" "}
                     <span className="hidden xl:block">View</span>
                   </button>
-                  {order.paymentType?.toLowerCase() === "credit" &&
-                    (!order.creditPersonId ||
-                      (typeof order.creditPersonId === "string" &&
-                        !order.creditPersonId)) && (
-                      <button
-                        onClick={() => onOpenCreditPersonModal(order)}
-                        className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-200 border border-orange-200 font-medium transition-colors flex items-center gap-1"
-                      >
-                        <UserPlus className="w-3 h-3" />
-                        <span className="hidden xl:block">
-                          Add Credit Person
-                        </span>
-                      </button>
-                    )}
-                  {order.paymentType?.toLowerCase() === "credit" &&
-                    order.creditPersonId &&
-                    (typeof order.creditPersonId === "object" ||
-                      (typeof order.creditPersonId === "string" &&
-                        order.creditPersonId)) && (
-                      <span className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded flex items-center gap-1">
-                        <User className="w-3 h-3" />{" "}
-                        <span className="hidden xl:block">Assigned</span>
-                      </span>
-                    )}
                 </div>
               </td>
             </tr>

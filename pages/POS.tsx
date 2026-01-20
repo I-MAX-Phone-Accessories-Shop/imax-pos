@@ -41,6 +41,8 @@ enum PaymentMethod {
   AYA_PAY = "AYA Pay",
   UAB_PAY = "UAB Pay",
   BANK_TRANSFER = "Bank Transfer",
+  NORMAL = "Normal",
+  HOT = "Hot",
 }
 
 interface CartItem {
@@ -61,19 +63,19 @@ export const POS: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    PaymentMethod.CASH
-  );
-  const [discount, setDiscount] = useState(0);
-  const [note, setNote] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState<"paid" | "credit">("paid");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [selectedCreditPersonId, setSelectedCreditPersonId] =
     useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [discount, setDiscount] = useState(0);
+  const [note, setNote] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
+  );
 
   // Load storefronts and stock on mount
   useEffect(() => {
@@ -87,7 +89,7 @@ export const POS: React.FC = () => {
       const sfResponse = await fetchStorefrontProfiles();
       if (sfResponse.success && sfResponse.data) {
         const activeStorefronts = sfResponse.data.filter(
-          (sf) => sf.status === "active"
+          (sf) => sf.status === "active",
         );
         setStorefronts(activeStorefronts);
 
@@ -163,7 +165,7 @@ export const POS: React.FC = () => {
       allStockItems
         .filter((item) => item.storefrontId?._id === selectedStorefrontId)
         .map((item) => item.inventoryId?.category)
-        .filter(Boolean)
+        .filter(Boolean),
     ),
   ].sort();
 
@@ -175,7 +177,7 @@ export const POS: React.FC = () => {
 
     setCart((prev) => {
       const existing = prev.find(
-        (item) => item.stockItem._id === stockItem._id
+        (item) => item.stockItem._id === stockItem._id,
       );
       if (existing) {
         if (existing.qty + 1 > stockItem.availableQuantity) {
@@ -185,7 +187,7 @@ export const POS: React.FC = () => {
         return prev.map((item) =>
           item.stockItem._id === stockItem._id
             ? { ...item, qty: item.qty + 1 }
-            : item
+            : item,
         );
       }
       return [...prev, { stockItem, qty: 1 }];
@@ -205,7 +207,7 @@ export const POS: React.FC = () => {
           return { ...item, qty: newQty };
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -224,7 +226,7 @@ export const POS: React.FC = () => {
           return { ...item, qty: newQty };
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -277,7 +279,7 @@ export const POS: React.FC = () => {
         }`,
         {
           duration: 1500,
-        }
+        },
       );
 
       // Clear search after successful barcode scan
@@ -296,7 +298,7 @@ export const POS: React.FC = () => {
 
   const subtotal = cart.reduce(
     (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
-    0
+    0,
   );
   const total = subtotal * (1 - discount / 100);
 
@@ -328,6 +330,8 @@ export const POS: React.FC = () => {
         [PaymentMethod.AYA_PAY]: "ayapay",
         [PaymentMethod.UAB_PAY]: "uabpay",
         [PaymentMethod.BANK_TRANSFER]: "bank_transfer",
+        [PaymentMethod.NORMAL]: "normal",
+        [PaymentMethod.HOT]: "hot",
       };
 
       const discountAmount = (subtotal * discount) / 100;
@@ -353,7 +357,7 @@ export const POS: React.FC = () => {
 
       if (result.success) {
         const selectedStorefront = storefronts.find(
-          (sf) => sf._id === selectedStorefrontId
+          (sf) => sf._id === selectedStorefrontId,
         );
 
         const receiptData = {
@@ -381,7 +385,9 @@ export const POS: React.FC = () => {
         setDiscount(0);
         setNote("");
         setPaidAmount(0);
-        setPaymentMethod(PaymentMethod.CASH);
+        setPaymentMethod(
+          paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
+        );
         setPaymentType("paid");
         setSelectedCreditPersonId("");
 
@@ -569,7 +575,7 @@ export const POS: React.FC = () => {
         <div className="mb-2 text-sm text-gray-600">
           {t("pos.showingProducts").replace(
             "{count}",
-            filteredProducts.length.toString()
+            filteredProducts.length.toString(),
           )}
         </div>
 
@@ -758,6 +764,9 @@ export const POS: React.FC = () => {
                     setPaymentType(e.target.value as "paid" | "credit");
                     if (e.target.value === "paid") {
                       setSelectedCreditPersonId("");
+                      setPaymentMethod(PaymentMethod.CASH);
+                    } else if (e.target.value === "credit") {
+                      setPaymentMethod(PaymentMethod.NORMAL);
                     }
                   }}
                 >
@@ -808,22 +817,37 @@ export const POS: React.FC = () => {
                     setPaymentMethod(e.target.value as PaymentMethod)
                   }
                 >
-                  <option value={PaymentMethod.CASH}>{t("pos.cash")}</option>
-                  <option value={PaymentMethod.KBZ_PAY}>
-                    {t("pos.kbzPay")}
-                  </option>
-                  <option value={PaymentMethod.WAVE_PAY}>
-                    {t("pos.wavePay")}
-                  </option>
-                  <option value={PaymentMethod.AYA_PAY}>
-                    {t("pos.ayaPay")}
-                  </option>
-                  <option value={PaymentMethod.UAB_PAY}>
-                    {t("pos.uabPay")}
-                  </option>
-                  <option value={PaymentMethod.BANK_TRANSFER}>
-                    {t("pos.bankTransfer")}
-                  </option>
+                  {paymentType === "credit" ? (
+                    <>
+                      <option value={PaymentMethod.NORMAL}>
+                        <span>normal</span>
+                      </option>
+                      <option value={PaymentMethod.HOT}>
+                        <span>hot</span>
+                      </option>
+                    </>
+                  ) : (
+                    <>
+                      <option value={PaymentMethod.CASH}>
+                        {t("pos.cash")}
+                      </option>
+                      <option value={PaymentMethod.KBZ_PAY}>
+                        {t("pos.kbzPay")}
+                      </option>
+                      <option value={PaymentMethod.WAVE_PAY}>
+                        {t("pos.wavePay")}
+                      </option>
+                      <option value={PaymentMethod.AYA_PAY}>
+                        {t("pos.ayaPay")}
+                      </option>
+                      <option value={PaymentMethod.UAB_PAY}>
+                        {t("pos.uabPay")}
+                      </option>
+                      <option value={PaymentMethod.BANK_TRANSFER}>
+                        {t("pos.bankTransfer")}
+                      </option>
+                    </>
+                  )}
                 </select>
               </div>
 

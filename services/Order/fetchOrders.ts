@@ -69,11 +69,17 @@ interface FetchOrdersResponse {
 
 export const fetchOrders = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  paymentType?: string | null,
 ): Promise<FetchOrdersResponse> => {
   try {
     let url = "/order";
     const params = new URLSearchParams();
+
+    // Add paymentType filter if provided
+    if (paymentType && paymentType !== "all") {
+      params.append("paymentType", paymentType);
+    }
 
     if (startDate) {
       params.append("startDate", startDate);
@@ -97,4 +103,3 @@ export const fetchOrders = async (
     };
   }
 };
-

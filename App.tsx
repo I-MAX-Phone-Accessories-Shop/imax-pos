@@ -20,6 +20,7 @@ import { CreditDetail } from "./pages/CreditDetail";
 import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
+import { CreditOrders } from "./pages/CreditOrders";
 import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -35,32 +36,32 @@ const AppLayout: React.FC = () => {
       {/* Only show header and sidebar if authenticated */}
       {token && (
         <>
-      {/* Header */}
-      <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
-        <div className="flex items-center justify-between h-14 px-4">
-          <div className="flex items-center">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6 text-primary" />
-          </button>
-          {/* <img
+          {/* Header */}
+          <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
+            <div className="flex items-center justify-between h-14 px-4">
+              <div className="flex items-center">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
+                  aria-label="Open menu"
+                >
+                  <Menu className="w-6 h-6 text-primary" />
+                </button>
+                {/* <img
             src="/imaslogo.jpg"
             alt="IMAS Logo"
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
-          <h1 className="text-lg font-bold text-primary tracking-wide">
-            IMAS POS
-          </h1>
-          </div>
-          <LanguageSwitcher />
-        </div>
-      </header>
+                <h1 className="text-lg font-bold text-primary tracking-wide">
+                  IMAS POS
+                </h1>
+              </div>
+              <LanguageSwitcher />
+            </div>
+          </header>
 
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          {/* Sidebar */}
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </>
       )}
 
@@ -148,6 +149,14 @@ const AppLayout: React.FC = () => {
             }
           />
           <Route
+            path="/credit-orders"
+            element={
+              <ProtectedRoute>
+                <CreditOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/credits"
             element={
               <ProtectedRoute>
@@ -205,14 +214,14 @@ const AppLayout: React.FC = () => {
 const App: React.FC = () => {
   return (
     <LanguageProvider>
-    <AppProvider>
-      <BrowserRouter>
+      <AppProvider>
+        <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<AppLayout />} />
           </Routes>
-      </BrowserRouter>
-    </AppProvider>
+        </BrowserRouter>
+      </AppProvider>
     </LanguageProvider>
   );
 };

@@ -99,8 +99,8 @@ export const Orders: React.FC = () => {
       //   selectedStorefrontId,
       // });
 
-      // Always fetch all orders with date filtering
-      const response = await fetchOrders(startDateStr, endDateStr);
+      // Always fetch only paid orders with date filtering
+      const response = await fetchOrders(startDateStr, endDateStr, "paid");
       // console.log("All orders response:", response);
 
       if (response.success && response.data) {
@@ -111,7 +111,7 @@ export const Orders: React.FC = () => {
           filteredOrders = response.data.filter(
             (order) =>
               order.storefrontId?._id === selectedStorefrontId ||
-              order.storefrontId?.id === selectedStorefrontId
+              order.storefrontId?.id === selectedStorefrontId,
           );
         }
 
@@ -189,7 +189,7 @@ export const Orders: React.FC = () => {
     try {
       const response = await assignCreditPerson(
         selectedOrderForCredit._id,
-        creditPersonId
+        creditPersonId,
       );
       if (response.success) {
         toast.success(t("orders.creditPersonAssigned"));
