@@ -43,6 +43,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  console.log("order", order);
   const { t } = useLanguage();
   const [inventoryProducts, setInventoryProducts] = useState<
     InventoryProduct[]
@@ -68,17 +69,36 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       const existingDiscount = order.discount || 0;
       setDiscount(existingDiscount);
       const subtotal = order.subTotal || 0;
-      const totalAfterDiscount = subtotal * (1 - existingDiscount / 100);
-      const totalAfterMarkup = subtotal * (1 + markup / 100);
-      const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
-      const combinedDiscountAmount = useMarkup
-        ? 0
-        : subtotal - totalAfterDiscount;
-      const calculatedPercent =
-        subtotal > 0
-          ? Math.round((existingDiscount / subtotal) * 100 * 100) / 100
-          : 0;
-      setDiscountPercent(calculatedPercent);
+      const finalAmount = order.finalAmount || 0;
+
+      // Auto-detect if order is using markup or discount
+      // If final amount > subtotal, it's markup
+      // If final amount < subtotal, it's discount
+      const isMarkup = finalAmount > subtotal;
+      setUseMarkup(isMarkup);
+
+      // Calculate percentage based on detected mode
+      let calculatedPercent = 0;
+      if (isMarkup) {
+        // Calculate markup percentage
+        calculatedPercent =
+          subtotal > 0
+            ? Math.round(
+                (((finalAmount - subtotal) / subtotal) * 100 * 100) / 100,
+              )
+            : 0;
+        setMarkup(calculatedPercent);
+        setDiscountPercent(0);
+      } else {
+        // Calculate discount percentage
+        calculatedPercent =
+          subtotal > 0
+            ? Math.round((existingDiscount / subtotal) * 100 * 100) / 100
+            : 0;
+        setDiscountPercent(calculatedPercent);
+        setMarkup(0);
+      }
+
       setPaidAmount(order.paidAmount || 0);
       setDiscountManuallyChanged(false);
       setTaxManuallyChanged(false);
@@ -89,9 +109,11 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       setTax(0);
       setDiscount(0);
       setDiscountPercent(0);
+      setMarkup(0);
       setPaidAmount(0);
       setDiscountManuallyChanged(false);
       setTaxManuallyChanged(false);
+      setUseMarkup(false);
     }
   }, [isOpen, order]);
 

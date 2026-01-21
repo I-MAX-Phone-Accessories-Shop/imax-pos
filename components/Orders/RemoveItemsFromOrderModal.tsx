@@ -45,13 +45,37 @@ export const RemoveItemsFromOrderModal: React.FC<
       setTax(order.tax || 0);
       const existingDiscount = order.discount || 0;
       setDiscount(existingDiscount);
-      // Calculate discount percentage from existing order
-      const existingSubtotal = order.subTotal || 0;
-      const calculatedPercent =
-        existingSubtotal > 0
-          ? Math.round((existingDiscount / existingSubtotal) * 100 * 100) / 100
-          : 0;
-      setDiscountPercent(calculatedPercent);
+      const subtotal = order.subTotal || 0;
+      const finalAmount = order.finalAmount || 0;
+
+      // Auto-detect if order is using markup or discount
+      // If final amount > subtotal, it's markup
+      // If final amount < subtotal, it's discount
+      const isMarkup = finalAmount > subtotal;
+      setUseMarkup(isMarkup);
+
+      // Calculate percentage based on detected mode
+      let calculatedPercent = 0;
+      if (isMarkup) {
+        // Calculate markup percentage
+        calculatedPercent =
+          subtotal > 0
+            ? Math.round(
+                (((finalAmount - subtotal) / subtotal) * 100 * 100) / 100,
+              )
+            : 0;
+        setMarkup(calculatedPercent);
+        setDiscountPercent(0);
+      } else {
+        // Calculate discount percentage
+        calculatedPercent =
+          subtotal > 0
+            ? Math.round((existingDiscount / subtotal) * 100 * 100) / 100
+            : 0;
+        setDiscountPercent(calculatedPercent);
+        setMarkup(0);
+      }
+
       setPaidAmount(order.paidAmount || 0);
       setDiscountManuallyChanged(false);
       // Initialize selected items from order products
@@ -72,8 +96,10 @@ export const RemoveItemsFromOrderModal: React.FC<
       setTax(0);
       setDiscount(0);
       setDiscountPercent(0);
+      setMarkup(0);
       setPaidAmount(0);
       setDiscountManuallyChanged(false);
+      setUseMarkup(false);
     }
   }, [isOpen, order]);
 

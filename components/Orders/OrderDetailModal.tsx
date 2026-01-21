@@ -39,6 +39,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   onClose,
   onOrderUpdate,
 }) => {
+  console.log("orderdetail", order);
   const { t } = useLanguage();
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
   const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
@@ -105,7 +106,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   </p>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                      order.orderStatus
+                      order.orderStatus,
                     )}`}
                   >
                     {order.orderStatus?.toUpperCase()}
@@ -270,7 +271,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                     <span className="text-slate-500">Payment Type</span>
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-bold ${getPaymentTypeColor(
-                        order.paymentType
+                        order.paymentType,
                       )}`}
                     >
                       {getPaymentTypeLabel(order.paymentType)}
