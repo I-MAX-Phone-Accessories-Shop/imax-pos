@@ -45,6 +45,10 @@ export const WarehouseDetail: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get user role from localStorage (set during login)
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+
   // Get warehouse info from location state if available
   const warehouseInfo = location.state as {
     warehouseName?: string;
@@ -54,10 +58,10 @@ export const WarehouseDetail: React.FC = () => {
   const [stockItems, setStockItems] = useState<WarehouseStockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [warehouseName, setWarehouseName] = useState(
-    warehouseInfo?.warehouseName || "Warehouse"
+    warehouseInfo?.warehouseName || "Warehouse",
   );
   const [warehouseCode, setWarehouseCode] = useState(
-    warehouseInfo?.warehouseCode || ""
+    warehouseInfo?.warehouseCode || "",
   );
 
   // Transfer Modal State
@@ -66,7 +70,7 @@ export const WarehouseDetail: React.FC = () => {
   const [selectedStorefrontId, setSelectedStorefrontId] = useState("");
   const [transferItems, setTransferItems] = useState<TransferFormItem[]>([]);
   const [transferDate, setTransferDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [transferNotes, setTransferNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,7 +80,7 @@ export const WarehouseDetail: React.FC = () => {
   const [selectedStockItem, setSelectedStockItem] =
     useState<WarehouseStockItem | null>(null);
   const [adjustmentType, setAdjustmentType] = useState<"increase" | "decrease">(
-    "increase"
+    "increase",
   );
   const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
   const [adjustmentReason, setAdjustmentReason] = useState("");
@@ -107,12 +111,12 @@ export const WarehouseDetail: React.FC = () => {
           setWarehouseName(
             firstItem.warehouseId.locationName ||
               firstItem.warehouseId.warehouseName ||
-              "Warehouse"
+              "Warehouse",
           );
           setWarehouseCode(
             firstItem.warehouseId.locationCode ||
               firstItem.warehouseId.warehouseCode ||
-              ""
+              "",
           );
         }
       } else {
@@ -139,7 +143,7 @@ export const WarehouseDetail: React.FC = () => {
 
   const totalQuantity = stockItems.reduce(
     (sum, item) => sum + item.quantity,
-    0
+    0,
   );
   const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
@@ -178,7 +182,7 @@ export const WarehouseDetail: React.FC = () => {
     const availableProducts = stockItems.filter(
       (item) =>
         !usedCodes.includes(item.inventoryId.productCode) &&
-        item.availableQuantity > 0
+        item.availableQuantity > 0,
     );
 
     if (availableProducts.length === 0) {
@@ -206,14 +210,14 @@ export const WarehouseDetail: React.FC = () => {
   const updateTransferItem = (
     index: number,
     field: keyof TransferFormItem,
-    value: string | number
+    value: string | number,
   ) => {
     const updated = [...transferItems];
 
     if (field === "productCode") {
       // Find the stock item for this product code
       const stockItem = stockItems.find(
-        (item) => item.inventoryId.productCode === value
+        (item) => item.inventoryId.productCode === value,
       );
       if (stockItem) {
         updated[index] = {
@@ -223,14 +227,14 @@ export const WarehouseDetail: React.FC = () => {
           maxQuantity: stockItem.availableQuantity,
           quantity: Math.min(
             updated[index].quantity,
-            stockItem.availableQuantity
+            stockItem.availableQuantity,
           ),
         };
       }
     } else if (field === "quantity") {
       const qty = Math.max(
         1,
-        Math.min(Number(value), updated[index].maxQuantity)
+        Math.min(Number(value), updated[index].maxQuantity),
       );
       updated[index] = { ...updated[index], quantity: qty };
     } else {
@@ -259,7 +263,7 @@ export const WarehouseDetail: React.FC = () => {
       }
       if (item.quantity > item.maxQuantity) {
         toast.error(
-          `Quantity for ${item.productName} exceeds available stock (${item.maxQuantity})`
+          `Quantity for ${item.productName} exceeds available stock (${item.maxQuantity})`,
         );
         return;
       }
@@ -304,14 +308,14 @@ export const WarehouseDetail: React.FC = () => {
     return stockItems.filter(
       (item) =>
         !usedCodes.includes(item.inventoryId.productCode) &&
-        item.availableQuantity > 0
+        item.availableQuantity > 0,
     );
   };
 
   // Stock Adjustment Functions
   const openAdjustmentModal = (
     item: WarehouseStockItem,
-    type: "increase" | "decrease"
+    type: "increase" | "decrease",
   ) => {
     setSelectedStockItem(item);
     setAdjustmentType(type);
@@ -334,7 +338,7 @@ export const WarehouseDetail: React.FC = () => {
       adjustmentQuantity > selectedStockItem.quantity
     ) {
       toast.error(
-        `Cannot decrease by ${adjustmentQuantity}. Available quantity is ${selectedStockItem.quantity}`
+        `Cannot decrease by ${adjustmentQuantity}. Available quantity is ${selectedStockItem.quantity}`,
       );
       return;
     }
@@ -353,14 +357,14 @@ export const WarehouseDetail: React.FC = () => {
 
       const result = await updateWarehouseStockQuantity(
         selectedStockItem._id,
-        payload
+        payload,
       );
 
       if (result.success) {
         toast.success(
           `Stock ${
             adjustmentType === "increase" ? "increased" : "decreased"
-          } successfully!`
+          } successfully!`,
         );
         setIsAdjustmentModalOpen(false);
         setSelectedStockItem(null);
@@ -401,14 +405,17 @@ export const WarehouseDetail: React.FC = () => {
             Warehouse Stock Inventory
           </p>
         </div>
-        <button
-          onClick={() => openTransferModal()}
-          disabled={stockItems.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-btn-primary hover:bg-btn-primary-hover text-dark rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ArrowRightLeft className="w-4 h-4" />
-          Transfer to Storefront
-        </button>
+        {userRole === "owner" && (
+          <button
+            onClick={() => openTransferModal()}
+            disabled={stockItems.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-btn-primary hover:bg-btn-primary-hover text-dark rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            Transfer to Storefront
+          </button>
+        )}
+
         <button
           onClick={loadWarehouseStock}
           disabled={loading}
@@ -574,30 +581,32 @@ export const WarehouseDetail: React.FC = () => {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openTransferModal(item)}
-                        disabled={item.availableQuantity === 0}
-                        className="text-xs bg-purple-50 text-primary-600 px-3 py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ArrowRightLeft className="w-3 h-3" /> Transfer
-                      </button>
-                      <button
-                        onClick={() => openAdjustmentModal(item, "increase")}
-                        className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                        title="Increase Stock"
-                      >
-                        <TrendingUp className="w-3 h-3" /> +
-                      </button>
-                      <button
-                        onClick={() => openAdjustmentModal(item, "decrease")}
-                        disabled={item.quantity === 0}
-                        className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Decrease Stock"
-                      >
-                        <TrendingDown className="w-3 h-3" /> -
-                      </button>
-                    </div>
+                    {userRole === "owner" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openTransferModal(item)}
+                          disabled={item.availableQuantity === 0}
+                          className="text-xs bg-purple-50 text-primary-600 px-3 py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ArrowRightLeft className="w-3 h-3" /> Transfer
+                        </button>
+                        <button
+                          onClick={() => openAdjustmentModal(item, "increase")}
+                          className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                          title="Increase Stock"
+                        >
+                          <TrendingUp className="w-3 h-3" /> +
+                        </button>
+                        <button
+                          onClick={() => openAdjustmentModal(item, "decrease")}
+                          disabled={item.quantity === 0}
+                          className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Decrease Stock"
+                        >
+                          <TrendingDown className="w-3 h-3" /> -
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -720,12 +729,12 @@ export const WarehouseDetail: React.FC = () => {
                                 updateTransferItem(
                                   index,
                                   "productCode",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             >
                               {getAvailableProductsForItem(
-                                item.productCode
+                                item.productCode,
                               ).map((stockItem) => (
                                 <option
                                   key={stockItem.inventoryId.productCode}
@@ -751,7 +760,7 @@ export const WarehouseDetail: React.FC = () => {
                                 updateTransferItem(
                                   index,
                                   "quantity",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -769,7 +778,7 @@ export const WarehouseDetail: React.FC = () => {
                                 updateTransferItem(
                                   index,
                                   "notes",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />

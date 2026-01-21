@@ -38,6 +38,8 @@ export const Expenses: React.FC = () => {
   // Delete Confirmation Modal State
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
 
   useEffect(() => {
     loadExpenses();
@@ -135,13 +137,13 @@ export const Expenses: React.FC = () => {
     } catch (error: any) {
       console.error(
         editingId ? "Error updating expense:" : "Error creating expense:",
-        error
+        error,
       );
       toast.error(
         error.message ||
           (editingId
             ? t("expenses.failedToUpdate")
-            : t("expenses.failedToCreate"))
+            : t("expenses.failedToCreate")),
       );
     } finally {
       setIsSubmitting(false);
@@ -170,7 +172,7 @@ export const Expenses: React.FC = () => {
         toast.success(
           response.message ||
             t("expenses.expenseDeleted") ||
-            "Expense deleted successfully"
+            "Expense deleted successfully",
         );
         setExpenseToDelete(null);
         loadExpenses();
@@ -178,7 +180,7 @@ export const Expenses: React.FC = () => {
         toast.error(
           response.message ||
             t("expenses.failedToDelete") ||
-            "Failed to delete expense"
+            "Failed to delete expense",
         );
       }
     } catch (error: any) {
@@ -186,7 +188,7 @@ export const Expenses: React.FC = () => {
       toast.error(
         error.message ||
           t("expenses.failedToDelete") ||
-          "Failed to delete expense"
+          "Failed to delete expense",
       );
     } finally {
       setIsDeleting(false);
@@ -195,7 +197,7 @@ export const Expenses: React.FC = () => {
 
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + expense.amount,
-    0
+    0,
   );
 
   return (
@@ -274,9 +276,11 @@ export const Expenses: React.FC = () => {
                 <th className="px-4 py-3 font-semibold text-slate-600 text-right">
                   {t("expenses.amount")}
                 </th>
-                <th className="px-4 py-3 font-semibold text-slate-600 text-center">
-                  {t("common.actions")}
-                </th>
+                {userRole === "owner" && (
+                  <th className="px-4 py-3 font-semibold text-slate-600 text-center">
+                    {t("common.actions")}
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -339,24 +343,26 @@ export const Expenses: React.FC = () => {
                   <td className="px-4 py-3 text-right font-bold text-red-600">
                     {expense.amount.toLocaleString()} MMK
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenEdit(expense)}
-                        className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                        title={t("common.edit")}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(expense)}
-                        className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title={t("common.delete") || "Delete"}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+                  {userRole === "owner" && (
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleOpenEdit(expense)}
+                          className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                          title={t("common.edit")}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(expense)}
+                          className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title={t("common.delete") || "Delete"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -506,7 +512,7 @@ export const Expenses: React.FC = () => {
           expenseToDelete
             ? t("expenses.confirmDeleteMessage")?.replace(
                 "{amount}",
-                expenseToDelete.amount.toLocaleString()
+                expenseToDelete.amount.toLocaleString(),
               ) ||
               `Are you sure you want to delete this expense of ${expenseToDelete.amount.toLocaleString()} MMK? This action cannot be undone.`
             : t("expenses.confirmDelete") ||

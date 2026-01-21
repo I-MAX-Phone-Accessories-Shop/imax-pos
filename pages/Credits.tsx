@@ -126,13 +126,13 @@ export const Credits: React.FC = () => {
         editingId
           ? "Error updating credit profile:"
           : "Error creating credit profile:",
-        error
+        error,
       );
       toast.error(
         error.message ||
           (editingId
             ? t("credits.failedToUpdate")
-            : t("credits.failedToCreate"))
+            : t("credits.failedToCreate")),
       );
     } finally {
       setIsSubmitting(false);
@@ -158,6 +158,8 @@ export const Credits: React.FC = () => {
   const totalPersonas = creditPersonas.length;
   const blacklistedCount = creditPersonas.filter((p) => p.blacklist).length;
   const activeCount = totalPersonas - blacklistedCount;
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
 
   return (
     <div className="p-6">
@@ -273,9 +275,9 @@ export const Credits: React.FC = () => {
                 <th className="px-4 py-3 font-medium">{t("credits.name")}</th>
                 <th className="px-4 py-3 font-medium">{t("credits.phone")}</th>
                 <th className="px-4 py-3 font-medium">{t("credits.status")}</th>
-                <th className="px-4 py-3 font-medium">
+                {/* <th className="px-4 py-3 font-medium">
                   {t("credits.blacklistReason")}
-                </th>
+                </th> */}
                 <th className="px-4 py-3 font-medium">
                   {t("credits.createdAt")}
                 </th>
@@ -315,7 +317,7 @@ export const Credits: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">
+                  {/* <td className="px-4 py-3 text-slate-500">
                     {persona.blacklistReason ? (
                       <div className="flex items-center gap-1.5 text-red-600">
                         <AlertTriangle className="w-3.5 h-3.5" />
@@ -324,7 +326,7 @@ export const Credits: React.FC = () => {
                     ) : (
                       <span className="text-slate-400">-</span>
                     )}
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3 text-slate-500 text-xs">
                     {new Date(persona.createdAt).toLocaleDateString()}{" "}
                     {new Date(persona.createdAt).toLocaleTimeString([], {
@@ -340,13 +342,15 @@ export const Credits: React.FC = () => {
                       >
                         <Eye className="w-3 h-3" /> {t("common.view")}
                       </button>
-                      <button
-                        onClick={() => handleOpenEditModal(persona)}
-                        className="text-xs bg-blue/20 text-blue-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
-                        title={t("common.edit")}
-                      >
-                        <Edit className="w-4 h-4" /> {t("common.edit")}
-                      </button>
+                      {userRole === "owner" && (
+                        <button
+                          onClick={() => handleOpenEditModal(persona)}
+                          className="text-xs bg-blue/20 text-blue-800 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
+                          title={t("common.edit")}
+                        >
+                          <Edit className="w-4 h-4" /> {t("common.edit")}
+                        </button>
+                      )}
                       {/* {!persona.blacklist && (
                         <button className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors">
                           {t("credits.blacklist")}

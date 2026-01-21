@@ -42,6 +42,10 @@ interface WarehouseProfileFormData {
 export const Warehouse: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  // Get user role from localStorage (set during login)
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
   const [warehouseProfiles, setWarehouseProfiles] = useState<
     WarehouseProfile[]
   >([]);
@@ -49,7 +53,7 @@ export const Warehouse: React.FC = () => {
 
   // Inventory State
   const [inventoryItems, setInventoryItems] = useState<WarehouseStockItem[]>(
-    []
+    [],
   );
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
@@ -100,7 +104,7 @@ export const Warehouse: React.FC = () => {
   // Calculate stats for all inventory
   const totalQuantity = inventoryItems.reduce(
     (sum, item) => sum + item.quantity,
-    0
+    0,
   );
   const lowStockCount = inventoryItems.filter((item) => item.isLowStock).length;
 
@@ -221,7 +225,7 @@ export const Warehouse: React.FC = () => {
         error.message ||
           (editingId
             ? t("warehouse.failedToUpdate")
-            : t("warehouse.failedToCreate"))
+            : t("warehouse.failedToCreate")),
       );
     } finally {
       setIsSubmitting(false);
@@ -542,16 +546,18 @@ export const Warehouse: React.FC = () => {
                     >
                       {profile.status}
                     </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenEdit(profile);
-                      }}
-                      className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                      title={t("common.edit")}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
+                    {userRole === "owner" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEdit(profile);
+                        }}
+                        className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                        title={t("common.edit")}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    )}
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
                   </div>
                 </div>
@@ -797,8 +803,8 @@ export const Warehouse: React.FC = () => {
                       ? t("warehouse.updating")
                       : t("warehouse.creating")
                     : editingId
-                    ? t("warehouse.updateWarehouse")
-                    : t("warehouse.createWarehouse")}
+                      ? t("warehouse.updateWarehouse")
+                      : t("warehouse.createWarehouse")}
                 </button>
               </div>
             </form>

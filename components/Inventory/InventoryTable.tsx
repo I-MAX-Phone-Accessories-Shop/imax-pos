@@ -23,6 +23,11 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  // Get user role from localStorage (set during login)
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+  // console.log("User role from localStorage:", userRole);
+
   const allSelected =
     products.length > 0 && selectedProductIds.length === products.length;
   const someSelected =
@@ -101,12 +106,14 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                     >
                       {t("inventory.checkItem")}
                     </button>
-                    <button
-                      onClick={() => onEdit(p)}
-                      className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
-                    >
-                      {t("inventory.editItem")}
-                    </button>
+                    {userRole === "owner" && (
+                      <button
+                        onClick={() => onEdit(p)}
+                        className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
+                      >
+                        {t("inventory.editItem")}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

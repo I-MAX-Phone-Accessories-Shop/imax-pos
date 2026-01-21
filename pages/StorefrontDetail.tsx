@@ -27,6 +27,10 @@ export const StorefrontDetail: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get user role from localStorage (set during login)
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+
   // Get storefront info from location state if available
   const storefrontInfo = location.state as {
     storefrontName?: string;
@@ -36,10 +40,10 @@ export const StorefrontDetail: React.FC = () => {
   const [stockItems, setStockItems] = useState<StorefrontStockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [storefrontName, setStorefrontName] = useState(
-    storefrontInfo?.storefrontName || "Storefront"
+    storefrontInfo?.storefrontName || "Storefront",
   );
   const [storefrontCode, setStorefrontCode] = useState(
-    storefrontInfo?.storefrontCode || ""
+    storefrontInfo?.storefrontCode || "",
   );
 
   useEffect(() => {
@@ -66,12 +70,12 @@ export const StorefrontDetail: React.FC = () => {
           setStorefrontName(
             firstItem.storefrontId.locationName ||
               firstItem.storefrontId.storefrontName ||
-              "Storefront"
+              "Storefront",
           );
           setStorefrontCode(
             firstItem.storefrontId.locationCode ||
               firstItem.storefrontId.storefrontCode ||
-              ""
+              "",
           );
         }
       } else {
@@ -87,7 +91,7 @@ export const StorefrontDetail: React.FC = () => {
 
   const totalQuantity = stockItems.reduce(
     (sum, item) => sum + item.quantity,
-    0
+    0,
   );
   const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
@@ -103,7 +107,7 @@ export const StorefrontDetail: React.FC = () => {
   const [selectedStockItem, setSelectedStockItem] =
     useState<StorefrontStockItem | null>(null);
   const [adjustmentType, setAdjustmentType] = useState<"increase" | "decrease">(
-    "increase"
+    "increase",
   );
   const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
   const [adjustmentReason, setAdjustmentReason] = useState("");
@@ -112,7 +116,7 @@ export const StorefrontDetail: React.FC = () => {
   // Stock Adjustment Functions
   const openAdjustmentModal = (
     item: StorefrontStockItem,
-    type: "increase" | "decrease"
+    type: "increase" | "decrease",
   ) => {
     setSelectedStockItem(item);
     setAdjustmentType(type);
@@ -135,7 +139,7 @@ export const StorefrontDetail: React.FC = () => {
       adjustmentQuantity > selectedStockItem.quantity
     ) {
       toast.error(
-        `Cannot decrease by ${adjustmentQuantity}. Available quantity is ${selectedStockItem.quantity}`
+        `Cannot decrease by ${adjustmentQuantity}. Available quantity is ${selectedStockItem.quantity}`,
       );
       return;
     }
@@ -154,14 +158,14 @@ export const StorefrontDetail: React.FC = () => {
 
       const result = await updateStorefrontStockQuantity(
         selectedStockItem._id,
-        payload
+        payload,
       );
 
       if (result.success) {
         toast.success(
           `Stock ${
             adjustmentType === "increase" ? "increased" : "decreased"
-          } successfully!`
+          } successfully!`,
         );
         setIsAdjustmentModalOpen(false);
         setSelectedStockItem(null);
@@ -315,9 +319,11 @@ export const StorefrontDetail: React.FC = () => {
                 <th className="px-4 py-3 font-medium text-slate-600">
                   Last Updated
                 </th>
-                <th className="px-4 py-3 font-medium text-slate-600">
-                  Actions
-                </th>
+                {userRole === "owner" && (
+                  <th className="px-4 py-3 font-medium text-slate-600">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -377,23 +383,25 @@ export const StorefrontDetail: React.FC = () => {
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openAdjustmentModal(item, "increase")}
-                        className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                        title="Increase Stock"
-                      >
-                        <TrendingUp className="w-3 h-3" /> +
-                      </button>
-                      <button
-                        onClick={() => openAdjustmentModal(item, "decrease")}
-                        disabled={item.quantity === 0}
-                        className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Decrease Stock"
-                      >
-                        <TrendingDown className="w-3 h-3" /> -
-                      </button>
-                    </div>
+                    {userRole === "owner" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openAdjustmentModal(item, "increase")}
+                          className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                          title="Increase Stock"
+                        >
+                          <TrendingUp className="w-3 h-3" /> +
+                        </button>
+                        <button
+                          onClick={() => openAdjustmentModal(item, "decrease")}
+                          disabled={item.quantity === 0}
+                          className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Decrease Stock"
+                        >
+                          <TrendingDown className="w-3 h-3" /> -
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

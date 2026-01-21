@@ -44,6 +44,10 @@ interface StorefrontProfileFormData {
 export const Storefront: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  // Get user role from localStorage (set during login)
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
   const [storefrontProfiles, setStorefrontProfiles] = useState<
     StorefrontProfile[]
   >([]);
@@ -51,7 +55,7 @@ export const Storefront: React.FC = () => {
 
   // Inventory State
   const [inventoryItems, setInventoryItems] = useState<StorefrontStockItem[]>(
-    []
+    [],
   );
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
@@ -102,7 +106,7 @@ export const Storefront: React.FC = () => {
   // Calculate stats for all inventory
   const totalQuantity = inventoryItems.reduce(
     (sum, item) => sum + item.quantity,
-    0
+    0,
   );
   const lowStockCount = inventoryItems.filter((item) => item.isLowStock).length;
 
@@ -223,7 +227,7 @@ export const Storefront: React.FC = () => {
         error.message ||
           (editingId
             ? t("storefront.failedToUpdate")
-            : t("storefront.failedToCreate"))
+            : t("storefront.failedToCreate")),
       );
     } finally {
       setIsSubmitting(false);
@@ -544,16 +548,18 @@ export const Storefront: React.FC = () => {
                     >
                       {profile.status}
                     </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenEdit(profile);
-                      }}
-                      className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                      title={t("common.edit")}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
+                    {userRole === "owner" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEdit(profile);
+                        }}
+                        className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                        title={t("common.edit")}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    )}
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
                   </div>
                 </div>
@@ -801,8 +807,8 @@ export const Storefront: React.FC = () => {
                       ? t("storefront.updating")
                       : t("storefront.creating")
                     : editingId
-                    ? t("storefront.updateStorefront")
-                    : t("storefront.createStorefront")}
+                      ? t("storefront.updateStorefront")
+                      : t("storefront.createStorefront")}
                 </button>
               </div>
             </form>

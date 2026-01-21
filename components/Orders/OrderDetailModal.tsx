@@ -41,6 +41,8 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 }) => {
   console.log("orderdetail", order);
   const { t } = useLanguage();
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
   const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
 
@@ -56,7 +58,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             Order Details
           </h3>
           <div className="flex items-center gap-2">
-            {order && (
+            {order && userRole === "owner" && (
               <>
                 <button
                   onClick={() => setShowRemoveItemsModal(true)}
