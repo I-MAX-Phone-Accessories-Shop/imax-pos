@@ -115,7 +115,7 @@ export const CreditOrders: React.FC = () => {
           );
         }
 
-        setOrders(filteredOrders.reverse());
+        setOrders(filteredOrders);
       } else {
         toast.error(response.message || t("orders.failedToLoad"));
       }

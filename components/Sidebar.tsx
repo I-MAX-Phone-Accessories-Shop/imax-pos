@@ -111,20 +111,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
 
-            // Permission check: Only owner can access Purchasing and Account Management
+            // Permission check: Only owner can access Account Management
             const userRole = adminData?.role || currentUser.role;
-            if (item.path === "/purchasing" && userRole !== "owner")
-              return null;
-
-            // Account Management only for owners
             if (item.path === "/accounts" && userRole !== "owner") return null;
-
-            // Inventory and Suppliers only for owners (hide from cashier)
-            if (
-              (item.path === "/inventory" || item.path === "/suppliers") &&
-              userRole !== "owner"
-            )
-              return null;
 
             return (
               <NavLink

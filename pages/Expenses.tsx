@@ -16,6 +16,10 @@ import { fetchExpenses, Expense } from "../services/Expense/fetchExpenses";
 import { createExpense } from "../services/Expense/createExpense";
 import { updateExpense } from "../services/Expense/updateExpense";
 import { deleteExpense } from "../services/Expense/deleteExpense";
+import {
+  fetchLocationProfiles,
+  LocationProfile,
+} from "../services/Location/fetchLocationProfiles";
 import { useLanguage } from "../context/LanguageContext";
 import { ConfirmModal } from "../components/Common/ConfirmModal";
 
@@ -23,6 +27,7 @@ export const Expenses: React.FC = () => {
   const { t } = useLanguage();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState<LocationProfile[]>([]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,6 +38,7 @@ export const Expenses: React.FC = () => {
     amount: 0,
     date: new Date().toISOString().split("T")[0], // Format: YYYY-MM-DD
     notes: "",
+    locationId: "", // Add locationId to form data
   });
 
   // Delete Confirmation Modal State
@@ -43,7 +49,22 @@ export const Expenses: React.FC = () => {
 
   useEffect(() => {
     loadExpenses();
+    loadLocations();
   }, []);
+
+  const loadLocations = async () => {
+    try {
+      const response = await fetchLocationProfiles();
+      if (response.success && response.data) {
+        setLocations(response.data);
+      } else {
+        toast.error(response.message || "Failed to load locations");
+      }
+    } catch (error) {
+      console.error("Error loading locations:", error);
+      toast.error("Failed to load locations");
+    }
+  };
 
   const loadExpenses = async () => {
     setLoading(true);
@@ -69,6 +90,7 @@ export const Expenses: React.FC = () => {
       amount: expense.amount,
       date: expense.date.split("T")[0], // Extract date part if it includes time
       notes: expense.notes || "",
+      locationId: expense.locationId || "", // Include locationId
     });
     setIsModalOpen(true);
   };
@@ -80,6 +102,7 @@ export const Expenses: React.FC = () => {
       amount: 0,
       date: new Date().toISOString().split("T")[0],
       notes: "",
+      locationId: "", // Reset locationId
     });
   };
 
@@ -91,7 +114,12 @@ export const Expenses: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.category || formData.amount <= 0 || !formData.date) {
+    if (
+      !formData.category ||
+      formData.amount <= 0 ||
+      !formData.date ||
+      (userRole !== "cashier" && !formData.locationId)
+    ) {
       toast.error(t("expenses.fillRequiredFields"));
       return;
     }
@@ -105,6 +133,8 @@ export const Expenses: React.FC = () => {
         if (formData.amount > 0) payload.amount = formData.amount;
         if (formData.date) payload.date = formData.date;
         if (formData.notes) payload.notes = formData.notes;
+        if (userRole !== "cashier" && formData.locationId)
+          payload.locationId = formData.locationId;
 
         const response = await updateExpense(editingId, payload);
 
@@ -117,12 +147,17 @@ export const Expenses: React.FC = () => {
         }
       } else {
         // Create new expense
-        const payload = {
+        const payload: any = {
           category: formData.category,
           amount: formData.amount,
           date: formData.date,
           ...(formData.notes && { notes: formData.notes }),
         };
+
+        // Only add locationId for non-cashier users
+        if (userRole !== "cashier" && formData.locationId) {
+          payload.locationId = formData.locationId;
+        }
 
         const response = await createExpense(payload);
 
@@ -416,6 +451,29 @@ export const Expenses: React.FC = () => {
                   <option value="other">{t("expenses.other")}</option>
                 </select>
               </div>
+
+              {userRole !== "cashier" && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Location <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    value={formData.locationId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, locationId: e.target.value })
+                    }
+                  >
+                    <option value="">Select Location</option>
+                    {locations.map((location) => (
+                      <option key={location._id} value={location._id}>
+                        {location.locationName} ({location.locationCode})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">

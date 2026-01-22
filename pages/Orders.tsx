@@ -116,7 +116,7 @@ export const Orders: React.FC = () => {
         }
 
         // console.log("Filtered orders count:", filteredOrders.length);
-        setOrders(filteredOrders.reverse());
+        setOrders(filteredOrders);
       } else {
         toast.error(response.message || t("orders.failedToLoad"));
       }

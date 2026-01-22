@@ -9,7 +9,7 @@ import { useLanguage } from "../context/LanguageContext";
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  
+
   // Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -39,15 +39,19 @@ export const Login: React.FC = () => {
         password: formData.password,
       });
 
+      console.log(response);
+
       if (response.success && response.data) {
         // Store token
         setAuthToken(response.data.token);
-        
+
         // Store admin info in localStorage for context
         localStorage.setItem("adminData", JSON.stringify(response.data.admin));
 
-        toast.success(t("login.welcomeBack").replace("{name}", response.data.admin.name));
-        
+        toast.success(
+          t("login.welcomeBack").replace("{name}", response.data.admin.name),
+        );
+
         // Redirect to POS page
         navigate("/pos");
       } else {
@@ -69,7 +73,9 @@ export const Login: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl mb-4 shadow-lg">
             <Shield className="w-10 h-10 text-dark" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">{t("app.title")}</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {t("app.title")}
+          </h1>
           <p className="text-dark-400">{t("login.title")}</p>
         </div>
 
@@ -168,7 +174,8 @@ export const Login: React.FC = () => {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> {t("login.signingIn")}
+                  <Loader2 className="w-5 h-5 animate-spin" />{" "}
+                  {t("login.signingIn")}
                 </>
               ) : (
                 <>
@@ -180,13 +187,10 @@ export const Login: React.FC = () => {
 
           {/* Footer */}
           <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              {t("login.copyright")}
-            </p>
+            <p className="text-xs text-slate-500">{t("login.copyright")}</p>
           </div>
         </div>
       </div>
     </div>
   );
 };
-
