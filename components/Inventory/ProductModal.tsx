@@ -121,7 +121,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     const allCategories = getUniqueCategories();
     if (!input.trim()) return allCategories;
     return allCategories.filter((cat) =>
-      cat.toLowerCase().includes(input.toLowerCase())
+      cat.toLowerCase().includes(input.toLowerCase()),
     );
   };
 
@@ -164,7 +164,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <input
               className="w-full border rounded p-2"
               value={formData.productName}
-              onChange={(e) => updateFormData({ productName: e.target.value })}
+              onChange={(e) => {
+                const productName = e.target.value;
+                updateFormData({ productName, productCode: productName });
+              }}
             />
           </div>
 
@@ -227,7 +230,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {categoryShowDropdown && (
                 <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   {getFilteredCategories(
-                    categoryInput || formData.category
+                    categoryInput || formData.category,
                   ).map((category) => (
                     <div
                       key={category}
@@ -362,9 +365,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               min="0"
               className="w-full border rounded p-2"
               value={formData.sellingPrice}
-              onChange={(e) =>
-                updateFormData({ sellingPrice: Number(e.target.value) })
-              }
+              onChange={(e) => {
+                const sellingPrice = Number(e.target.value);
+                const buyingPrice = sellingPrice > 0 ? sellingPrice * 0.9 : 0;
+                updateFormData({ sellingPrice, buyingPrice });
+              }}
             />
           </div>
         </div>
