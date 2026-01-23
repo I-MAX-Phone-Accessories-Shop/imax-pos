@@ -26,6 +26,7 @@ import {
 } from "../services/Inventory/fetchProductById";
 import { WarehouseProfile } from "../types";
 import { Building2, X, Loader2, Store } from "lucide-react";
+import { SearchInput } from "../components/Inventory/SearchInput";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -61,6 +62,9 @@ export const Inventory: React.FC = () => {
   const [selectedStorefrontId, setSelectedStorefrontId] = useState("");
   const [isTransferringToStorefront, setIsTransferringToStorefront] =
     useState(false);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form State - API structure
   const [formData, setFormData] = useState<ProductFormData>({
@@ -117,8 +121,8 @@ export const Inventory: React.FC = () => {
           toast.success(
             t("inventory.loadedProducts").replace(
               "{count}",
-              mappedProducts.length.toString()
-            )
+              mappedProducts.length.toString(),
+            ),
           );
         }
       } else {
@@ -156,7 +160,7 @@ export const Inventory: React.FC = () => {
       const response = await fetchWarehouseProfiles();
       if (response.success && response.data) {
         setWarehouses(
-          response.data.filter((w: WarehouseProfile) => w.status === "active")
+          response.data.filter((w: WarehouseProfile) => w.status === "active"),
         );
       }
     } catch (error) {
@@ -170,8 +174,8 @@ export const Inventory: React.FC = () => {
       if (response.success && response.data) {
         setStorefronts(
           response.data.filter(
-            (s: StorefrontProfile) => s.status === "active" && !s.isDeleted
-          )
+            (s: StorefrontProfile) => s.status === "active" && !s.isDeleted,
+          ),
         );
       }
     } catch (error) {
@@ -267,7 +271,7 @@ export const Inventory: React.FC = () => {
         // Refresh products list after updating
         await loadProducts();
         toast.success(
-          t("inventory.productUpdated") || "Product updated successfully"
+          t("inventory.productUpdated") || "Product updated successfully",
         );
       } catch (err: any) {
         const errorMessage =
@@ -388,11 +392,33 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  // Filter products based on selected category
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  // Filter products based on selected category and search query
+  const filteredProducts = products
+    .filter(
+      (p) => selectedCategory === "All" || p.category === selectedCategory,
+    )
+    .filter((p) => {
+      if (!searchQuery.trim()) return true;
+
+      const query = searchQuery.toLowerCase().trim();
+      const apiProduct = apiProducts.find((ap) => (ap.id || ap._id) === p.id);
+
+      // Search in product name
+      if (p.name.toLowerCase().includes(query)) return true;
+
+      // Search in barcode
+      if (
+        apiProduct?.barcode &&
+        apiProduct.barcode.toLowerCase().includes(query)
+      )
+        return true;
+
+      // Search in product code
+      if (p.productCode && p.productCode.toLowerCase().includes(query))
+        return true;
+
+      return false;
+    });
 
   // Selection handlers
   const handleSelectionChange = (productId: string, selected: boolean) => {
@@ -400,7 +426,7 @@ export const Inventory: React.FC = () => {
       setSelectedProductIds([...selectedProductIds, productId]);
     } else {
       setSelectedProductIds(
-        selectedProductIds.filter((id) => id !== productId)
+        selectedProductIds.filter((id) => id !== productId),
       );
     }
   };
@@ -456,7 +482,7 @@ export const Inventory: React.FC = () => {
       const inventoryIds = selectedProductIds
         .map((productId) => {
           const apiProduct = apiProducts.find(
-            (ap) => (ap.id || ap._id) === productId
+            (ap) => (ap.id || ap._id) === productId,
           );
           return apiProduct?._id || apiProduct?.id;
         })
@@ -474,7 +500,7 @@ export const Inventory: React.FC = () => {
 
       if (response.success) {
         toast.success(
-          response.message || "Inventory transferred to warehouse successfully"
+          response.message || "Inventory transferred to warehouse successfully",
         );
         setSelectedProductIds([]);
         handleCloseTransferModal();
@@ -507,7 +533,7 @@ export const Inventory: React.FC = () => {
       const inventoryIds = selectedProductIds
         .map((productId) => {
           const apiProduct = apiProducts.find(
-            (ap) => (ap.id || ap._id) === productId
+            (ap) => (ap.id || ap._id) === productId,
           );
           return apiProduct?._id || apiProduct?.id;
         })
@@ -525,7 +551,8 @@ export const Inventory: React.FC = () => {
 
       if (response.success) {
         toast.success(
-          response.message || "Inventory transferred to storefront successfully"
+          response.message ||
+            "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
         handleCloseTransferStorefrontModal();
@@ -545,86 +572,97 @@ export const Inventory: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">
-          {t("inventory.title")}
-        </h1>
-        <div className="flex gap-2">
-          <button
-            onClick={loadProducts}
-            disabled={isFetching}
-            className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 disabled:opacity-50"
-          >
-            {isFetching ? t("common.loading") : t("inventory.refresh")}
-          </button>
-          {selectedProductIds.length === 0 && !showSelectBoxes && (
-            <>
-              <button
-                onClick={() => {
-                  setShowSelectBoxes(true);
-                  setTransferMode("warehouse");
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
-              >
-                <Building2 className="w-4 h-4" />
-                Transfer to Warehouse
-              </button>
-              <button
-                onClick={() => {
-                  setShowSelectBoxes(true);
-                  setTransferMode("storefront");
-                }}
-                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
-              >
-                <Store className="w-4 h-4" />
-                Transfer to Storefront
-              </button>
-            </>
-          )}
-
-          {showSelectBoxes && (
-            <>
-              {transferMode === "warehouse" && (
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-slate-800">
+            {t("inventory.title")}
+          </h1>
+          <div className="flex gap-2">
+            <button
+              onClick={loadProducts}
+              disabled={isFetching}
+              className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 disabled:opacity-50"
+            >
+              {isFetching ? t("common.loading") : t("inventory.refresh")}
+            </button>
+            {selectedProductIds.length === 0 && !showSelectBoxes && (
+              <>
                 <button
-                  onClick={handleOpenTransferModal}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+                  onClick={() => {
+                    setShowSelectBoxes(true);
+                    setTransferMode("warehouse");
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
                 >
                   <Building2 className="w-4 h-4" />
-                  Confirm Warehouse Transfer ({selectedProductIds.length})
+                  Transfer to Warehouse
                 </button>
-              )}
-              {transferMode === "storefront" && (
                 <button
-                  onClick={handleOpenTransferStorefrontModal}
-                  className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 flex items-center gap-2"
+                  onClick={() => {
+                    setShowSelectBoxes(true);
+                    setTransferMode("storefront");
+                  }}
+                  className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
                 >
                   <Store className="w-4 h-4" />
-                  Confirm Storefront Transfer ({selectedProductIds.length})
+                  Transfer to Storefront
                 </button>
-              )}
-            </>
-          )}
-          {showSelectBoxes && (
+              </>
+            )}
+
+            {showSelectBoxes && (
+              <>
+                {transferMode === "warehouse" && (
+                  <button
+                    onClick={handleOpenTransferModal}
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    Confirm Warehouse Transfer ({selectedProductIds.length})
+                  </button>
+                )}
+                {transferMode === "storefront" && (
+                  <button
+                    onClick={handleOpenTransferStorefrontModal}
+                    className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 flex items-center gap-2"
+                  >
+                    <Store className="w-4 h-4" />
+                    Confirm Storefront Transfer ({selectedProductIds.length})
+                  </button>
+                )}
+              </>
+            )}
+            {showSelectBoxes && (
+              <button
+                onClick={() => {
+                  setShowSelectBoxes(false);
+                  setSelectedProductIds([]);
+                  setTransferMode(null);
+                }}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Cancel Selection
+              </button>
+            )}
             <button
               onClick={() => {
-                setShowSelectBoxes(false);
-                setSelectedProductIds([]);
-                setTransferMode(null);
+                resetForm();
+                setIsModalOpen(true);
               }}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="bg-btn-primary text-dark px-4 py-2 rounded hover:bg-btn-primary-hover"
             >
-              Cancel Selection
+              + {t("inventory.addProduct")}
             </button>
-          )}
-          <button
-            onClick={() => {
-              resetForm();
-              setIsModalOpen(true);
-            }}
-            className="bg-btn-primary text-dark px-4 py-2 rounded hover:bg-btn-primary-hover"
-          >
-            + {t("inventory.addProduct")}
-          </button>
+          </div>
+        </div>
+
+        {/* Search Input */}
+        <div className="max-w-md">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by product name, barcode, or product code..."
+          />
         </div>
       </div>
 
@@ -654,7 +692,7 @@ export const Inventory: React.FC = () => {
               ? t("inventory.noProductsFound")
               : t("inventory.noProductsInCategory").replace(
                   "{category}",
-                  selectedCategory
+                  selectedCategory,
                 )}
           </p>
         </div>

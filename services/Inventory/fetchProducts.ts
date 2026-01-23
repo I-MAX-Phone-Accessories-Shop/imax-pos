@@ -26,7 +26,7 @@ export const fetchProducts = async (): Promise<FetchProductsResponse> => {
         error.response.headers["content-type"].includes("text/html")
       ) {
         throw new Error(
-          `API endpoint not found. Please check if the API is running and the endpoint "${error.config?.url}" is correct.`
+          `API endpoint not found. Please check if the API is running and the endpoint "${error.config?.url}" is correct.`,
         );
       }
 
@@ -40,7 +40,7 @@ export const fetchProducts = async (): Promise<FetchProductsResponse> => {
 
       if (error.request) {
         throw new Error(
-          "Network error: Unable to reach the API. Please check if the API server is running."
+          "Network error: Unable to reach the API. Please check if the API server is running.",
         );
       }
     }
