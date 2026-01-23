@@ -41,7 +41,7 @@ export const CreditDetail: React.FC = () => {
   const [personaDetail, setPersonaDetail] =
     useState<CreditPersonaRecordsData | null>(null);
   const [personName, setPersonName] = useState(
-    personInfo?.name || "Credit Person"
+    personInfo?.name || "Credit Person",
   );
   const [personPhone, setPersonPhone] = useState(personInfo?.phone || "");
 
@@ -444,7 +444,7 @@ export const CreditDetail: React.FC = () => {
                   <option value="">
                     -- {t("creditDetail.selectOrder")} --
                   </option>
-                  {personaDetail?.orders.map((order) => (
+                  {[...personaDetail?.orders].reverse().map((order) => (
                     <option key={order._id} value={order._id}>
                       {order.orderNumber}
                     </option>

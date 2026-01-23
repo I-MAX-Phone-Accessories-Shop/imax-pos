@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Modal } from "../Modal";
 import { Supplier, Product, PurchaseOrderItem } from "../../types";
@@ -27,6 +27,46 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
   const [poItemNote, setPOItemNote] = useState("");
   const [poNote, setPONote] = useState("");
   const [poNewProductName, setPONewProductName] = useState("");
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const productDropdownRef = useRef<HTMLDivElement>(null);
+
+  const filteredProducts = products.filter((product) =>
+    product.productName
+      ?.toLowerCase()
+      .includes(productSearchQuery.toLowerCase()),
+  );
+
+  const handleProductSelect = (productId: string, productName: string) => {
+    setPOSelectedProduct(productId);
+    setProductSearchQuery(productName);
+    setShowProductDropdown(false);
+    setPONewProductName("");
+  };
+
+  const handleProductInputChange = (value: string) => {
+    setProductSearchQuery(value);
+    setShowProductDropdown(true);
+    if (value === "") {
+      setPOSelectedProduct("");
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        productDropdownRef.current &&
+        !productDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowProductDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const addPOItem = () => {
     if (!poSelectedProduct && !poNewProductName) return;
@@ -38,7 +78,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
 
     if (poSelectedProduct) {
       const product = products.find(
-        (p) => (p._id || p.id) === poSelectedProduct
+        (p) => (p._id || p.id) === poSelectedProduct,
       );
       if (!product) return;
       productName = product.productName || product.name;
@@ -79,7 +119,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     // Calculate total amount
     const totalAmount = poItems.reduce(
       (sum, item) => sum + item.qty * item.costPrice,
-      0
+      0,
     );
 
     const payload = {
@@ -107,7 +147,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     } catch (error: any) {
       console.error("Failed to create PO:", error);
       toast.error(
-        error.message || "An error occurred while creating the Purchase Order"
+        error.message || "An error occurred while creating the Purchase Order",
       );
     }
   };
@@ -142,22 +182,36 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
               <label className="block text-xs font-bold text-slate-500 mb-2">
                 Add Item to PO
               </label>
-              <div className="mb-2">
-                <select
-                  className="w-full border rounded p-2 text-sm mb-2"
-                  value={poSelectedProduct}
-                  onChange={(e) => {
-                    setPOSelectedProduct(e.target.value);
-                    setPONewProductName("");
-                  }}
-                >
-                  <option value="">Select Existing Product</option>
-                  {products.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      <span>{p.productName}</span>
-                    </option>
-                  ))}
-                </select>
+              <div className="mb-2 relative" ref={productDropdownRef}>
+                <input
+                  type="text"
+                  className="w-full border rounded p-2 text-sm"
+                  placeholder="Type to search and select product..."
+                  value={productSearchQuery}
+                  onChange={(e) => handleProductInputChange(e.target.value)}
+                  onFocus={() => setShowProductDropdown(true)}
+                />
+                {showProductDropdown && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto shadow-lg">
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map((p) => (
+                        <div
+                          key={p._id}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          onClick={() =>
+                            handleProductSelect(p._id, p.productName)
+                          }
+                        >
+                          {p.productName}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-gray-500 text-sm">
+                        No products found
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-2">
@@ -243,7 +297,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                     {poItems
                       .reduce(
                         (total, item) => total + item.costPrice * item.qty,
-                        0
+                        0,
                       )
                       .toLocaleString()}{" "}
                     MMK

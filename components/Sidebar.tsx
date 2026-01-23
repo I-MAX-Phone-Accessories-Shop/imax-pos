@@ -114,6 +114,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             // Permission check: Only owner can access Account Management
             const userRole = adminData?.role || currentUser.role;
             if (item.path === "/accounts" && userRole !== "owner") return null;
+            if (
+              item.path === "/purchasing" &&
+              userRole !== "admin" &&
+              userRole !== "owner"
+            )
+              return null;
+            if (
+              item.path === "/inventory" &&
+              userRole !== "admin" &&
+              userRole !== "owner"
+            )
+              return null;
+            if (
+              item.path === "/warehouse" &&
+              userRole !== "admin" &&
+              userRole !== "owner"
+            )
+              return null;
+            if (
+              item.path === "/suppliers" &&
+              userRole !== "admin" &&
+              userRole !== "owner"
+            )
+              return null;
 
             return (
               <NavLink
