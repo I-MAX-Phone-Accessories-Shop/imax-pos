@@ -308,17 +308,22 @@ export const POS: React.FC = () => {
     0,
   );
 
-  const totalAfterDiscount = subtotal * (1 - discount / 100);
-  const totalAfterMarkup = subtotal * (1 + markup / 100);
+  const totalAfterDiscount = Math.ceil(
+    subtotal * (1 - Math.ceil(discount) / 100),
+  );
+  const totalAfterMarkup = Math.ceil(subtotal * (1 + Math.ceil(markup) / 100));
 
   const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
-  const combinedDiscountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
+  const combinedDiscountAmount = useMarkup
+    ? 0
+    : Math.ceil(subtotal - totalAfterDiscount);
 
   // Auto-update paid amount when discount or subtotal changes in checkout modal
   useEffect(() => {
     if (showCheckoutModal && paymentType === "paid") {
       // Update paid amount to match new total when discount or subtotal changes
-      setPaidAmount(total);
+      // Use Math.ceil to ensure it's always an integer
+      setPaidAmount(Math.ceil(total));
     }
   }, [showCheckoutModal, total, paymentType]);
 
@@ -729,7 +734,8 @@ export const POS: React.FC = () => {
           <button
             onClick={() => {
               // Auto-fill paid amount with total when opening checkout modal
-              setPaidAmount(total);
+              // Use Math.ceil to ensure it's always an integer
+              setPaidAmount(Math.ceil(total));
               setShowCheckoutModal(true);
             }}
             disabled={cart.length === 0}
@@ -912,7 +918,9 @@ export const POS: React.FC = () => {
                     max="100"
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
+                    onChange={(e) =>
+                      setDiscount(Math.ceil(Number(e.target.value)))
+                    }
                   />
                 </div>
               )}
@@ -936,7 +944,9 @@ export const POS: React.FC = () => {
                     max="100"
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={markup}
-                    onChange={(e) => setMarkup(Number(e.target.value))}
+                    onChange={(e) =>
+                      setMarkup(Math.ceil(Number(e.target.value)))
+                    }
                   />
                 </div>
               )}
@@ -954,7 +964,11 @@ export const POS: React.FC = () => {
                   min="0"
                   className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={paidAmount || ""}
-                  onChange={(e) => setPaidAmount(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    // Use Math.ceil to ensure paid amount is always an integer
+                    setPaidAmount(Math.ceil(value));
+                  }}
                   placeholder={t("pos.enterPaidAmount")}
                 />
               </div>
@@ -1132,11 +1146,11 @@ export const POS: React.FC = () => {
                     if (markupAmount && Number(markupAmount) > 0) {
                       const calculatedPercentage =
                         (Number(markupAmount) / subtotal) * 100;
-                      setMarkup(Math.round(calculatedPercentage * 100) / 100); // Round to 2 decimal places
+                      setMarkup(Math.ceil(calculatedPercentage)); // Use Math.ceil for integer percentage
                       setShowMarkupCalculator(false);
                       setMarkupAmount("");
                       toast.success(
-                        `Markup set to ${calculatedPercentage.toFixed(2)}%`,
+                        `Markup set to ${Math.ceil(calculatedPercentage)}%`,
                       );
                     }
                   }}
@@ -1238,11 +1252,11 @@ export const POS: React.FC = () => {
                     if (discountAmount && Number(discountAmount) > 0) {
                       const calculatedPercentage =
                         (Number(discountAmount) / subtotal) * 100;
-                      setDiscount(Math.round(calculatedPercentage * 100) / 100); // Round to 2 decimal places
+                      setDiscount(Math.ceil(calculatedPercentage)); // Use Math.ceil for integer percentage
                       setShowDiscountCalculator(false);
                       setDiscountAmount("");
                       toast.success(
-                        `Discount set to ${calculatedPercentage.toFixed(2)}%`,
+                        `Discount set to ${Math.ceil(calculatedPercentage)}%`,
                       );
                     }
                   }}

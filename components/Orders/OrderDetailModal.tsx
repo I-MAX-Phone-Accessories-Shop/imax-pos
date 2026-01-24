@@ -11,6 +11,7 @@ import {
   User,
   Plus,
   Minus,
+  Printer,
 } from "lucide-react";
 import { Order } from "../../services/Order/fetchOrders";
 import {
@@ -21,6 +22,7 @@ import {
   formatDate,
 } from "./orderUtils";
 import { useLanguage } from "../../context/LanguageContext";
+import { printThermalReceipt } from "../ThermalReceipt";
 import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
 import { RemoveItemsFromOrderModal } from "./RemoveItemsFromOrderModal";
 
@@ -46,6 +48,38 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
   const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
 
+  const handlePrintOrder = () => {
+    if (!order) return;
+
+    // Transform order data to receipt format
+    const receiptData = {
+      invoiceNumber: order.orderNumber,
+      storefrontName:
+        order.storefrontId?.locationName ||
+        order.storefrontId?.storefrontName ||
+        "Unknown Store",
+      date: order.createdAt,
+      items:
+        order.ordersProducts?.map((item) => ({
+          name: item.inventoryId?.productName || "Unknown Product",
+          code: item.inventoryId?.productCode,
+          qty: item.quantity,
+          price: item.unitPrice || 0,
+        })) || [],
+      subtotal: order.subTotal || 0,
+      discountPercent: order.discount
+        ? (order.discount / (order.subTotal || 1)) * 100
+        : 0,
+      total: order.finalAmount || 0,
+      paymentMethod: getPaymentMethodLabel(order.paymentMethod),
+      paidAmount: order.paidAmount,
+      change: order.extraChange,
+      note: order.notes,
+    };
+
+    printThermalReceipt(receiptData, "58mm");
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -58,6 +92,16 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             Order Details
           </h3>
           <div className="flex items-center gap-2">
+            {order && (
+              <button
+                onClick={handlePrintOrder}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                title="Print Order"
+              >
+                <Printer className="w-4 h-4" />
+                Print
+              </button>
+            )}
             {order && userRole === "owner" && (
               <>
                 <button
