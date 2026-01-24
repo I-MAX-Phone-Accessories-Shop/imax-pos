@@ -77,9 +77,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     let buyingPrice = 0;
 
     if (poSelectedProduct) {
-      const product = products.find(
-        (p) => (p._id || p.id) === poSelectedProduct,
-      );
+      const product = products.find((p) => p.id === poSelectedProduct);
       if (!product) return;
       productName = product.productName || product.name;
       buyingPrice = product.buyingPrice;
@@ -168,10 +166,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
               >
                 <option value="">Select Supplier</option>
                 {suppliers.map((supplier) => (
-                  <option
-                    key={supplier.id || supplier._id}
-                    value={supplier.id || supplier._id}
-                  >
+                  <option key={supplier.id} value={supplier.id}>
                     {supplier.supplierName}
                   </option>
                 ))}
@@ -196,10 +191,10 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                     {filteredProducts.length > 0 ? (
                       filteredProducts.map((p) => (
                         <div
-                          key={p._id}
+                          key={p.id}
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                           onClick={() =>
-                            handleProductSelect(p._id, p.productName)
+                            handleProductSelect(p.id, p.productName)
                           }
                         >
                           {p.productName}

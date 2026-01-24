@@ -5,6 +5,7 @@ interface FetchSuppliersResponse {
   success: boolean;
   message: string;
   data: Supplier[];
+  supplierProfiles: Supplier[];
 }
 
 /**
@@ -13,7 +14,7 @@ interface FetchSuppliersResponse {
  * @returns {Promise<FetchSuppliersResponse>} Response from API
  */
 export const fetchSuppliers = async (
-  isDeleted?: boolean
+  isDeleted?: boolean,
 ): Promise<FetchSuppliersResponse> => {
   try {
     const url =
@@ -21,7 +22,7 @@ export const fetchSuppliers = async (
         ? `/supplier-profile?isDeleted=${isDeleted}`
         : "/supplier-profile";
     const response = await axios.get(url);
-
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching suppliers:", error);
@@ -33,7 +34,7 @@ export const fetchSuppliers = async (
         error.response.headers["content-type"].includes("text/html")
       ) {
         throw new Error(
-          `API endpoint not found. Please check if the API is running and the endpoint "${error.config?.url}" is correct.`
+          `API endpoint not found. Please check if the API is running and the endpoint "${error.config?.url}" is correct.`,
         );
       }
 
@@ -47,7 +48,7 @@ export const fetchSuppliers = async (
 
       if (error.request) {
         throw new Error(
-          "Network error: Unable to reach the API. Please check if the API server is running."
+          "Network error: Unable to reach the API. Please check if the API server is running.",
         );
       }
     }

@@ -64,8 +64,8 @@ export const Purchasing: React.FC = () => {
       try {
         // Fetch Suppliers
         const supplierRes = await fetchSuppliers();
-        if (supplierRes.success) {
-          setSuppliers(supplierRes.data);
+        if (supplierRes) {
+          setSuppliers(supplierRes.supplierProfiles);
         }
 
         // Fetch Products
@@ -96,7 +96,7 @@ export const Purchasing: React.FC = () => {
   const loadPurchases = async (
     page: number = 1,
     limit: number = 10,
-    status: "pending" | "arrived" = "pending"
+    status: "pending" | "arrived" = "pending",
   ) => {
     try {
       const res = await fetchPurchases({ page, limit, status });

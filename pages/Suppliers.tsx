@@ -58,8 +58,9 @@ export const Suppliers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetchSuppliers(showDeleted ? true : undefined);
-      if (response.success && response.data) {
-        setSuppliers(response.data);
+      console.log(response);
+      if (response) {
+        setSuppliers(response.supplierProfiles);
       }
     } catch (error) {
       console.error("Failed to load suppliers:", error);
