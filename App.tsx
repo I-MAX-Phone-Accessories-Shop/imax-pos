@@ -31,8 +31,6 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      <Toaster position="top-right" richColors />
-
       {/* Only show header and sidebar if authenticated */}
       {token && (
         <>
@@ -215,6 +213,7 @@ const App: React.FC = () => {
   return (
     <LanguageProvider>
       <AppProvider>
+        <Toaster position="top-right" richColors />
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />

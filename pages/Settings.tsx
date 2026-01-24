@@ -29,7 +29,7 @@ export const Settings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [transferList, setTransferList] = useState<TransferData[]>([]);
   const [selectedTransferId, setSelectedTransferId] = useState<string | null>(
-    null
+    null,
   );
   const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] =
     useState(false);
@@ -203,8 +203,8 @@ export const Settings: React.FC = () => {
                                 log.action === "add"
                                   ? "bg-green-100 text-green-700"
                                   : log.action === "remove"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-slate-100 text-slate-700"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-slate-100 text-slate-700"
                               }`}
                             >
                               {log.action}
@@ -228,8 +228,8 @@ export const Settings: React.FC = () => {
                                   log.isIncrease
                                     ? "text-green-600"
                                     : log.isDecrease
-                                    ? "text-red-600"
-                                    : "text-slate-600"
+                                      ? "text-red-600"
+                                      : "text-slate-600"
                                 }`}
                               >
                                 {log.quantityChange > 0 ? "+" : ""}
@@ -238,10 +238,10 @@ export const Settings: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-slate-600">
-                            {log.adminId.name}
+                            {log?.adminId?.name ? log?.adminId?.name : "-"}
                           </td>
                           <td className="px-4 py-3 text-slate-500 text-xs max-w-xs truncate">
-                            {log.reason || "-"}
+                            {log?.reason || "-"}
                           </td>
                         </tr>
                       ))}

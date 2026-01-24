@@ -11,6 +11,8 @@ import {
   TrendingDown,
   X,
   Loader2,
+  Search,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -39,6 +41,8 @@ export const StorefrontDetail: React.FC = () => {
 
   const [stockItems, setStockItems] = useState<StorefrontStockItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [storefrontName, setStorefrontName] = useState(
     storefrontInfo?.storefrontName || "Storefront",
   );
@@ -94,6 +98,38 @@ export const StorefrontDetail: React.FC = () => {
     0,
   );
   const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
+
+  // Get unique categories from stock items
+  const categories = Array.from(
+    new Set(stockItems.map((item) => item.inventoryId.category)),
+  ).filter(Boolean);
+
+  // Filter stock items based on search term and category
+  const filteredStockItems = stockItems.filter((item) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      item.inventoryId.productName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      item.inventoryId.productCode
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "all" ||
+      item.inventoryId.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  // Calculate totals based on filtered items
+  const filteredTotalQuantity = filteredStockItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+  const filteredLowStockCount = filteredStockItems.filter(
+    (item) => item.isLowStock,
+  ).length;
 
   // Calculate total amount for each item and storefront total
   const totalStorefrontAmount = stockItems.reduce((sum, item) => {
@@ -216,6 +252,65 @@ export const StorefrontDetail: React.FC = () => {
         </button>
       </div>
 
+      {/* Search and Filter Section */}
+      <div className="bg-white rounded-xl shadow-sm border p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Bar */}
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by product name or code..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="md:w-64">
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none appearance-none"
+              >
+                <option value="all">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Clear Filters */}
+          {(searchTerm || selectedCategory !== "all") && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("all");
+              }}
+              className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Clear Filters
+            </button>
+          )}
+        </div>
+
+        {/* Filter Results Summary */}
+        {(searchTerm || selectedCategory !== "all") && (
+          <div className="mt-3 text-sm text-slate-500">
+            Showing {filteredStockItems.length} of {stockItems.length} items
+          </div>
+        )}
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow-sm border">
@@ -226,7 +321,9 @@ export const StorefrontDetail: React.FC = () => {
             <div>
               <p className="text-sm text-slate-500">Total Products</p>
               <p className="text-2xl font-bold text-slate-800">
-                {stockItems.length}
+                {searchTerm || selectedCategory !== "all"
+                  ? filteredStockItems.length
+                  : stockItems.length}
               </p>
             </div>
           </div>
@@ -240,7 +337,9 @@ export const StorefrontDetail: React.FC = () => {
             <div>
               <p className="text-sm text-slate-500">Total Quantity</p>
               <p className="text-2xl font-bold text-slate-800">
-                {totalQuantity}
+                {searchTerm || selectedCategory !== "all"
+                  ? filteredTotalQuantity
+                  : totalQuantity}
               </p>
             </div>
           </div>
@@ -254,7 +353,9 @@ export const StorefrontDetail: React.FC = () => {
             <div>
               <p className="text-sm text-slate-500">Low Stock Items</p>
               <p className="text-2xl font-bold text-slate-800">
-                {lowStockCount}
+                {searchTerm || selectedCategory !== "all"
+                  ? filteredLowStockCount
+                  : lowStockCount}
               </p>
             </div>
           </div>
@@ -268,7 +369,16 @@ export const StorefrontDetail: React.FC = () => {
             <div>
               <p className="text-sm text-slate-500">Total Amount</p>
               <p className="text-2xl font-bold text-indigo-600">
-                {totalStorefrontAmount.toLocaleString()} MMK
+                {searchTerm || selectedCategory !== "all"
+                  ? filteredStockItems
+                      .reduce((sum, item) => {
+                        const sellingPrice = item.inventoryId.sellingPrice || 0;
+                        const itemTotal = item.quantity * sellingPrice;
+                        return sum + itemTotal;
+                      }, 0)
+                      .toLocaleString()
+                  : totalStorefrontAmount.toLocaleString()}{" "}
+                MMK
               </p>
             </div>
           </div>
@@ -285,9 +395,26 @@ export const StorefrontDetail: React.FC = () => {
           <div className="p-8 text-center text-slate-500">
             Loading stock items...
           </div>
-        ) : stockItems.length === 0 ? (
+        ) : filteredStockItems.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
-            No stock items found in this storefront.
+            {searchTerm || selectedCategory !== "all" ? (
+              <div>
+                <p className="font-medium mb-2">
+                  No items found matching your filters
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedCategory("all");
+                  }}
+                  className="text-primary hover:text-primary-700 underline"
+                >
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              "No stock items found in this storefront."
+            )}
           </div>
         ) : (
           <table className="w-full text-sm text-left">
@@ -327,7 +454,7 @@ export const StorefrontDetail: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {stockItems.map((item) => (
+              {filteredStockItems.map((item) => (
                 <tr key={item._id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-800">
                     {item.inventoryId.productName}

@@ -33,13 +33,12 @@ export const Login: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    console.log("Login data:", formData);
     try {
       const response = await login({
         name: formData.name.trim(),
         password: formData.password,
       });
-
-      console.log(response);
 
       if (response.success && response.data) {
         // Store token
