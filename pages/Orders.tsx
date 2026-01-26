@@ -208,6 +208,17 @@ export const Orders: React.FC = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    // Remove the deleted order from the state
+    setOrders((prevOrders) =>
+      prevOrders.filter((order) => order._id !== orderId),
+    );
+    // Close the detail modal if the deleted order is currently being viewed
+    if (selectedOrder?._id === orderId) {
+      setSelectedOrder(null);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -260,6 +271,7 @@ export const Orders: React.FC = () => {
         orders={filteredOrders}
         onViewOrder={handleViewOrder}
         onOpenCreditPersonModal={handleOpenCreditPersonModal}
+        onDeleteOrder={handleDeleteOrder}
       />
 
       {/* Order Detail Modal */}

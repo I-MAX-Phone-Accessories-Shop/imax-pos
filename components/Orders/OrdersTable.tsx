@@ -8,8 +8,10 @@ import {
   UserPlus,
   User,
   UserCircle,
+  Trash2,
 } from "lucide-react";
 import { Order } from "../../services/Order/fetchOrders";
+import { deleteOrder } from "../../services/Order/deleteOrder";
 import {
   getStatusColor,
   getPaymentTypeLabel,
@@ -23,6 +25,7 @@ interface OrdersTableProps {
   orders: Order[];
   onViewOrder: (orderId: string) => void;
   onOpenCreditPersonModal: (order: Order) => void;
+  onDeleteOrder: (orderId: string) => void;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -30,7 +33,29 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   orders,
   onViewOrder,
   onOpenCreditPersonModal,
+  onDeleteOrder,
 }) => {
+  const handleDelete = async (orderId: string, orderNumber: string) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`,
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const result = await deleteOrder(orderId);
+      if (result.success) {
+        onDeleteOrder(orderId);
+        alert(`Order ${orderNumber} deleted successfully`);
+      } else {
+        alert(`Failed to delete order: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      alert("An error occurred while deleting the order");
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
@@ -156,6 +181,13 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   >
                     <Eye className="w-3 h-3" />{" "}
                     <span className="hidden xl:block">View</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(order._id, order.orderNumber)}
+                    className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />{" "}
+                    <span className="hidden xl:block">Delete</span>
                   </button>
                 </div>
               </td>
