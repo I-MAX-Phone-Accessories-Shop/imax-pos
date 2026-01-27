@@ -182,11 +182,11 @@ export const Settings: React.FC = () => {
                           </td>
                           <td className="px-4 py-3">
                             <div className="font-medium text-slate-800">
-                              {log.inventoryId.productName}
+                              {log?.inventoryId?.productName}
                             </div>
                             <div className="text-xs text-slate-500">
-                              {log.inventoryId.productCode} |{" "}
-                              {log.inventoryId.SKU}
+                              {log?.inventoryId?.productCode} |{" "}
+                              {log?.inventoryId?.SKU}
                             </div>
                           </td>
                           <td className="px-4 py-3">
