@@ -116,7 +116,7 @@ export const Reports: React.FC = () => {
       const locationResponse = await fetchLocationProfiles();
       if (locationResponse.success) {
         const storefrontList = locationResponse.data.filter(
-          (loc) => loc.type === "storefront" && loc.status === "active"
+          (loc) => loc.type === "storefront" && loc.status === "active",
         );
         setStorefronts(storefrontList.reverse());
 
@@ -126,15 +126,15 @@ export const Reports: React.FC = () => {
         // Load all storefronts report
         const allReportResponse = await fetchAllStorefrontsSaleReport(
           startDateStr,
-          endDateStr
+          endDateStr,
         );
         setAllStorefrontsReport(allReportResponse);
 
         // Load individual storefront reports
         const reports = await Promise.all(
           storefrontList.map((storefront) =>
-            fetchSaleReport(storefront._id, startDateStr, endDateStr)
-          )
+            fetchSaleReport(storefront._id, startDateStr, endDateStr),
+          ),
         );
         setSaleReports(reports);
 
@@ -162,7 +162,7 @@ export const Reports: React.FC = () => {
       const response = await fetchPaidOrdersReport(
         selectedStorefront,
         startDateStr,
-        endDateStr
+        endDateStr,
       );
       setPaidOrdersReport(response);
     } catch (error) {
@@ -180,7 +180,7 @@ export const Reports: React.FC = () => {
       const endDateStr = formatDateForAPI(endDate);
       const response = await fetchAllStorefrontsPaidOrdersReport(
         startDateStr,
-        endDateStr
+        endDateStr,
       );
       setAllStorefrontsPaidOrdersReport(response);
     } catch (error) {
@@ -201,7 +201,7 @@ export const Reports: React.FC = () => {
       const response = await fetchCreditOrdersReport(
         selectedStorefront,
         startDateStr,
-        endDateStr
+        endDateStr,
       );
       setCreditOrdersReport(response);
     } catch (error) {
@@ -219,13 +219,13 @@ export const Reports: React.FC = () => {
       const endDateStr = formatDateForAPI(endDate);
       const response = await fetchAllStorefrontsCreditOrdersReport(
         startDateStr,
-        endDateStr
+        endDateStr,
       );
       setAllStorefrontsCreditOrdersReport(response);
     } catch (error) {
       console.error(
         "Error loading all storefronts credit orders report:",
-        error
+        error,
       );
       toast.error("Failed to load all storefronts credit orders report");
     } finally {
@@ -252,14 +252,14 @@ export const Reports: React.FC = () => {
         const response = await fetchProductSalesStatistics(
           selectedStorefront,
           todayStr,
-          todayStr
+          todayStr,
         );
         setProductSalesStatistics(response);
       } else {
         const response = await fetchProductSalesStatistics(
           selectedStorefront,
           startDateStr,
-          endDateStr
+          endDateStr,
         );
         setProductSalesStatistics(response);
       }
@@ -285,20 +285,20 @@ export const Reports: React.FC = () => {
         const todayStr = formatDateForAPI(today);
         const response = await fetchAllStorefrontsProductSalesStatistics(
           todayStr,
-          todayStr
+          todayStr,
         );
         setAllStorefrontsProductSalesStatistics(response);
       } else {
         const response = await fetchAllStorefrontsProductSalesStatistics(
           startDateStr,
-          endDateStr
+          endDateStr,
         );
         setAllStorefrontsProductSalesStatistics(response);
       }
     } catch (error) {
       console.error(
         "Error loading all storefronts product sales statistics:",
-        error
+        error,
       );
       toast.error("Failed to load all storefronts product sales statistics");
     } finally {
@@ -355,7 +355,7 @@ export const Reports: React.FC = () => {
 
   const handleDateRangeChange = (
     newStartDate: Date | null,
-    newEndDate: Date | null
+    newEndDate: Date | null,
   ) => {
     setStartDate(newStartDate);
     setEndDate(newEndDate);
@@ -387,7 +387,7 @@ export const Reports: React.FC = () => {
       orderCount: 0,
       creditOrderCount: 0,
       paidOrderCount: 0,
-    }
+    },
   );
 
   // Filter reports based on selected storefront
@@ -395,7 +395,7 @@ export const Reports: React.FC = () => {
     selectedStorefront === "all"
       ? saleReports
       : saleReports.filter(
-          (report) => report.data.storefront._id === selectedStorefront
+          (report) => report.data.storefront._id === selectedStorefront,
         );
 
   // Use the appropriate report based on selection
@@ -406,7 +406,7 @@ export const Reports: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-96">
+      <div className="p-4 sm:p-6 flex items-center justify-center h-96">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-slate-600">Loading reports...</p>
@@ -416,7 +416,7 @@ export const Reports: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <ReportsHeader
         storefronts={storefronts}
         selectedStorefront={selectedStorefront}

@@ -44,83 +44,108 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
 
   return (
     <div className="bg-white shadow-sm border rounded-xl overflow-hidden">
-      <table className="w-full text-sm text-left">
-        <thead className="bg-slate-50 text-slate-600 border-b">
-          <tr>
-            {showSelectBoxes && onSelectionChange && (
-              <th className="px-4 py-3 text-center w-12">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={(input) => {
-                    if (input) input.indeterminate = someSelected;
-                  }}
-                  onChange={(e) => onSelectAll?.(e.target.checked)}
-                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                />
-              </th>
-            )}
-            <th className="px-4 py-3 text-center">{t("inventory.no")}</th>
-            <th className="px-4 py-3">{t("inventory.productCode")}</th>
-            <th className="px-4 py-3">{t("inventory.productName")}</th>
-            <th className="px-4 py-3">{t("inventory.category")}</th>
-            <th className="px-4 py-3 text-right">{t("inventory.cost")}</th>
-            <th className="px-4 py-3 text-right">{t("inventory.price")}</th>
-            <th className="px-4 py-3 text-center">{t("common.actions")}</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {products.map((p, index) => {
-            const isSelected = selectedProductIds.includes(p.id);
-            return (
-              <tr key={p.id} className="hover:bg-slate-50">
-                {showSelectBoxes && onSelectionChange && (
-                  <td className="px-4 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) =>
-                        onSelectionChange(p.id, e.target.checked)
-                      }
-                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                    />
+      {/* Mobile scroll indicator */}
+      <div className="sm:hidden px-4 py-2 bg-slate-50 border-b text-xs text-slate-500 text-center">
+        ← Swipe to see more →
+      </div>
+
+      {/* Table container with horizontal scroll on mobile */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left min-w-[800px]">
+          <thead className="bg-slate-50 text-slate-600 border-b">
+            <tr>
+              {showSelectBoxes && onSelectionChange && (
+                <th className="px-2 sm:px-4 py-3 text-center w-12">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = someSelected;
+                    }}
+                    onChange={(e) => onSelectAll?.(e.target.checked)}
+                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  />
+                </th>
+              )}
+              <th className="px-2 sm:px-4 py-3 text-center">No</th>
+              <th className="px-2 sm:px-4 py-3">Code</th>
+              <th className="px-2 sm:px-4 py-3">Name</th>
+              <th className="px-2 sm:px-4 py-3">Category</th>
+              <th className="px-2 sm:px-4 py-3 text-right">Cost</th>
+              <th className="px-2 sm:px-4 py-3 text-right">Price</th>
+              <th className="px-2 sm:px-4 py-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {products.map((p, index) => {
+              const isSelected = selectedProductIds.includes(p.id);
+              return (
+                <tr key={p.id} className="hover:bg-slate-50">
+                  {showSelectBoxes && onSelectionChange && (
+                    <td className="px-2 sm:px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) =>
+                          onSelectionChange(p.id, e.target.checked)
+                        }
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                    </td>
+                  )}
+                  <td className="px-2 sm:px-4 py-3 text-center text-slate-600">
+                    {String(index + 1).padStart(2, "0")}
                   </td>
-                )}
-                <td className="px-4 py-3 text-center text-slate-600">
-                  {String(index + 1).padStart(2, "0")}
-                </td>
-                <td className="px-4 py-3 font-medium">{p.productCode}</td>
-                <td className="px-4 py-3 font-medium">{p.name}</td>
-                <td className="px-4 py-3 text-slate-500">{p.category}</td>
-                <td className="px-4 py-3 text-right text-slate-400">
-                  {p.costPrice.toLocaleString()} MMK
-                </td>
-                <td className="px-4 py-3 text-right font-bold text-slate-800">
-                  {p.sellingPrice.toLocaleString()} MMK
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => onViewDetails(p.id)}
-                      className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
+                  <td className="px-2 sm:px-4 py-3 font-medium text-xs sm:text-sm">
+                    {p.productCode}
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 font-medium">
+                    <div
+                      className="max-w-[120px] sm:max-w-none truncate"
+                      title={p.name}
                     >
-                      {t("inventory.checkItem")}
-                    </button>
-                    {userRole === "owner" && (
+                      {p.name}
+                    </div>
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs sm:text-sm">
+                    {p.category}
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-right text-slate-400 text-xs sm:text-sm">
+                    {p.costPrice.toLocaleString()} MMK
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
+                    {p.sellingPrice.toLocaleString()} MMK
+                  </td>
+                  <td className="px-2 sm:px-4 py-3">
+                    <div className="flex items-center justify-center gap-1 sm:gap-2">
                       <button
-                        onClick={() => onEdit(p)}
-                        className="px-3 py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors"
+                        onClick={() => onViewDetails(p.id)}
+                        className="px-2 py-1 sm:px-3 sm:py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors whitespace-nowrap"
                       >
-                        {t("inventory.editItem")}
+                        <span className="hidden sm:inline">
+                          {t("inventory.checkItem")}
+                        </span>
+                        <span className="sm:hidden">View</span>
                       </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                      {userRole === "owner" && (
+                        <button
+                          onClick={() => onEdit(p)}
+                          className="px-2 py-1 sm:px-3 sm:py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors whitespace-nowrap"
+                        >
+                          <span className="hidden sm:inline">
+                            {t("inventory.editItem")}
+                          </span>
+                          <span className="sm:hidden">Edit</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

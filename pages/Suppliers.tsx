@@ -200,28 +200,30 @@ export const Suppliers: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
           {t("suppliers.title")}
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
         >
-          <Plus className="w-4 h-4" /> {t("suppliers.addSupplier")}
+          <Plus className="w-4 h-4" />{" "}
+          <span className="hidden sm:inline">{t("suppliers.addSupplier")}</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Suppliers List */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
           <h2 className="text-lg font-semibold">
             {showDeleted
               ? t("suppliers.deletedSuppliers")
               : t("suppliers.registeredSuppliers")}
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
               <button
                 onClick={() => setShowDeleted(false)}
@@ -242,10 +244,13 @@ export const Suppliers: React.FC = () => {
                 }`}
               >
                 <Archive className="w-4 h-4" />
-                {t("suppliers.inactive")}
+                <span className="hidden sm:inline">
+                  {t("suppliers.inactive")}
+                </span>
+                <span className="sm:hidden">Inactive</span>
               </button>
             </div>
-            <span className="bg-primary/20 text-primary-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+            <span className="bg-primary/20 text-primary-700 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap">
               {t("suppliers.total")}: {suppliers.length}
             </span>
           </div>
@@ -269,31 +274,33 @@ export const Suppliers: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {suppliers.map((supplier) => (
               <div
                 key={supplier.id || supplier._id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+                className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow bg-white"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                      <User className="w-5 h-5" />
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary flex-shrink-0">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <h3 className="font-medium text-slate-900">
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-slate-900 text-sm sm:text-base truncate">
                         {supplier.supplierName}
                       </h3>
                       <div className="flex items-center text-sm text-slate-500 mt-1">
-                        <Phone className="w-3 h-3 mr-1" />
-                        {supplier.contactNumber}
+                        <Phone className="w-3 h-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">
+                          {supplier.contactNumber}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-2">
                     {userRole === "owner" && (
-                      <div>
+                      <div className="flex items-center gap-1 sm:gap-2">
                         {!supplier.isDeleted && (
                           <button
                             onClick={(e) => {
@@ -368,7 +375,7 @@ export const Suppliers: React.FC = () => {
                     )}
                     <div className="flex items-center">
                       <span
-                        className={`w-2 h-2 rounded-full mr-2 ${
+                        className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${
                           supplier.isDeleted ? "bg-red-500" : "bg-green-500"
                         }`}
                       ></span>
@@ -462,18 +469,18 @@ export const Suppliers: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1"
                 >
                   {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-btn-primary text-dark rounded-lg hover:bg-btn-primary-hover transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-btn-primary text-dark rounded-lg hover:bg-btn-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>

@@ -37,9 +37,9 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         {/* Search */}
-        <div className="relative flex-1 min-w-[250px]">
+        <div className="relative flex-1 min-w-[200px] sm:min-w-[250px]">
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
@@ -53,7 +53,7 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
         {/* Storefront Filter */}
         <div className="flex items-center gap-2">
           <select
-            className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
             value={selectedStorefrontId}
             onChange={(e) => onStorefrontChange(e.target.value)}
           >
@@ -82,7 +82,7 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
         {/* Payment Method Filter */}
         <div className="flex items-center gap-2">
           <select
-            className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
             value={paymentMethodFilter}
             onChange={(e) => onPaymentMethodChange(e.target.value)}
           >
@@ -96,8 +96,13 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
         </div>
 
         {/* Results count */}
-        <div className="text-sm text-slate-500">
-          Showing {filteredOrders.length} of {orders.length} orders
+        <div className="text-sm text-slate-500 whitespace-nowrap">
+          <span className="hidden sm:inline">
+            Showing {filteredOrders.length} of {orders.length} orders
+          </span>
+          <span className="sm:hidden">
+            {filteredOrders.length}/{orders.length}
+          </span>
         </div>
       </div>
     </div>

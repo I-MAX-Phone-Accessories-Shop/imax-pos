@@ -215,19 +215,19 @@ export const CreditOrders: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <CreditCard className="w-7 h-7 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <CreditCard className="w-5 h-5 sm:w-7 sm:h-7 text-blue-600" />
             Credit Orders
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Manage credit sales and track customer balances
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <DateRangePicker
             startDate={startDate}
             endDate={endDate}
@@ -239,10 +239,11 @@ export const CreditOrders: React.FC = () => {
           <button
             onClick={loadOrders}
             disabled={loading}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
+            <span className="sm:hidden">↻</span>
           </button>
         </div>
       </div>
@@ -273,116 +274,167 @@ export const CreditOrders: React.FC = () => {
             <p>No credit orders found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b">
-                <tr>
-                  <th className="p-4 font-semibold text-slate-600">
-                    Order Number
-                  </th>
+          <div>
+            {/* Mobile scroll indicator */}
+            <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
+              ← Swipe to see more →
+            </div>
 
-                  <th className="p-4 font-semibold text-slate-600">
-                    Storefront
-                  </th>
-                  <th className="p-4 font-semibold text-slate-600">Customer</th>
-                  <th className="p-4 font-semibold text-slate-600">Items</th>
-                  <th className="p-4 font-semibold text-slate-600">Total</th>
-                  <th className="p-4 font-semibold text-slate-600">paid</th>
-                  <th className="p-4 font-semibold text-slate-600">
-                    Remaining
-                  </th>
-                  <th className="p-4 font-semibold text-slate-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredOrders.map((order) => (
-                  <tr key={order._id} className="hover:bg-slate-50">
-                    <td className="p-4">
-                      <div className="font-medium text-slate-800">
-                        {order.orderNumber}
-                      </div>
-                    </td>
+            {/* Table container with horizontal scroll on mobile */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left min-w-[1000px]">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Order Number</span>
+                      <span className="sm:hidden">Order #</span>
+                    </th>
 
-                    <td className="p-4">
-                      <div className="font-medium text-slate-800">
-                        {order.storefrontId?.locationName ||
-                          order.storefrontId?.storefrontName}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {order.storefrontId?.locationCode ||
-                          order.storefrontId?.storefrontCode}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      {order.creditPersonId &&
-                      typeof order.creditPersonId === "object" ? (
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-400" />
-                          <div>
-                            <div className="font-medium text-slate-800">
-                              {order.creditPersonId.name}
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              {order.creditPersonId.phone}
-                            </div>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Storefront</span>
+                      <span className="sm:hidden">SF</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Customer</span>
+                      <span className="sm:hidden">Customer</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Items</span>
+                      <span className="sm:hidden">Items</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Total</span>
+                      <span className="sm:hidden">Total</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Paid</span>
+                      <span className="sm:hidden">Paid</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Remaining</span>
+                      <span className="sm:hidden">Balance</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">Actions</span>
+                      <span className="sm:hidden">A</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filteredOrders.map((order) => (
+                    <tr key={order._id} className="hover:bg-slate-50">
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="font-medium text-slate-800 text-xs sm:text-sm">
+                          {order.orderNumber}
+                        </div>
+                      </td>
+
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="font-medium text-slate-800 text-xs sm:text-sm">
+                          <div
+                            className="truncate"
+                            title={
+                              order.storefrontId?.locationName ||
+                              order.storefrontId?.storefrontName
+                            }
+                          >
+                            {order.storefrontId?.locationName ||
+                              order.storefrontId?.storefrontName}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {order.storefrontId?.locationCode ||
+                              order.storefrontId?.storefrontCode}
                           </div>
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-300" />
-                          <span className="text-slate-400">
-                            No customer assigned
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-4 text-slate-600">
-                      {order.ordersProducts?.length || 0} items
-                    </td>
-                    <td className="p-4 font-medium text-slate-800">
-                      {order.finalAmount.toLocaleString()} MMK
-                    </td>
-                    <td className="p-4 font-medium text-slate-800">
-                      {order.paidAmount.toLocaleString()} MMK
-                    </td>
-                    <td className="p-4">
-                      <span className="font-medium text-orange-600">
-                        {order.remainingBalance.toLocaleString()} MMK
-                      </span>
-                    </td>
-
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleViewOrder(order._id)}
-                          className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 border border-blue-200 font-medium transition-colors flex items-center gap-1"
-                        >
-                          <Eye className="w-3 h-3" />{" "}
-                          <span className="hidden xl:block">View</span>
-                        </button>
-                        {!order.creditPersonId && (
-                          <button
-                            onClick={() => handleOpenCreditPersonModal(order)}
-                            className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-200 border border-orange-200 font-medium transition-colors flex items-center gap-1"
-                          >
-                            <UserPlus className="w-3 h-3" />
-                            <span className="hidden xl:block">
-                              Add Credit Person
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        {order.creditPersonId &&
+                        typeof order.creditPersonId === "object" ? (
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <div
+                                className="font-medium text-slate-800 text-xs sm:text-sm truncate"
+                                title={order.creditPersonId.name}
+                              >
+                                {order.creditPersonId.name}
+                              </div>
+                              <div
+                                className="text-xs text-slate-500 truncate"
+                                title={order.creditPersonId.phone}
+                              >
+                                {order.creditPersonId.phone}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                            <span className="text-slate-400 text-xs sm:text-sm">
+                              <span className="hidden sm:inline">
+                                No customer assigned
+                              </span>
+                              <span className="sm:hidden">No customer</span>
                             </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-slate-600 text-xs sm:text-sm">
+                        {order.ordersProducts?.length || 0} items
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 font-medium text-slate-800 text-xs sm:text-sm">
+                        {order.finalAmount.toLocaleString()}{" "}
+                        <span className="hidden sm:inline">MMK</span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 font-medium text-slate-800 text-xs sm:text-sm">
+                        {order.paidAmount.toLocaleString()}{" "}
+                        <span className="hidden sm:inline">MMK</span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        <span className="font-medium text-orange-600 text-xs sm:text-sm">
+                          {order.remainingBalance.toLocaleString()}{" "}
+                          <span className="hidden sm:inline">MMK</span>
+                        </span>
+                      </td>
+
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <button
+                            onClick={() => handleViewOrder(order._id)}
+                            className="text-xs bg-blue-100 text-blue-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-blue-200 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Eye className="w-3 h-3" />{" "}
+                            <span className="hidden xl:block">View</span>
+                            <span className="xl:hidden sm:hidden">V</span>
                           </button>
-                        )}
-                        {order.creditPersonId && (
-                          <span className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded flex items-center gap-1">
-                            <User className="w-3 h-3" />{" "}
-                            <span className="hidden xl:block">Assigned</span>
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          {!order.creditPersonId && (
+                            <button
+                              onClick={() => handleOpenCreditPersonModal(order)}
+                              className="text-xs bg-orange-100 text-orange-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-orange-200 border border-orange-200 font-medium transition-colors flex items-center gap-1"
+                            >
+                              <UserPlus className="w-3 h-3" />
+                              <span className="hidden xl:block">
+                                <span className="hidden sm:inline">
+                                  Add Credit Person
+                                </span>
+                                <span className="sm:hidden">Add</span>
+                              </span>
+                            </button>
+                          )}
+                          {order.creditPersonId && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1.5 rounded flex items-center gap-1">
+                              <User className="w-3 h-3" />{" "}
+                              <span className="hidden xl:block">Assigned</span>
+                              <span className="xl:hidden sm:hidden">✓</span>
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
