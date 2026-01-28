@@ -420,11 +420,11 @@ export const WarehouseDetail: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="flex gap-4 mb-6 justify-between">
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => navigate("/warehouse")}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors hidden md:inline"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
@@ -443,12 +443,12 @@ export const WarehouseDetail: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center ">
           {userRole === "owner" && (
             <button
               onClick={() => openTransferModal()}
               disabled={stockItems.length === 0}
-              className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-btn-primary hover:bg-btn-primary-hover text-dark rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="flex h-auto sm:h-10 items-center gap-2 px-3 py-2 sm:px-4 bg-btn-primary hover:bg-btn-primary-hover text-dark rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               <ArrowRightLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Transfer to Storefront</span>
@@ -459,11 +459,10 @@ export const WarehouseDetail: React.FC = () => {
           <button
             onClick={loadWarehouseStock}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
+            className="hidden md:flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
-            <span className="sm:hidden">↻</span>
           </button>
         </div>
       </div>

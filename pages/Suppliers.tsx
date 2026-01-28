@@ -201,7 +201,7 @@ export const Suppliers: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+      <div className="flex flex-row justify-between items-start gap-4 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
           {t("suppliers.title")}
         </h1>
@@ -250,7 +250,7 @@ export const Suppliers: React.FC = () => {
                 <span className="sm:hidden">Inactive</span>
               </button>
             </div>
-            <span className="bg-primary/20 text-primary-700 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap">
+            <span className="hidden md:block bg-primary/20 text-primary-700 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap">
               {t("suppliers.total")}: {suppliers.length}
             </span>
           </div>

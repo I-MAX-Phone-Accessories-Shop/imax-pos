@@ -438,7 +438,7 @@ export const AccountManagement: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+      <div className="flex justify-between items-start gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Users className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
@@ -458,22 +458,20 @@ export const AccountManagement: React.FC = () => {
           >
             <Plus className="w-4 h-4" />{" "}
             <span className="hidden sm:inline">Create Account</span>
-            <span className="sm:hidden">Create</span>
           </button>
           <button
             onClick={loadAccounts}
             disabled={loading}
-            className="flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
+            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
-            <span className="sm:hidden">↻</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
@@ -548,44 +546,46 @@ export const AccountManagement: React.FC = () => {
             />
           </div>
 
-          {/* Role Filter */}
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <select
-              className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <option value="all">All Roles</option>
-              {uniqueRoles.map((role) => (
-                <option key={String(role)} value={String(role)}>
-                  {String(role).charAt(0).toUpperCase() + String(role).slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Role Filter */}
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <option value="all">All Roles</option>
+                {uniqueRoles.map((role) => (
+                  <option key={String(role)} value={String(role)}>
+                    {String(role).charAt(0).toUpperCase() +
+                      String(role).slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <select
-              className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="deleted">Deleted</option>
-            </select>
-          </div>
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="deleted">Deleted</option>
+              </select>
+            </div>
 
-          {/* Results count */}
-          <div className="text-sm text-slate-500 whitespace-nowrap">
-            <span className="hidden sm:inline">
-              Showing {filteredAccounts.length} of {accounts.length} accounts
-            </span>
-            <span className="sm:hidden">
-              {filteredAccounts.length}/{accounts.length}
-            </span>
+            {/* Results count */}
+            <div className="text-sm text-slate-500 whitespace-nowrap">
+              <span className="hidden sm:inline">
+                Showing {filteredAccounts.length} of {accounts.length} accounts
+              </span>
+              <span className="sm:hidden">
+                {filteredAccounts.length}/{accounts.length}
+              </span>
+            </div>
           </div>
         </div>
       </div>

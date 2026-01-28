@@ -234,7 +234,7 @@ export const Warehouse: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+      <div className="flex flex-row justify-between items-start gap-4 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
           {t("warehouse.title")}
         </h1>
@@ -252,9 +252,6 @@ export const Warehouse: React.FC = () => {
             <span className="hidden sm:inline">
               {showInventory ? "Hide Inventory" : "Show All Inventory"}
             </span>
-            <span className="sm:hidden">
-              {showInventory ? "Hide" : "Show"} Inventory
-            </span>
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
@@ -264,7 +261,6 @@ export const Warehouse: React.FC = () => {
             <span className="hidden sm:inline">
               {t("warehouse.addWarehouse")}
             </span>
-            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>

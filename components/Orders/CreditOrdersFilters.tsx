@@ -27,7 +27,7 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
 }) => {
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] sm:min-w-[250px]">
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
@@ -40,43 +40,45 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
           />
         </div>
 
-        {/* Storefront Filter */}
-        <div className="flex items-center gap-2">
-          <select
-            className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm sm:text-base"
-            value={selectedStorefrontId}
-            onChange={(e) => onStorefrontChange(e.target.value)}
-          >
-            <option value="all">All Storefronts</option>
-            {storefronts.map((sf) => (
-              <option key={sf._id} value={sf._id}>
-                {sf.locationName || sf.storefrontName}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div className="flex items-center gap-4">
+          {/* Storefront Filter */}
+          <div className="flex items-center gap-2">
+            <select
+              className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm sm:text-base"
+              value={selectedStorefrontId}
+              onChange={(e) => onStorefrontChange(e.target.value)}
+            >
+              <option value="all">All Storefronts</option>
+              {storefronts.map((sf) => (
+                <option key={sf._id} value={sf._id}>
+                  {sf.locationName || sf.storefrontName}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Payment Method Filter - Hot and Normal only */}
-        <div className="flex items-center gap-2">
-          <select
-            className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm sm:text-base"
-            value={paymentMethodFilter}
-            onChange={(e) => onPaymentMethodChange(e.target.value)}
-          >
-            <option value="all">All Methods</option>
-            <option value="normal">Normal</option>
-            <option value="hot">Hot</option>
-          </select>
-        </div>
+          {/* Payment Method Filter - Hot and Normal only */}
+          <div className="flex items-center gap-2">
+            <select
+              className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm sm:text-base"
+              value={paymentMethodFilter}
+              onChange={(e) => onPaymentMethodChange(e.target.value)}
+            >
+              <option value="all">All Methods</option>
+              <option value="normal">Normal</option>
+              <option value="hot">Hot</option>
+            </select>
+          </div>
 
-        {/* Results count */}
-        <div className="text-sm text-slate-500 whitespace-nowrap">
-          <span className="hidden sm:inline">
-            Showing {filteredOrders.length} of {orders.length} orders
-          </span>
-          <span className="sm:hidden">
-            {filteredOrders.length}/{orders.length}
-          </span>
+          {/* Results count */}
+          <div className="text-sm text-slate-500 whitespace-nowrap">
+            <span className="hidden sm:inline">
+              Showing {filteredOrders.length} of {orders.length} orders
+            </span>
+            <span className="sm:hidden">
+              {filteredOrders.length}/{orders.length}
+            </span>
+          </div>
         </div>
       </div>
     </div>

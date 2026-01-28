@@ -43,7 +43,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  console.log("order", order);
+  // console.log("order", order);
   const { t } = useLanguage();
   const [inventoryProducts, setInventoryProducts] = useState<
     InventoryProduct[]

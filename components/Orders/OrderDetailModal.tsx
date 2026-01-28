@@ -41,7 +41,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   onClose,
   onOrderUpdate,
 }) => {
-  console.log("orderdetail", order);
+  // console.log("orderdetail", order);
   const { t } = useLanguage();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
@@ -86,12 +86,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 p-4 border-b bg-slate-50">
+        <div className="flex flex-row justify-between items-start gap-4 p-4 border-b bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
             <Receipt className="w-5 h-5 text-primary" />
             Order Details
           </h3>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex flex-row items-center gap-2">
             {order && (
               <button
                 onClick={handlePrintOrder}
@@ -100,7 +100,6 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Print</span>
-                <span className="sm:hidden">P</span>
               </button>
             )}
             {order && userRole === "owner" && (
@@ -113,7 +112,6 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   <span className="hidden sm:inline">
                     {t("orders.removeItems") || "Remove Items"}
                   </span>
-                  <span className="sm:hidden">Remove</span>
                 </button>
                 <button
                   onClick={() => setShowAddItemsModal(true)}
@@ -123,7 +121,6 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   <span className="hidden sm:inline">
                     {t("orders.addItems") || "Add Items"}
                   </span>
-                  <span className="sm:hidden">Add</span>
                 </button>
               </>
             )}

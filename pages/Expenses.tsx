@@ -238,7 +238,7 @@ export const Expenses: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+      <div className="flex flex-row justify-between items-start gap-4 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
           <PieChart className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
           {t("expenses.title")}
@@ -250,16 +250,14 @@ export const Expenses: React.FC = () => {
           >
             <Plus className="w-4 h-4" />{" "}
             <span className="hidden sm:inline">{t("expenses.addExpense")}</span>
-            <span className="sm:hidden">Add</span>
           </button>
           <button
             onClick={loadExpenses}
             disabled={loading}
-            className="flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
+            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">{t("common.refresh")}</span>
-            <span className="sm:hidden">↻</span>
           </button>
         </div>
       </div>

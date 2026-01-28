@@ -16,7 +16,7 @@ export const TransferList: React.FC<TransferListProps> = ({
   onStatusChange,
 }) => {
   const [transferFilter, setTransferFilter] = useState<"pending" | "completed">(
-    "completed"
+    "completed",
   );
   const [sourceTypeFilter, setSourceTypeFilter] = useState<
     "all" | "GRN" | "WAREHOUSE"
@@ -29,7 +29,7 @@ export const TransferList: React.FC<TransferListProps> = ({
       const result = await updateTransferStatus(transfer._id, "completed");
       if (result.success) {
         toast.success(
-          `Transfer ${transfer.transferNumber} marked as completed`
+          `Transfer ${transfer.transferNumber} marked as completed`,
         );
         onStatusChange?.();
       } else {
@@ -76,7 +76,7 @@ export const TransferList: React.FC<TransferListProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white p-4 rounded-xl shadow-sm border gap-4 sm:gap-0">
         <h2 className="font-bold text-lg text-slate-800 flex items-center gap-2">
           <Truck className="w-5 h-5 text-status-success" />
           Transfer List
@@ -162,7 +162,7 @@ export const TransferList: React.FC<TransferListProps> = ({
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                          transfer.status
+                          transfer.status,
                         )}`}
                       >
                         {transfer.status.toUpperCase()}

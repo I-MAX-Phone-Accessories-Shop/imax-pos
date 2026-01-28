@@ -96,7 +96,7 @@ export const Purchasing: React.FC = () => {
   const loadPurchases = async (
     page: number = 1,
     limit: number = 10,
-    status: "pending" | "arrived" = "pending"
+    status: "pending" | "arrived" = "pending",
   ) => {
     try {
       const res = await fetchPurchases({ page, limit, status });
@@ -179,7 +179,11 @@ export const Purchasing: React.FC = () => {
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <FileText className="w-4 h-4" /> {t("purchasing.purchaseOrder")}
+          <FileText className="w-4 h-4" />
+          <span className="hidden sm:inline">
+            {t("purchasing.purchaseOrder")}
+          </span>
+          <span className="sm:hidden">PO</span>
         </button>
         <button
           onClick={() => setActiveTab("grn")}
@@ -189,8 +193,11 @@ export const Purchasing: React.FC = () => {
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <PackageCheck className="w-4 h-4" />{" "}
-          {t("purchasing.goodsReceivedNote")}
+          <PackageCheck className="w-4 h-4" />
+          <span className="hidden sm:inline">
+            {t("purchasing.goodsReceivedNote")}
+          </span>
+          <span className="sm:hidden">GRN</span>
         </button>
       </div>
 

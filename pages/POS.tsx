@@ -918,9 +918,7 @@ export const POS: React.FC = () => {
                     max="100"
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={discount}
-                    onChange={(e) =>
-                      setDiscount(Math.ceil(Number(e.target.value)))
-                    }
+                    onChange={(e) => setDiscount(Number(e.target.value))}
                   />
                 </div>
               )}
@@ -944,9 +942,7 @@ export const POS: React.FC = () => {
                     max="100"
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={markup}
-                    onChange={(e) =>
-                      setMarkup(Math.ceil(Number(e.target.value)))
-                    }
+                    onChange={(e) => setMarkup(Number(e.target.value))}
                   />
                 </div>
               )}
@@ -967,7 +963,7 @@ export const POS: React.FC = () => {
                   onChange={(e) => {
                     const value = Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
-                    setPaidAmount(Math.ceil(value));
+                    setPaidAmount(value);
                   }}
                   placeholder={t("pos.enterPaidAmount")}
                 />
@@ -1003,7 +999,7 @@ export const POS: React.FC = () => {
                 )}
                 {useMarkup && markup > 0 && (
                   <div className="flex justify-between text-sm text-blue-600">
-                    <span>Markup ({markup}%)</span>
+                    <span>Markup ({markup.toFixed(2)}%)</span>
                     <span>
                       +{((subtotal * markup) / 100).toLocaleString()} MMK
                     </span>
@@ -1144,13 +1140,15 @@ export const POS: React.FC = () => {
                 <button
                   onClick={() => {
                     if (markupAmount && Number(markupAmount) > 0) {
-                      const calculatedPercentage =
-                        (Number(markupAmount) / subtotal) * 100;
-                      setMarkup(Math.ceil(calculatedPercentage)); // Use Math.ceil for integer percentage
+                      const calculatedPercentage = (
+                        (Number(markupAmount) / subtotal) *
+                        100
+                      ).toFixed(2);
+                      setMarkup(Number(calculatedPercentage)); // Use Math.ceil for integer percentage
                       setShowMarkupCalculator(false);
                       setMarkupAmount("");
                       toast.success(
-                        `Markup set to ${Math.ceil(calculatedPercentage)}%`,
+                        `Markup set to ${Number(calculatedPercentage)}%`,
                       );
                     }
                   }}
@@ -1250,14 +1248,14 @@ export const POS: React.FC = () => {
                 <button
                   onClick={() => {
                     if (discountAmount && Number(discountAmount) > 0) {
-                      const calculatedPercentage =
-                        (Number(discountAmount) / subtotal) * 100;
-                      setDiscount(Math.ceil(calculatedPercentage)); // Use Math.ceil for integer percentage
+                      const calculatedPercentage = (
+                        (Number(discountAmount) / subtotal) *
+                        100
+                      ).toFixed(2);
+                      setDiscount(calculatedPercentage); // Use Math.ceil for integer percentage
                       setShowDiscountCalculator(false);
                       setDiscountAmount("");
-                      toast.success(
-                        `Discount set to ${Math.ceil(calculatedPercentage)}%`,
-                      );
+                      toast.success(`Discount set to ${calculatedPercentage}%`);
                     }
                   }}
                   disabled={

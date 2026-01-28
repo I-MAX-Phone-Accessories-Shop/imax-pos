@@ -247,11 +247,10 @@ export const StorefrontDetail: React.FC = () => {
         <button
           onClick={loadStorefrontStock}
           disabled={loading}
-          className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
+          className="hidden sm:flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           <span className="hidden sm:inline">Refresh</span>
-          <span className="sm:hidden">↻</span>
         </button>
       </div>
 

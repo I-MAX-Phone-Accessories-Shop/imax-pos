@@ -164,7 +164,7 @@ export const Credits: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+      <div className="flex justify-between items-start gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
             <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -172,11 +172,11 @@ export const Credits: React.FC = () => {
           </h1>
           <p className="text-slate-500 text-sm mt-1">{t("credits.subtitle")}</p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className=" flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
+            className="hidden sm:flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">{t("common.refresh")}</span>
@@ -194,7 +194,7 @@ export const Credits: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
@@ -278,9 +278,9 @@ export const Credits: React.FC = () => {
         ) : (
           <div>
             {/* Mobile scroll indicator */}
-            <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
+            {/* <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
               ← Swipe to see more →
-            </div>
+            </div> */}
 
             {/* Table container with horizontal scroll on mobile */}
             <div className="overflow-x-auto">
