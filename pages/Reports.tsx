@@ -25,14 +25,19 @@ import {
   fetchAllStorefrontsProductSalesStatistics,
   ProductSalesStatisticsResponse,
 } from "../services/Reports/fetchProductSalesStatistics";
+import {
+  fetchStorefrontStock,
+  StorefrontStockItem,
+} from "../services/Storefront/fetchStorefrontStock";
 import { ReportsHeader } from "../components/Reports/ReportsHeader";
 import { ReportTabs } from "../components/Reports/ReportTabs";
 import { OverallReportTab } from "../components/Reports/OverallReportTab";
 import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
 import { CreditOrdersTab } from "../components/Reports/CreditOrdersTab";
 import { SaleStatisticsTab } from "../components/Reports/SaleStatisticsTab";
+import { TotalRevenueTab } from "../components/Reports/TotalRevenueTab";
 
-type TabType = "overall" | "paid" | "credit" | "statistics";
+type TabType = "overall" | "paid" | "credit" | "statistics" | "revenue";
 
 // Helper function to get today's date
 const getToday = () => {
@@ -62,10 +67,17 @@ export const Reports: React.FC = () => {
     allStorefrontsProductSalesStatistics,
     setAllStorefrontsProductSalesStatistics,
   ] = useState<ProductSalesStatisticsResponse | null>(null);
+  const [storefrontStock, setStorefrontStock] = useState<StorefrontStockItem[]>(
+    [],
+  );
+  const [allStorefrontsStock, setAllStorefrontsStock] = useState<
+    StorefrontStockItem[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [loadingPaidOrders, setLoadingPaidOrders] = useState(false);
   const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
   const [loadingStatistics, setLoadingStatistics] = useState(false);
+  const [loadingRevenue, setLoadingRevenue] = useState(false);
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overall");
   // Initialize dates to today
@@ -84,6 +96,8 @@ export const Reports: React.FC = () => {
         loadCreditOrdersReport();
       } else if (activeTab === "statistics") {
         loadProductSalesStatistics();
+      } else if (activeTab === "revenue") {
+        loadRevenueData();
       } else if (activeTab === "overall") {
         loadReports();
       }
@@ -95,6 +109,8 @@ export const Reports: React.FC = () => {
         loadAllStorefrontsCreditOrdersReport();
       } else if (activeTab === "statistics") {
         loadAllStorefrontsProductSalesStatistics();
+      } else if (activeTab === "revenue") {
+        loadRevenueData();
       } else if (activeTab === "overall") {
         loadReports();
       }
@@ -306,6 +322,93 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const loadStorefrontStock = async () => {
+    if (selectedStorefront === "all") return;
+
+    setLoadingRevenue(true);
+    try {
+      const response = await fetchStorefrontStock(selectedStorefront);
+      if (response.success) {
+        setStorefrontStock(response.data);
+      } else {
+        toast.error("Failed to load storefront inventory");
+      }
+    } catch (error) {
+      console.error("Error loading storefront stock:", error);
+      toast.error("Failed to load storefront inventory");
+    } finally {
+      setLoadingRevenue(false);
+    }
+  };
+
+  const loadAllStorefrontsStock = async () => {
+    setLoadingRevenue(true);
+    try {
+      const response = await fetchStorefrontStock();
+      if (response.success) {
+        setAllStorefrontsStock(response.data);
+      } else {
+        toast.error("Failed to load all storefronts inventory");
+      }
+    } catch (error) {
+      console.error("Error loading all storefronts stock:", error);
+      toast.error("Failed to load all storefronts inventory");
+    } finally {
+      setLoadingRevenue(false);
+    }
+  };
+
+  // Combined loading function for revenue tab
+  const loadRevenueData = async () => {
+    setLoadingRevenue(true);
+    try {
+      if (selectedStorefront === "all") {
+        const [stockResponse, creditResponse, paidResponse] = await Promise.all(
+          [
+            fetchStorefrontStock(),
+            fetchAllStorefrontsCreditOrdersReport(
+              formatDateForAPI(startDate),
+              formatDateForAPI(endDate),
+            ),
+            fetchAllStorefrontsPaidOrdersReport(
+              formatDateForAPI(startDate),
+              formatDateForAPI(endDate),
+            ),
+          ],
+        );
+
+        if (stockResponse.success) setAllStorefrontsStock(stockResponse.data);
+        setAllStorefrontsCreditOrdersReport(creditResponse);
+        setAllStorefrontsPaidOrdersReport(paidResponse);
+      } else {
+        const [stockResponse, creditResponse, paidResponse] = await Promise.all(
+          [
+            fetchStorefrontStock(selectedStorefront),
+            fetchCreditOrdersReport(
+              selectedStorefront,
+              formatDateForAPI(startDate),
+              formatDateForAPI(endDate),
+            ),
+            fetchPaidOrdersReport(
+              selectedStorefront,
+              formatDateForAPI(startDate),
+              formatDateForAPI(endDate),
+            ),
+          ],
+        );
+
+        if (stockResponse.success) setStorefrontStock(stockResponse.data);
+        setCreditOrdersReport(creditResponse);
+        setPaidOrdersReport(paidResponse);
+      }
+    } catch (error) {
+      console.error("Error loading revenue data:", error);
+      toast.error("Failed to load revenue data");
+    } finally {
+      setLoadingRevenue(false);
+    }
+  };
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     if (selectedStorefront !== "all") {
@@ -315,6 +418,13 @@ export const Reports: React.FC = () => {
         loadCreditOrdersReport();
       } else if (tab === "statistics" && !productSalesStatistics) {
         loadProductSalesStatistics();
+      } else if (
+        tab === "revenue" &&
+        (storefrontStock.length === 0 ||
+          !creditOrdersReport ||
+          !paidOrdersReport)
+      ) {
+        loadRevenueData();
       }
     } else {
       if (tab === "paid" && !allStorefrontsPaidOrdersReport) {
@@ -326,6 +436,13 @@ export const Reports: React.FC = () => {
         !allStorefrontsProductSalesStatistics
       ) {
         loadAllStorefrontsProductSalesStatistics();
+      } else if (
+        tab === "revenue" &&
+        (allStorefrontsStock.length === 0 ||
+          !allStorefrontsCreditOrdersReport ||
+          !allStorefrontsPaidOrdersReport)
+      ) {
+        loadRevenueData();
       }
     }
   };
@@ -350,6 +467,8 @@ export const Reports: React.FC = () => {
       } else {
         loadProductSalesStatistics();
       }
+    } else if (activeTab === "revenue") {
+      loadRevenueData();
     }
   };
 
@@ -476,6 +595,20 @@ export const Reports: React.FC = () => {
         />
       )}
 
+      {/* Total Revenue Tab */}
+      {activeTab === "revenue" && (
+        <TotalRevenueTab
+          storefrontStock={storefrontStock}
+          allStorefrontsStock={allStorefrontsStock}
+          selectedStorefront={selectedStorefront}
+          loading={loadingRevenue}
+          creditOrdersReport={creditOrdersReport}
+          allStorefrontsCreditOrdersReport={allStorefrontsCreditOrdersReport}
+          paidOrdersReport={paidOrdersReport}
+          allStorefrontsPaidOrdersReport={allStorefrontsPaidOrdersReport}
+        />
+      )}
+
       {/* Show message if no data available */}
       {((activeTab === "paid" &&
         ((selectedStorefront === "all" && !allStorefrontsPaidOrdersReport) ||
@@ -487,14 +620,20 @@ export const Reports: React.FC = () => {
         (activeTab === "statistics" &&
           ((selectedStorefront === "all" &&
             !allStorefrontsProductSalesStatistics) ||
-            (selectedStorefront !== "all" && !productSalesStatistics)))) && (
+            (selectedStorefront !== "all" && !productSalesStatistics))) ||
+        (activeTab === "revenue" &&
+          ((selectedStorefront === "all" && allStorefrontsStock.length === 0) ||
+            (selectedStorefront !== "all" &&
+              storefrontStock.length === 0)))) && (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
           <Store className="w-12 h-12 text-slate-400 mx-auto mb-4" />
           <p className="text-slate-600">
             Loading{" "}
             {activeTab === "statistics"
               ? "sale statistics"
-              : `${activeTab} orders`}{" "}
+              : activeTab === "revenue"
+                ? "revenue data"
+                : `${activeTab} orders`}{" "}
             report for{" "}
             {selectedStorefront === "all"
               ? "all storefronts"
