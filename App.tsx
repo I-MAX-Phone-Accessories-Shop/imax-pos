@@ -51,7 +51,7 @@ const AppLayout: React.FC = () => {
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
                 <h1 className="text-lg font-bold text-primary tracking-wide">
-                  IMAS POS
+                  OTAS POS
                 </h1>
               </div>
               <LanguageSwitcher />
