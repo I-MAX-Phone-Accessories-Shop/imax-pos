@@ -34,6 +34,7 @@ export const RemoveItemsFromOrderModal: React.FC<
   const [discount, setDiscount] = useState(0); // Keep for API (absolute amount)
   const [discountPercent, setDiscountPercent] = useState(0); // Percentage for display
   const [markup, setMarkup] = useState(0); // Add markup state
+  const [markupAmount, setMarkupAmount] = useState(0); // Add markup amount state
   const [paidAmount, setPaidAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
@@ -57,14 +58,11 @@ export const RemoveItemsFromOrderModal: React.FC<
       // Calculate percentage based on detected mode
       let calculatedPercent = 0;
       if (isMarkup) {
-        // Calculate markup percentage
+        // Calculate fixed markup amount
         calculatedPercent =
-          subtotal > 0
-            ? Math.round(
-                (((finalAmount - subtotal) / subtotal) * 100 * 100) / 100,
-              )
-            : 0;
-        setMarkup(calculatedPercent);
+          subtotal > 0 ? Math.round(((finalAmount - subtotal) * 100) / 100) : 0;
+        setMarkupAmount(calculatedPercent);
+        setMarkup(0);
         setDiscountPercent(0);
       } else {
         // Calculate discount percentage
@@ -97,6 +95,7 @@ export const RemoveItemsFromOrderModal: React.FC<
       setDiscount(0);
       setDiscountPercent(0);
       setMarkup(0);
+      setMarkupAmount(0);
       setPaidAmount(0);
       setDiscountManuallyChanged(false);
       setUseMarkup(false);
@@ -196,7 +195,6 @@ export const RemoveItemsFromOrderModal: React.FC<
     let finalAmount;
     if (useMarkup) {
       // Apply markup to total
-      const markupAmount = (totalSubtotal * markup) / 100;
       finalAmount = Math.max(0, totalSubtotal + calculatedTax + markupAmount);
     } else {
       // Apply discount to total
@@ -537,28 +535,22 @@ export const RemoveItemsFromOrderModal: React.FC<
                 {useMarkup && (
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Markup (%)
+                      Markup Amount (MMK)
                     </label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
                         min="0"
-                        max="100"
                         step="0.01"
-                        value={markup}
+                        value={markupAmount}
                         onChange={(e) => {
-                          const percent = parseFloat(e.target.value) || 0;
-                          setMarkup(Math.min(100, Math.max(0, percent)));
+                          const amount = parseFloat(e.target.value) || 0;
+                          setMarkupAmount(Math.max(0, amount));
                           setDiscountManuallyChanged(true);
                         }}
                         className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                       />
                       <span className="text-xs text-slate-500 whitespace-nowrap">
-                        ={" "}
-                        {(
-                          ((order?.subTotal || 0) * markup) /
-                          100
-                        ).toLocaleString()}{" "}
                         MMK
                       </span>
                     </div>
@@ -632,17 +624,10 @@ export const RemoveItemsFromOrderModal: React.FC<
                           <span>-{totals.discount.toLocaleString()} MMK</span>
                         </div>
                       )}
-                      {useMarkup && markup > 0 && (
+                      {useMarkup && markupAmount > 0 && (
                         <div className="flex justify-between text-blue-600">
-                          <span>Markup</span>
-                          <span>
-                            +
-                            {(
-                              (totals.subTotal * markup) /
-                              100
-                            ).toLocaleString()}{" "}
-                            MMK
-                          </span>
+                          <span>Markup Amount</span>
+                          <span>+{markupAmount.toLocaleString()} MMK</span>
                         </div>
                       )}
                       <div className="border-t pt-2 flex justify-between font-bold text-base text-primary">
