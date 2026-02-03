@@ -261,6 +261,9 @@ export const Orders: React.FC = () => {
         orders={filteredOrders}
         onViewOrder={handleViewOrder}
         onOpenCreditPersonModal={handleOpenCreditPersonModal}
+        onOrderDeleted={async () => {
+          await loadOrders();
+        }}
       />
 
       {/* Order Detail Modal */}

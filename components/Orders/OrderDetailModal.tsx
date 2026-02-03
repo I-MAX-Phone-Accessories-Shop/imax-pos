@@ -41,7 +41,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   onClose,
   onOrderUpdate,
 }) => {
-  // console.log("orderdetail", order);
+  console.log("orderdetail", order);
   const { t } = useLanguage();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
@@ -303,6 +303,18 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       <span>-{order.discount?.toLocaleString()} MMK</span>
                     </div>
                   )}
+                  {order.discount === 0 &&
+                    order.finalAmount > order.subTotal && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Markup</span>
+                        <span>
+                          {(
+                            order.finalAmount - order.subTotal
+                          ).toLocaleString()}{" "}
+                          MMK
+                        </span>
+                      </div>
+                    )}
                   <div className="border-t pt-2 flex justify-between font-bold text-lg">
                     <span>Final Amount</span>
                     <span>{order.finalAmount?.toLocaleString()} MMK</span>

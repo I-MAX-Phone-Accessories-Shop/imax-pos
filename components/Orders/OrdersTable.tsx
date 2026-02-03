@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   RefreshCw,
   Eye,
@@ -8,8 +8,11 @@ import {
   UserPlus,
   User,
   UserCircle,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Order } from "../../services/Order/fetchOrders";
+import { deleteOrder } from "../../services/Order/deleteOrder";
 import {
   getStatusColor,
   getPaymentTypeLabel,
@@ -17,12 +20,15 @@ import {
   getPaymentTypeColor,
   formatDate,
 } from "./orderUtils";
+import { toast } from "sonner";
+import { useApp } from "../../context/AppContext";
 
 interface OrdersTableProps {
   loading: boolean;
   orders: Order[];
   onViewOrder: (orderId: string) => void;
   onOpenCreditPersonModal: (order: Order) => void;
+  onOrderDeleted?: () => void; // Callback to refresh orders after deletion
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -30,7 +36,44 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   orders,
   onViewOrder,
   onOpenCreditPersonModal,
+  onOrderDeleted,
 }) => {
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+  console.log(userRole);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+
+  // Check if user can delete orders (admin or owner only)
+  const canDeleteOrder = userRole.role === "owner";
+
+  const handleDeleteOrder = async (orderId: string, orderNumber: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    setDeletingOrderId(orderId);
+    try {
+      const response = await deleteOrder(orderId);
+
+      if (response.success) {
+        toast.success(`Order ${orderNumber} deleted successfully`);
+        if (onOrderDeleted) {
+          onOrderDeleted();
+        }
+      } else {
+        toast.error(response.message || "Failed to delete order");
+      }
+    } catch (error: any) {
+      console.error("Error deleting order:", error);
+      toast.error(error.message || "Failed to delete order");
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
@@ -187,6 +230,31 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                       <span className="hidden xl:inline">View</span>
                       <span className="xl:hidden sm:hidden">V</span>
                     </button>
+                    {canDeleteOrder && (
+                      <button
+                        onClick={() =>
+                          handleDeleteOrder(order._id, order.orderNumber)
+                        }
+                        disabled={deletingOrderId === order._id}
+                        className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-300 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deletingOrderId === order._id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span className="hidden xl:inline">
+                              Deleting...
+                            </span>
+                            <span className="xl:hidden sm:hidden">...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-3 h-3" />
+                            <span className="hidden xl:inline">Delete</span>
+                            <span className="xl:hidden sm:hidden">D</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
