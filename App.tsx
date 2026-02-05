@@ -24,6 +24,7 @@ import { CreditOrders } from "./pages/CreditOrders";
 import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import PrintReceipt from "./pages/PrintReceipt";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,7 +52,7 @@ const AppLayout: React.FC = () => {
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
                 <h1 className="text-lg font-bold text-primary tracking-wide">
-                  OTAS POS
+                  IMAS POS
                 </h1>
               </div>
               <LanguageSwitcher />
@@ -203,6 +204,7 @@ const AppLayout: React.FC = () => {
             }
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/print-receipt/:orderId" element={<PrintReceipt />} />
         </Routes>
       </main>
     </div>

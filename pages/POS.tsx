@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { printThermalReceipt } from "../components/ThermalReceipt";
+import { detectDevice } from "../utils/deviceDetect";
 import {
   fetchStorefrontStock,
   StorefrontStockItem,
@@ -33,6 +34,7 @@ import {
   fetchCreditPersonas,
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
+import { deviceDetect } from "react-device-detect";
 
 // Payment methods
 enum PaymentMethod {
@@ -53,6 +55,7 @@ interface CartItem {
 
 export const POS: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // Data State
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
@@ -83,6 +86,7 @@ export const POS: React.FC = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
+  const devices = detectDevice();
 
   // Load storefronts and stock on mount
   useEffect(() => {
@@ -395,9 +399,22 @@ export const POS: React.FC = () => {
           paymentMethod,
           note,
         };
+        // Save receipt data and redirect to receipt page
+        const receiptId = `receipt_${receiptData.invoiceNumber}`;
+        localStorage.setItem(receiptId, JSON.stringify(receiptData));
 
-        // Auto-print receipt
-        printThermalReceipt(receiptData, "58mm");
+        // Device detection for print method selection
+        const device = detectDevice();
+        console.log("Device:", device);
+
+        // Auto-print receipt based on device
+        if (device.isAndroid || device.isIOS) {
+          // For mobile devices (Android/iOS), navigate to receipt page
+          navigate(`/print-receipt/${receiptData.invoiceNumber}`);
+        } else {
+          // For desktop/Windows, use thermal receipt function
+          printThermalReceipt(receiptData, "58mm");
+        }
         setCart([]);
         setDiscount(0);
         setMarkup(0);
@@ -755,7 +772,8 @@ export const POS: React.FC = () => {
             <div className="p-4 border-b bg-primary/10">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg text-gray-800">
-                  {t("pos.checkout")}
+                  {/* {t("pos.checkout")} */}
+                  {devices.isMobile ? "Mobile" : "Desktop"}
                 </h3>
                 <button
                   onClick={() => setShowCheckoutModal(false)}

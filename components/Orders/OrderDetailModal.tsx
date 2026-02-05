@@ -23,6 +23,8 @@ import {
 } from "./orderUtils";
 import { useLanguage } from "../../context/LanguageContext";
 import { printThermalReceipt } from "../ThermalReceipt";
+import { detectDevice } from "../../utils/deviceDetect";
+import { useNavigate } from "react-router-dom";
 import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
 import { RemoveItemsFromOrderModal } from "./RemoveItemsFromOrderModal";
 
@@ -43,6 +45,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 }) => {
   console.log("orderdetail", order);
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
@@ -77,7 +80,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       note: order.notes,
     };
 
-    printThermalReceipt(receiptData, "58mm");
+    // Device detection for print method selection
+    const device = detectDevice();
+
+    // Save receipt data to localStorage for mobile printing
+    const receiptId = `receipt_${receiptData.invoiceNumber}`;
+    localStorage.setItem(receiptId, JSON.stringify(receiptData));
+
+    // Auto-print receipt based on device
+    if (device.isAndroid || device.isIOS) {
+      // For mobile devices (Android/iOS), navigate to receipt page
+      navigate(`/print-receipt/${receiptData.invoiceNumber}`);
+    } else {
+      // For desktop/Windows, use thermal receipt function
+      printThermalReceipt(receiptData, "58mm");
+    }
   };
 
   if (!isOpen) return null;
