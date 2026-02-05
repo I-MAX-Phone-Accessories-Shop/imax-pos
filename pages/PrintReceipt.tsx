@@ -289,7 +289,7 @@ const PrintReceipt: React.FC = () => {
                 letterSpacing: "0",
               }}
             >
-              IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)
+              OTAS SHop
             </h2>
             <div
               style={{
@@ -313,7 +313,7 @@ const PrintReceipt: React.FC = () => {
                 letterSpacing: "0",
               }}
             >
-              ဖုန်း-09780511511(Viber)
+              ဖုန်း-09670577147(Viber)
             </div>
             <div
               style={{

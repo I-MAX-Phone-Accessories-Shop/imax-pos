@@ -619,7 +619,7 @@ export const printThermalReceipt = (
       <div class="thermal-receipt-page">
         <!-- Header -->
         <div class="header">
-          <div class="store-name">IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)</div>
+          <div class="store-name">OTAS Shop</div>
           <div class="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ </br>&nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ</div>
           <div class="store-address">ဖုန်း-09780511511(Viber)</div>
           <div class="store-address">ဖုန်း-09440064007(Viber)</div>
