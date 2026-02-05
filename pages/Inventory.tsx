@@ -596,9 +596,11 @@ export const Inventory: React.FC = () => {
                 >
                   <Building2 className="w-4 h-4" />
                   <span className="hidden sm:inline">
-                    Transfer to Warehouse
+                    {t("inventory.transferWarehouse")}
                   </span>
-                  <span className="sm:hidden">To Warehouse</span>
+                  <span className="sm:hidden">
+                    {t("inventory.transferWarehouse")}
+                  </span>
                 </button>
                 <button
                   onClick={() => {
@@ -609,9 +611,11 @@ export const Inventory: React.FC = () => {
                 >
                   <Store className="w-4 h-4" />
                   <span className="hidden sm:inline">
-                    Transfer to Storefront
+                    {t("inventory.transferStoreFront")}
                   </span>
-                  <span className="sm:hidden">To Storefront</span>
+                  <span className="sm:hidden">
+                    {t("inventory.transferStoreFront")}
+                  </span>
                 </button>
               </>
             )}
@@ -625,10 +629,12 @@ export const Inventory: React.FC = () => {
                   >
                     <Building2 className="w-4 h-4" />
                     <span className="hidden sm:inline">
-                      Confirm Warehouse Transfer ({selectedProductIds.length})
+                      {t("inventory.confirmWarehouse")} (
+                      {selectedProductIds.length})
                     </span>
                     <span className="sm:hidden">
-                      Confirm ({selectedProductIds.length})
+                      {t("inventory.confirmWarehouse")} (
+                      {selectedProductIds.length})
                     </span>
                   </button>
                 )}
@@ -639,10 +645,12 @@ export const Inventory: React.FC = () => {
                   >
                     <Store className="w-4 h-4" />
                     <span className="hidden sm:inline">
-                      Confirm Storefront Transfer ({selectedProductIds.length})
+                      {t("inventory.confirmStoreFront")} (
+                      {selectedProductIds.length})
                     </span>
                     <span className="sm:hidden">
-                      Confirm ({selectedProductIds.length})
+                      {t("inventory.confirmStoreFront")} (
+                      {selectedProductIds.length})
                     </span>
                   </button>
                 )}
@@ -657,8 +665,12 @@ export const Inventory: React.FC = () => {
                 }}
                 className="bg-red-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-red-700 text-sm sm:text-base"
               >
-                <span className="hidden sm:inline">Cancel Selection</span>
-                <span className="sm:hidden">Cancel</span>
+                <span className="hidden sm:inline">
+                  {t("inventory.cancelSelection")}
+                </span>
+                <span className="sm:hidden">
+                  {t("inventory.cancelSelection")}
+                </span>
               </button>
             )}
             <button
