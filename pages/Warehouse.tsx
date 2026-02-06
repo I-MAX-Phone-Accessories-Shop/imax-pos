@@ -250,7 +250,9 @@ export const Warehouse: React.FC = () => {
           >
             <Package className="w-4 h-4" />
             <span className="hidden sm:inline">
-              {showInventory ? "Hide Inventory" : "Show All Inventory"}
+              {showInventory
+                ? `${t("warehouse.hideInventory")}`
+                : `${t("warehouse.showAllInventory")}`}
             </span>
           </button>
           <button

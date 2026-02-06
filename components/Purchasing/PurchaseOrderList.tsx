@@ -14,6 +14,7 @@ import { softDeletePurchase } from "../../services/Purchase/softDeletePurchase";
 import { restorePurchase } from "../../services/Purchase/restorePurchase";
 import { toast } from "sonner";
 import { ConfirmModal } from "../Common/ConfirmModal";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface PaginationData {
   currentPage: number;
@@ -38,7 +39,6 @@ interface PurchaseOrderListProps {
 export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   poList,
   deletedPOList,
-  suppliers,
   setIsCreateModalOpen,
   loadPurchases,
   loadDeletedPurchases,
@@ -47,8 +47,9 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   deletedPagination,
   onCreateGRN,
 }) => {
+  const { t } = useLanguage();
   const [poFilter, setPoFilter] = useState<"pending" | "arrived" | "deleted">(
-    "pending"
+    "pending",
   );
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [poToDelete, setPoToDelete] = useState<ApiPurchaseOrder | null>(null);
@@ -61,7 +62,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
     if (poFilter === "deleted") {
       loadDeletedPurchases(
         deletedPagination.currentPage,
-        deletedPagination.itemsPerPage
+        deletedPagination.itemsPerPage,
       );
     } else {
       // Load purchases with status filter
@@ -78,7 +79,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         loadPurchases(
           pagination.currentPage,
           pagination.itemsPerPage,
-          poFilter
+          poFilter,
         );
       } else {
         toast.error(res.message || "Failed to update status");
@@ -145,7 +146,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         loadPurchases(pagination.currentPage, pagination.itemsPerPage);
         loadDeletedPurchases(
           deletedPagination.currentPage,
-          deletedPagination.itemsPerPage
+          deletedPagination.itemsPerPage,
         );
       } else {
         toast.error(res.message || "Failed to restore purchase order");
@@ -285,7 +286,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >
-          Pending
+          {t("purchasing.pending")}
         </button>
         <button
           onClick={() => setPoFilter("arrived")}
@@ -295,7 +296,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >
-          Arrived
+          {t("purchasing.arrived")}
         </button>
         <button
           onClick={() => setPoFilter("deleted")}
@@ -305,7 +306,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >
-          Deleted
+          {t("purchasing.deleted")}
         </button>
       </div>
 

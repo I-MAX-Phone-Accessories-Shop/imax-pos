@@ -221,10 +221,10 @@ export const CreditOrders: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
             <CreditCard className="w-5 h-5 sm:w-7 sm:h-7 text-blue-600" />
-            Credit Orders
+            {t("creditOrders.title")}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage credit sales and track customer balances
+            {t("creditOrders.subtitle")}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -242,7 +242,9 @@ export const CreditOrders: React.FC = () => {
             className="hidden sm:flex items-center gap-2 bg-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">
+              {t("creditOrders.refresh")}
+            </span>
             <span className="sm:hidden">↻</span>
           </button>
         </div>
@@ -266,18 +268,18 @@ export const CreditOrders: React.FC = () => {
         {loading ? (
           <div className="p-8 text-center text-slate-500">
             <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
-            <p>Loading credit orders...</p>
+            <p>{t("creditOrders.loadingCreditOrders")}</p>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             <Receipt className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p>No credit orders found</p>
+            <p>{t("creditOrders.noCreditOrdersFound")}</p>
           </div>
         ) : (
           <div>
             {/* Mobile scroll indicator */}
             <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
-              ← Swipe to see more →
+              {t("creditOrders.swipeToSeeMore")}
             </div>
 
             {/* Table container with horizontal scroll on mobile */}
@@ -286,36 +288,64 @@ export const CreditOrders: React.FC = () => {
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Order Number</span>
-                      <span className="sm:hidden">Order #</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.orderNumber")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.orderNumber")}
+                      </span>
                     </th>
 
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Storefront</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.storefront")}
+                      </span>
                       <span className="sm:hidden">SF</span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Customer</span>
-                      <span className="sm:hidden">Customer</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.customer")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.customer")}
+                      </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Items</span>
-                      <span className="sm:hidden">Items</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.items")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.items")}
+                      </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Total</span>
-                      <span className="sm:hidden">Total</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.total")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.total")}
+                      </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Paid</span>
-                      <span className="sm:hidden">Paid</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.paid")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.paid")}
+                      </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Remaining</span>
-                      <span className="sm:hidden">Balance</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.remaining")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.balance")}
+                      </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Actions</span>
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.actions")}
+                      </span>
                       <span className="sm:hidden">A</span>
                     </th>
                   </tr>
@@ -372,15 +402,18 @@ export const CreditOrders: React.FC = () => {
                             <User className="w-4 h-4 text-slate-300 flex-shrink-0" />
                             <span className="text-slate-400 text-xs sm:text-sm">
                               <span className="hidden sm:inline">
-                                No customer assigned
+                                {t("creditOrders.noCustomerAssigned")}
                               </span>
-                              <span className="sm:hidden">No customer</span>
+                              <span className="sm:hidden">
+                                {t("creditOrders.noCustomerAssigned")}
+                              </span>
                             </span>
                           </div>
                         )}
                       </td>
                       <td className="px-2 sm:px-4 py-3 text-slate-600 text-xs sm:text-sm">
-                        {order.ordersProducts?.length || 0} items
+                        {order.ordersProducts?.length || 0}{" "}
+                        {t("creditOrders.items")}
                       </td>
                       <td className="px-2 sm:px-4 py-3 font-medium text-slate-800 text-xs sm:text-sm">
                         {order.finalAmount.toLocaleString()}{" "}
@@ -404,7 +437,9 @@ export const CreditOrders: React.FC = () => {
                             className="text-xs bg-blue-100 text-blue-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-blue-200 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                           >
                             <Eye className="w-3 h-3" />{" "}
-                            <span className="hidden xl:block">View</span>
+                            <span className="hidden xl:block">
+                              {t("creditOrders.view")}
+                            </span>
                             <span className="xl:hidden sm:hidden">V</span>
                           </button>
                           {!order.creditPersonId && (
@@ -415,16 +450,20 @@ export const CreditOrders: React.FC = () => {
                               <UserPlus className="w-3 h-3" />
                               <span className="hidden xl:block">
                                 <span className="hidden sm:inline">
-                                  Add Credit Person
+                                  {t("creditOrders.addCreditPerson")}
                                 </span>
-                                <span className="sm:hidden">Add</span>
+                                <span className="sm:hidden">
+                                  {t("creditOrders.addCreditPerson")}
+                                </span>
                               </span>
                             </button>
                           )}
                           {order.creditPersonId && (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-1.5 rounded flex items-center gap-1">
                               <User className="w-3 h-3" />{" "}
-                              <span className="hidden xl:block">Assigned</span>
+                              <span className="hidden xl:block">
+                                {t("creditOrders.assigned")}
+                              </span>
                               <span className="xl:hidden sm:hidden">✓</span>
                             </span>
                           )}
