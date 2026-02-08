@@ -85,7 +85,7 @@ export const Reports: React.FC = () => {
   const [loadingStatistics, setLoadingStatistics] = useState(false);
   const [loadingRevenue, setLoadingRevenue] = useState(false);
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<TabType>("overall");
+  const [activeTab, setActiveTab] = useState<TabType>("revenue");
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
