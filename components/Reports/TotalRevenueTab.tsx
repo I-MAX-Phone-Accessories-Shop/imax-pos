@@ -97,7 +97,7 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
         : 0;
 
   const totalCreditRemainingAmount = currentCreditOrders?.success
-    ? currentCreditOrders.data.totals.totalPaidAmount -
+    ? currentCreditOrders.data.totals.totalFinalAmount -
     currentCreditOrders.data.totals.totalInitialPaidAmount -
     (totalCumulativeCreditPaidAmountFromRecords || 0)
     : 0;
