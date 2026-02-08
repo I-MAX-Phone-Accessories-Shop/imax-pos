@@ -226,24 +226,6 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
             </div>
           )}
 
-          {/* Total Credit Paid Amount */}
-          {visibleMetrics.creditPaid && (
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <div className="flex items-center gap-2 mb-2">
-                <CreditCard className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-800">
-                  Credit Paid Amount
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-green-900">
-                {formatCurrency(totalCreditPaidAmount)}
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                Amount collected from credit orders
-              </p>
-            </div>
-          )}
-
           {/* Total Credit Remaining Amount */}
           {visibleMetrics.creditRemaining && (
             <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
@@ -258,6 +240,24 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
               </p>
               <p className="text-xs text-orange-600 mt-1">
                 Outstanding credit amount
+              </p>
+            </div>
+          )}
+
+          {/* Total Credit Paid Amount */}
+          {visibleMetrics.creditPaid && (
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium text-green-800">
+                  Credit Paid Amount
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-green-900">
+                {formatCurrency(totalCreditPaidAmount)}
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                Amount collected from credit orders
               </p>
             </div>
           )}
