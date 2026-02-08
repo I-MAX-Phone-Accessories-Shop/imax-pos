@@ -12,6 +12,8 @@ interface ReportsHeaderProps {
   startDate: Date | null;
   endDate: Date | null;
   onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
+  fixedStartDate?: boolean;
+  singleDate?: boolean;
 }
 
 export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
@@ -23,6 +25,8 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   startDate,
   endDate,
   onDateRangeChange,
+  fixedStartDate,
+  singleDate,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -46,6 +50,8 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
           startDate={startDate}
           endDate={endDate}
           onChange={onDateRangeChange}
+          fixedStartDate={fixedStartDate}
+          singleDate={singleDate}
         />
         {/* <button
           onClick={onRefresh}

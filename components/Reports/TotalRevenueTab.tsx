@@ -23,6 +23,7 @@ interface TotalRevenueTabProps {
   paidOrdersReport: PaidOrdersReportResponse | null;
   allStorefrontsPaidOrdersReport: PaidOrdersReportResponse | null;
   totalCreditPaidAmountFromRecords?: number;
+  totalCumulativeCreditPaidAmountFromRecords?: number;
 }
 
 export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
@@ -35,6 +36,7 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
   paidOrdersReport,
   allStorefrontsPaidOrdersReport,
   totalCreditPaidAmountFromRecords,
+  totalCumulativeCreditPaidAmountFromRecords,
 }) => {
   const [visibleMetrics, setVisibleMetrics] = useState({
     inventory: true,
@@ -95,7 +97,9 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
         : 0;
 
   const totalCreditRemainingAmount = currentCreditOrders?.success
-    ? currentCreditOrders.data.totals.totalRemainingBalance
+    ? currentCreditOrders.data.totals.totalPaidAmount -
+    currentCreditOrders.data.totals.totalInitialPaidAmount -
+    (totalCumulativeCreditPaidAmountFromRecords || 0)
     : 0;
 
   // Get paid orders data

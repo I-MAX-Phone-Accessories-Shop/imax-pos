@@ -39,12 +39,14 @@ export interface CreditRecordsResponse {
 export const fetchCreditRecords = async (
     startDate?: string,
     endDate?: string,
+    storefrontId?: string,
     limit: number = 1000
 ): Promise<CreditRecordsResponse> => {
     try {
         const params = new URLSearchParams();
         if (startDate) params.append("startDate", startDate);
         if (endDate) params.append("endDate", endDate);
+        if (storefrontId && storefrontId !== "all") params.append("storefrontId", storefrontId);
         params.append("limit", limit.toString());
 
         const response = await axios.get(`/credit-record?${params.toString()}`);

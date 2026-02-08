@@ -66,6 +66,7 @@ export const Reports: React.FC = () => {
     setAllStorefrontsCreditOrdersReport,
   ] = useState<CreditOrdersReportResponse | null>(null);
   const [creditRecordsData, setCreditRecordsData] = useState<CreditRecord[]>([]);
+  const [cumulativeCreditRecordsData, setCumulativeCreditRecordsData] = useState<CreditRecord[]>([]);
   const [productSalesStatistics, setProductSalesStatistics] =
     useState<ProductSalesStatisticsResponse | null>(null);
   const [
@@ -86,7 +87,7 @@ export const Reports: React.FC = () => {
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overall");
   // Initialize dates to today
-  const [startDate, setStartDate] = useState<Date | null>(new Date("2025-12-01"));
+  const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
 
   useEffect(() => {
@@ -363,26 +364,34 @@ export const Reports: React.FC = () => {
     }
   };
 
-  // Combined loading function for revenue tab
   const loadRevenueData = async () => {
     setLoadingRevenue(true);
     try {
+      // For revenue tab, we use single date mode, so startDate and endDate should be the same (the chosen date).
+      // However, for Credit Remaining, we want "2025-12-01" to chosen date.
+      const chosenDateStr = formatDateForAPI(endDate); // endDate is the chosen date in single mode
+      const fixedStartStr = "2025-12-01";
+
       if (selectedStorefront === "all") {
         const [
           stockResponse,
           creditResponse,
           paidResponse,
           creditRecordsResponse,
+          cumulativeCreditRecordsResponse,
         ] = await Promise.all([
           fetchStorefrontStock(),
-          fetchAllStorefrontsCreditOrdersReport(),
-          fetchAllStorefrontsPaidOrdersReport(
-            formatDateForAPI(startDate),
-            formatDateForAPI(endDate),
+          fetchAllStorefrontsCreditOrdersReport(fixedStartStr, chosenDateStr),
+          fetchAllStorefrontsPaidOrdersReport(chosenDateStr, chosenDateStr),
+          fetchCreditRecords(
+            chosenDateStr || undefined,
+            chosenDateStr || undefined,
+            "all"
           ),
           fetchCreditRecords(
-            formatDateForAPI(startDate) || undefined,
-            formatDateForAPI(endDate) || undefined,
+            fixedStartStr,
+            chosenDateStr || undefined,
+            "all"
           ),
         ]);
 
@@ -392,27 +401,47 @@ export const Reports: React.FC = () => {
         if (creditRecordsResponse.success) {
           setCreditRecordsData(creditRecordsResponse.data);
         }
+        if (cumulativeCreditRecordsResponse.success) {
+          setCumulativeCreditRecordsData(cumulativeCreditRecordsResponse.data);
+        }
       } else {
-        const [stockResponse, creditResponse, paidResponse, creditRecordsResponse] = await Promise.all(
-          [
-            fetchStorefrontStock(selectedStorefront),
-            fetchCreditOrdersReport(selectedStorefront),
-            fetchPaidOrdersReport(
-              selectedStorefront,
-              formatDateForAPI(startDate),
-              formatDateForAPI(endDate),
-            ),
-            fetchCreditRecords(
-              formatDateForAPI(startDate) || undefined,
-              formatDateForAPI(endDate) || undefined
-            ),
-          ],
-        );
+        const [
+          stockResponse,
+          creditResponse,
+          paidResponse,
+          creditRecordsResponse,
+          cumulativeCreditRecordsResponse,
+        ] = await Promise.all([
+          fetchStorefrontStock(selectedStorefront),
+          fetchCreditOrdersReport(
+            selectedStorefront,
+            fixedStartStr,
+            chosenDateStr,
+          ),
+          fetchPaidOrdersReport(
+            selectedStorefront,
+            chosenDateStr,
+            chosenDateStr,
+          ),
+          fetchCreditRecords(
+            chosenDateStr || undefined,
+            chosenDateStr || undefined,
+            selectedStorefront
+          ),
+          fetchCreditRecords(
+            fixedStartStr,
+            chosenDateStr || undefined,
+            selectedStorefront
+          ),
+        ]);
 
         if (stockResponse.success) setStorefrontStock(stockResponse.data);
         setCreditOrdersReport(creditResponse);
         setPaidOrdersReport(paidResponse);
-        if (creditRecordsResponse.success) setCreditRecordsData(creditRecordsResponse.data);
+        if (creditRecordsResponse.success)
+          setCreditRecordsData(creditRecordsResponse.data);
+        if (cumulativeCreditRecordsResponse.success)
+          setCumulativeCreditRecordsData(cumulativeCreditRecordsResponse.data);
       }
     } catch (error) {
       console.error("Error loading revenue data:", error);
@@ -424,6 +453,9 @@ export const Reports: React.FC = () => {
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    // Logic to reset date if switching away from revenue or to revenue handled by user choice or default
+    // We don't force fixed start date anymore.
+
     if (selectedStorefront !== "all") {
       if (tab === "paid" && !paidOrdersReport) {
         loadPaidOrdersReport();
@@ -558,6 +590,7 @@ export const Reports: React.FC = () => {
         startDate={startDate}
         endDate={endDate}
         onDateRangeChange={handleDateRangeChange}
+        singleDate={activeTab === "revenue"}
       />
 
       <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
@@ -623,6 +656,10 @@ export const Reports: React.FC = () => {
             (sum, record) => sum + (record.paidAmount || 0),
             0
           )}
+          totalCumulativeCreditPaidAmountFromRecords={cumulativeCreditRecordsData.reduce(
+            (sum, record) => sum + (record.paidAmount || 0),
+            0
+          )}
         />
       )}
 
@@ -655,7 +692,6 @@ export const Reports: React.FC = () => {
               {selectedStorefront === "all"
                 ? "all storefronts"
                 : "selected storefront"}
-              ...
             </p>
           </div>
         )}
