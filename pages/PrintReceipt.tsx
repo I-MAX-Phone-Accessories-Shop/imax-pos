@@ -62,10 +62,9 @@ const PrintReceipt: React.FC = () => {
     window.print();
   };
 
-  console.log(receiptData);
-
   const handleBack = () => {
     navigate(-1);
+    localStorage.removeItem(`receipt_${orderId}`);
   };
 
   // Auto show print dialog when page loads
