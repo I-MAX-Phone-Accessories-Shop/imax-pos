@@ -98,8 +98,8 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
 
   const totalCreditRemainingAmount = currentCreditOrders?.success
     ? currentCreditOrders.data.totals.totalFinalAmount -
-    currentCreditOrders.data.totals.totalInitialPaidAmount -
-    (totalCumulativeCreditPaidAmountFromRecords || 0)
+      currentCreditOrders.data.totals.totalInitialPaidAmount -
+      (totalCumulativeCreditPaidAmountFromRecords || 0)
     : 0;
 
   // Get paid orders data
@@ -175,20 +175,20 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
                     )}
                   </button>
                   <button
-                    onClick={() => toggleMetric("creditPaid")}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-                  >
-                    <span>Credit Paid Amount</span>
-                    {visibleMetrics.creditPaid && (
-                      <Check className="w-4 h-4 text-blue-600" />
-                    )}
-                  </button>
-                  <button
                     onClick={() => toggleMetric("creditRemaining")}
                     className="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
                   >
                     <span>Credit Remaining</span>
                     {visibleMetrics.creditRemaining && (
+                      <Check className="w-4 h-4 text-blue-600" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => toggleMetric("creditPaid")}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                  >
+                    <span>Credit Paid Amount</span>
+                    {visibleMetrics.creditPaid && (
                       <Check className="w-4 h-4 text-blue-600" />
                     )}
                   </button>
@@ -282,7 +282,6 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
         {/* Total Revenue Summary */}
         <div className="mt-6 pt-6 border-t border-slate-200">
           <div className="flex items-center justify-between">
-
             <div>
               <h3 className="text-lg font-semibold text-slate-800">
                 Total Revenue
