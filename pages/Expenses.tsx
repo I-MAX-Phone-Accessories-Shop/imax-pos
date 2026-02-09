@@ -236,43 +236,45 @@ export const Expenses: React.FC = () => {
   );
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <PieChart className="w-7 h-7 text-primary" />
+      <div className="flex flex-row justify-between items-start gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <PieChart className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
           {t("expenses.title")}
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
           >
-            <Plus className="w-4 h-4" /> {t("expenses.addExpense")}
+            <Plus className="w-4 h-4" />{" "}
+            <span className="hidden sm:inline">{t("expenses.addExpense")}</span>
           </button>
           <button
             onClick={loadExpenses}
             disabled={loading}
-            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
+            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            {t("common.refresh")}
+            <span className="hidden sm:inline">{t("common.refresh")}</span>
           </button>
         </div>
       </div>
 
       {/* Stats Card */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
-        <div className="flex items-center gap-3">
+      <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border mb-6">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="p-2 bg-red-100 rounded-lg">
-            <PieChart className="w-5 h-5 text-red-600" />
+            <PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500">
               {t("expenses.totalExpenses")}
             </p>
-            <p className="text-2xl font-bold text-slate-800">
-              {totalExpenses.toLocaleString()} MMK
+            <p className="text-lg sm:text-2xl font-bold text-slate-800">
+              {totalExpenses.toLocaleString()}{" "}
+              <span className="hidden sm:inline">MMK</span>
             </p>
           </div>
         </div>
@@ -290,118 +292,170 @@ export const Expenses: React.FC = () => {
             <p>{t("expenses.noExpenses")}</p>
           </div>
         ) : (
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-slate-600">
-                  {t("expenses.date")}
-                </th>
-                <th className="px-4 py-3 font-semibold text-slate-600">
-                  {t("expenses.category")}
-                </th>
-                <th className="px-4 py-3 font-semibold text-slate-600">
-                  {t("expenses.location")}
-                </th>
-                <th className="px-4 py-3 font-semibold text-slate-600">
-                  {t("expenses.notes")}
-                </th>
-                <th className="px-4 py-3 font-semibold text-slate-600">
-                  {t("expenses.recordedBy")}
-                </th>
-                <th className="px-4 py-3 font-semibold text-slate-600 text-right">
-                  {t("expenses.amount")}
-                </th>
-                {userRole === "owner" && (
-                  <th className="px-4 py-3 font-semibold text-slate-600 text-center">
-                    {t("common.actions")}
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {expenses.map((expense) => (
-                <tr key={expense._id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 text-slate-600">
-                      <Calendar className="w-3 h-3" />
-                      <span className="text-xs">
-                        {formatDate(expense.date)}
+          <div>
+            {/* Mobile scroll indicator */}
+            <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
+              ← Swipe to see more →
+            </div>
+
+            {/* Table container with horizontal scroll on mobile */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left min-w-[900px]">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("expenses.date")}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium capitalize">
-                      {expense.category}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {expense.locationId ? (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        <div>
-                          <p className="text-xs font-medium text-slate-800">
-                            {expense.locationId.locationName}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {expense.locationId.locationCode}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 italic text-xs">
-                        {t("expenses.noLocation")}
+                      <span className="sm:hidden">Date</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("expenses.category")}
                       </span>
+                      <span className="sm:hidden">Category</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("expenses.location")}
+                      </span>
+                      <span className="sm:hidden">Location</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("expenses.notes")}
+                      </span>
+                      <span className="sm:hidden">Notes</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("expenses.recordedBy")}
+                      </span>
+                      <span className="sm:hidden">Recorded By</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600 text-right">
+                      <span className="hidden sm:inline">
+                        {t("expenses.amount")}
+                      </span>
+                      <span className="sm:hidden">Amount</span>
+                    </th>
+                    {userRole === "owner" && (
+                      <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600 text-center">
+                        <span className="hidden sm:inline">
+                          {t("common.actions")}
+                        </span>
+                        <span className="sm:hidden">A</span>
+                      </th>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs text-slate-600">
-                      {expense.notes || "-"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {expense.adminId ? (
-                      <div className="flex items-center gap-1">
-                        <User className="w-3 h-3 text-slate-400" />
-                        <div>
-                          <p className="text-xs font-medium text-slate-800">
-                            {expense.adminId.name}
-                          </p>
-                          <p className="text-xs text-slate-500 capitalize">
-                            {expense.adminId.role}
-                          </p>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {expenses.map((expense) => (
+                    <tr key={expense._id} className="hover:bg-slate-50">
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="flex items-center gap-1 text-slate-600 text-xs sm:text-sm">
+                          <Calendar className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">
+                            {formatDate(expense.date)}
+                          </span>
                         </div>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 italic text-xs">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right font-bold text-red-600">
-                    {expense.amount.toLocaleString()} MMK
-                  </td>
-                  {userRole === "owner" && (
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(expense)}
-                          className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                          title={t("common.edit")}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium capitalize">
+                          {expense.category}
+                        </span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        {expense.locationId ? (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p
+                                className="text-xs font-medium text-slate-800 truncate"
+                                title={expense.locationId.locationName}
+                              >
+                                {expense.locationId.locationName}
+                              </p>
+                              <p
+                                className="text-xs text-slate-500 truncate"
+                                title={expense.locationId.locationCode}
+                              >
+                                {expense.locationId.locationCode}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic text-xs">
+                            <span className="hidden sm:inline">
+                              {t("expenses.noLocation")}
+                            </span>
+                            <span className="sm:hidden">No location</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        <span
+                          className="text-xs text-slate-600 truncate"
+                          title={expense.notes || "-"}
                         >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(expense)}
-                          className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title={t("common.delete") || "Delete"}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                          {expense.notes || "-"}
+                        </span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        {expense.adminId ? (
+                          <div className="flex items-center gap-1">
+                            <User className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p
+                                className="text-xs font-medium text-slate-800 truncate"
+                                title={expense.adminId.name}
+                              >
+                                {expense.adminId.name}
+                              </p>
+                              <p
+                                className="text-xs text-slate-500 capitalize truncate"
+                                title={expense.adminId.role}
+                              >
+                                {expense.adminId.role}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic text-xs">
+                            -
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-right font-bold text-red-600 text-xs sm:text-sm">
+                        {expense.amount.toLocaleString()}{" "}
+                        <span className="hidden sm:inline">MMK</span>
+                      </td>
+                      {userRole === "owner" && (
+                        <td className="px-2 sm:px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2">
+                            <button
+                              onClick={() => handleOpenEdit(expense)}
+                              className="p-1.5 text-slate-600 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                              title={t("common.edit")}
+                            >
+                              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(expense)}
+                              className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title={t("common.delete") || "Delete"}
+                            >
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
 
@@ -528,18 +582,18 @@ export const Expenses: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1"
                 >
                   {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -552,7 +606,11 @@ export const Expenses: React.FC = () => {
                     t("expenses.updateExpense")
                   ) : (
                     <>
-                      <Plus className="w-4 h-4" /> {t("expenses.createExpense")}
+                      <Plus className="w-4 h-4" />{" "}
+                      <span className="hidden sm:inline">
+                        {t("expenses.createExpense")}
+                      </span>
+                      <span className="sm:hidden">Create</span>
                     </>
                   )}
                 </button>

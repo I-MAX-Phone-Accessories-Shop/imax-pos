@@ -233,12 +233,12 @@ export const Warehouse: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-row justify-between items-start gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
           {t("warehouse.title")}
         </h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => {
               setShowInventory(!showInventory);
@@ -246,16 +246,21 @@ export const Warehouse: React.FC = () => {
                 loadInventory();
               }
             }}
-            className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="bg-slate-600 hover:bg-slate-700 text-white px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
           >
             <Package className="w-4 h-4" />
-            {showInventory ? "Hide Inventory" : "Show All Inventory"}
+            <span className="hidden sm:inline">
+              {showInventory ? "Hide Inventory" : "Show All Inventory"}
+            </span>
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
           >
-            <Plus className="w-4 h-4" /> {t("warehouse.addWarehouse")}
+            <Plus className="w-4 h-4" />{" "}
+            <span className="hidden sm:inline">
+              {t("warehouse.addWarehouse")}
+            </span>
           </button>
         </div>
       </div>
@@ -282,57 +287,65 @@ export const Warehouse: React.FC = () => {
 
           {/* Stats Cards */}
           {!loadingInventory && inventoryItems.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b bg-slate-50">
-              <div className="bg-white p-4 rounded-xl shadow-sm border">
-                <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 border-b bg-slate-50">
+              <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-2 bg-primary/20 rounded-lg">
-                    <Box className="w-5 h-5 text-primary" />
+                    <Box className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Total Products</p>
-                    <p className="text-2xl font-bold text-slate-800">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      Total Products
+                    </p>
+                    <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                       {inventoryItems.length}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-xl shadow-sm border">
-                <div className="flex items-center gap-3">
+              <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-2 bg-green-100 rounded-lg">
-                    <Package className="w-5 h-5 text-green-600" />
+                    <Package className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Total Quantity</p>
-                    <p className="text-2xl font-bold text-slate-800">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      Total Quantity
+                    </p>
+                    <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                       {totalQuantity}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-xl shadow-sm border">
-                <div className="flex items-center gap-3">
+              <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-2 bg-amber-100 rounded-lg">
-                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Low Stock Items</p>
-                    <p className="text-2xl font-bold text-slate-800">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      Low Stock
+                    </p>
+                    <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                       {lowStockCount}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-indigo-100">
-                <div className="flex items-center gap-3">
+              <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-indigo-100">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-2 bg-indigo-100 rounded-lg">
-                    <Building2 className="w-5 h-5 text-indigo-600" />
+                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Total Amount</p>
-                    <p className="text-2xl font-bold text-indigo-600">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      Total Amount
+                    </p>
+                    <p className="text-lg sm:text-2xl font-bold text-indigo-600 truncate">
                       {totalInventoryAmount.toLocaleString()} MMK
                     </p>
                   </div>
@@ -352,150 +365,193 @@ export const Warehouse: React.FC = () => {
               <p>No inventory items found.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      Product Name
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      Product Code
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      SKU
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      Category
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      Warehouse
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                      Quantity
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                      Available
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                      Selling Price
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                      Total Amount
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 font-medium text-slate-600">
-                      Last Updated
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {inventoryItems.map((item) => {
-                    const warehouseName =
-                      item.warehouseId.locationName ||
-                      item.warehouseId.warehouseName ||
-                      "Unknown";
-                    const warehouseCode =
-                      item.warehouseId.locationCode ||
-                      item.warehouseId.warehouseCode ||
-                      "";
+            <div>
+              {/* Mobile scroll indicator */}
+              <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
+                ← Swipe to see more →
+              </div>
 
-                    return (
-                      <tr
-                        key={item._id}
-                        className="hover:bg-slate-50 cursor-pointer"
-                        onClick={() =>
-                          navigate(`/warehouse/${item.warehouseId._id}`, {
-                            state: {
-                              warehouseName,
-                              warehouseCode,
-                            },
-                          })
-                        }
-                      >
-                        <td className="px-4 py-3 font-medium text-slate-800">
-                          {item.inventoryId.productName}
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">
-                          <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">
-                            {item.inventoryId.productCode}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 font-mono text-xs">
-                          {item.inventoryId.SKU}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
-                            {item.inventoryId.category}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
-                            <Building2 className="w-3 h-3 text-slate-400" />
-                            <div>
-                              <p className="text-xs font-medium text-slate-800">
-                                {warehouseName}
-                              </p>
-                              <p className="text-xs text-slate-500">
-                                {warehouseCode}
-                              </p>
+              {/* Table container with horizontal scroll on mobile */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left min-w-[1000px]">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        <span className="hidden sm:inline">Product Name</span>
+                        <span className="sm:hidden">Name</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        <span className="hidden sm:inline">Product Code</span>
+                        <span className="sm:hidden">Code</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        SKU
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        Category
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        <span className="hidden sm:inline">Warehouse</span>
+                        <span className="sm:hidden">WH</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                        Qty
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                        <span className="hidden sm:inline">Available</span>
+                        <span className="sm:hidden">Avail</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                        <span className="hidden sm:inline">Price</span>
+                        <span className="sm:hidden">$</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                        <span className="hidden sm:inline">Total</span>
+                        <span className="sm:hidden">T</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        <span className="hidden sm:inline">Status</span>
+                        <span className="sm:hidden">S</span>
+                      </th>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        <span className="hidden sm:inline">Updated</span>
+                        <span className="sm:hidden">U</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {inventoryItems.map((item) => {
+                      const warehouseName =
+                        item.warehouseId.locationName ||
+                        item.warehouseId.warehouseName ||
+                        "Unknown";
+                      const warehouseCode =
+                        item.warehouseId.locationCode ||
+                        item.warehouseId.warehouseCode ||
+                        "";
+
+                      return (
+                        <tr
+                          key={item._id}
+                          className="hover:bg-slate-50 cursor-pointer"
+                          onClick={() =>
+                            navigate(`/warehouse/${item.warehouseId._id}`, {
+                              state: {
+                                warehouseName,
+                                warehouseCode,
+                              },
+                            })
+                          }
+                        >
+                          <td className="px-2 sm:px-4 py-3 font-medium text-slate-800">
+                            <div
+                              className="max-w-[150px] sm:max-w-none truncate"
+                              title={item.inventoryId.productName}
+                            >
+                              {item.inventoryId.productName}
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-slate-800">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-right text-slate-600">
-                          {item.availableQuantity}
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-slate-700">
-                          {(
-                            item.inventoryId.sellingPrice || 0
-                          ).toLocaleString()}{" "}
-                          MMK
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-slate-800">
-                          {(
-                            item.quantity * (item.inventoryId.sellingPrice || 0)
-                          ).toLocaleString()}{" "}
-                          MMK
-                        </td>
-                        <td className="px-4 py-3">
-                          {item.isLowStock ? (
-                            <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
-                              <AlertTriangle className="w-3 h-3" /> Low Stock
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-slate-600">
+                            <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">
+                              {item.inventoryId.productCode}
                             </span>
-                          ) : item.quantity === 0 ? (
-                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
-                              Out of Stock
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-slate-500 font-mono text-xs">
+                            {item.inventoryId.SKU}
+                          </td>
+                          <td className="px-2 sm:px-4 py-3">
+                            <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
+                              {item.inventoryId.category}
                             </span>
-                          ) : (
-                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                              In Stock
+                          </td>
+                          <td className="px-2 sm:px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <Building2 className="w-3 h-3 text-slate-400" />
+                              <div className="min-w-0">
+                                <p
+                                  className="text-xs font-medium text-slate-800 truncate"
+                                  title={warehouseName}
+                                >
+                                  {warehouseName}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {warehouseCode}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
+                            {item.quantity}
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
+                            {item.availableQuantity}
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
+                            {(
+                              item.inventoryId.sellingPrice || 0
+                            ).toLocaleString()}{" "}
+                            <span className="hidden sm:inline">MMK</span>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
+                            {(
+                              item.quantity *
+                              (item.inventoryId.sellingPrice || 0)
+                            ).toLocaleString()}{" "}
+                            <span className="hidden sm:inline">MMK</span>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3">
+                            {item.isLowStock ? (
+                              <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
+                                <AlertTriangle className="w-3 h-3" />{" "}
+                                <span className="hidden sm:inline">
+                                  Low Stock
+                                </span>
+                                <span className="sm:hidden">Low</span>
+                              </span>
+                            ) : item.quantity === 0 ? (
+                              <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                <span className="hidden sm:inline">
+                                  Out of Stock
+                                </span>
+                                <span className="sm:hidden">Out</span>
+                              </span>
+                            ) : (
+                              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                <span className="hidden sm:inline">
+                                  In Stock
+                                </span>
+                                <span className="sm:hidden">In</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs">
+                            <span className="hidden sm:inline">
+                              {new Date(item.lastUpdated).toLocaleDateString()}{" "}
+                              {new Date(item.lastUpdated).toLocaleTimeString(
+                                [],
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
                             </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 text-xs">
-                          {new Date(item.lastUpdated).toLocaleDateString()}{" "}
-                          {new Date(item.lastUpdated).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            <span className="sm:hidden">
+                              {new Date(item.lastUpdated).toLocaleDateString()}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
       )}
 
       {/* Warehouse Profiles List */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Building2 className="w-5 h-5 text-slate-500" />
           {t("warehouse.profiles")}
@@ -509,7 +565,7 @@ export const Warehouse: React.FC = () => {
             {t("warehouse.noWarehouses")}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {warehouseProfiles.map((profile) => (
               <div
                 key={profile._id}
@@ -521,19 +577,21 @@ export const Warehouse: React.FC = () => {
                     },
                   })
                 }
-                className="border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer hover:border-primary group"
+                className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer hover:border-primary group"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-semibold text-slate-800 flex items-center gap-2 group-hover:text-primary transition-colors">
-                      {profile.locationName}
-                      <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary-700 rounded-full">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-slate-800 flex items-center gap-2 group-hover:text-primary transition-colors text-sm sm:text-base">
+                      <span className="truncate">{profile.locationName}</span>
+                      <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary-700 rounded-full flex-shrink-0">
                         {profile.locationCode}
                       </span>
                     </h3>
                     <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
-                      <MapPin className="w-3 h-3" />
-                      {profile.locationAddress}
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">
+                        {profile.locationAddress}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -564,19 +622,19 @@ export const Warehouse: React.FC = () => {
 
                 <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 mt-3 pt-3 border-t">
                   <div className="flex items-center gap-2">
-                    <Phone className="w-3 h-3" />
-                    {profile.locationPhone}
+                    <Phone className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{profile.locationPhone}</span>
                   </div>
                   {profile.managerName && (
                     <div className="flex items-center gap-2">
-                      <User className="w-3 h-3" />
-                      {profile.managerName}
+                      <User className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{profile.managerName}</span>
                     </div>
                   )}
                   {profile.locationEmail && (
                     <div className="flex items-center gap-2">
-                      <Mail className="w-3 h-3" />
-                      {profile.locationEmail}
+                      <Mail className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{profile.locationEmail}</span>
                     </div>
                   )}
                 </div>
@@ -785,18 +843,18 @@ export const Warehouse: React.FC = () => {
                 />
               </div> */}
 
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1"
                 >
                   {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSubmitting
                     ? editingId

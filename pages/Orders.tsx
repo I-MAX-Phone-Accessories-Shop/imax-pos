@@ -209,17 +209,17 @@ export const Orders: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Receipt className="w-7 h-7 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <Receipt className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
             {t("orders.title")}
           </h1>
           <p className="text-sm text-slate-500 mt-1">{t("orders.subtitle")}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <DateRangePicker
             startDate={startDate}
             endDate={endDate}
@@ -231,10 +231,11 @@ export const Orders: React.FC = () => {
           <button
             onClick={loadOrders}
             disabled={loading}
-            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
+            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            {t("common.refresh")}
+            <span className="hidden sm:inline">{t("common.refresh")}</span>
+            <span className="sm:hidden">↻</span>
           </button>
         </div>
       </div>
@@ -260,6 +261,9 @@ export const Orders: React.FC = () => {
         orders={filteredOrders}
         onViewOrder={handleViewOrder}
         onOpenCreditPersonModal={handleOpenCreditPersonModal}
+        onOrderDeleted={async () => {
+          await loadOrders();
+        }}
       />
 
       {/* Order Detail Modal */}

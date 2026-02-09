@@ -571,17 +571,17 @@ export const Inventory: React.FC = () => {
   // console.log("filteredProducts", filteredProducts);
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex flex-col gap-4 mb-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-800">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
             {t("inventory.title")}
           </h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={loadProducts}
               disabled={isFetching}
-              className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 disabled:opacity-50"
+              className="bg-slate-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-slate-700 disabled:opacity-50 text-sm sm:text-base"
             >
               {isFetching ? t("common.loading") : t("inventory.refresh")}
             </button>
@@ -592,20 +592,26 @@ export const Inventory: React.FC = () => {
                     setShowSelectBoxes(true);
                     setTransferMode("warehouse");
                   }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                  className="bg-blue-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base"
                 >
                   <Building2 className="w-4 h-4" />
-                  Transfer to Warehouse
+                  <span className="hidden sm:inline">
+                    Transfer to Warehouse
+                  </span>
+                  <span className="sm:hidden">To Warehouse</span>
                 </button>
                 <button
                   onClick={() => {
                     setShowSelectBoxes(true);
                     setTransferMode("storefront");
                   }}
-                  className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
+                  className="bg-purple-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-purple-700 flex items-center gap-2 text-sm sm:text-base"
                 >
                   <Store className="w-4 h-4" />
-                  Transfer to Storefront
+                  <span className="hidden sm:inline">
+                    Transfer to Storefront
+                  </span>
+                  <span className="sm:hidden">To Storefront</span>
                 </button>
               </>
             )}
@@ -615,19 +621,29 @@ export const Inventory: React.FC = () => {
                 {transferMode === "warehouse" && (
                   <button
                     onClick={handleOpenTransferModal}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+                    className="bg-green-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-green-700 flex items-center gap-2 text-sm sm:text-base"
                   >
                     <Building2 className="w-4 h-4" />
-                    Confirm Warehouse Transfer ({selectedProductIds.length})
+                    <span className="hidden sm:inline">
+                      Confirm Warehouse Transfer ({selectedProductIds.length})
+                    </span>
+                    <span className="sm:hidden">
+                      Confirm ({selectedProductIds.length})
+                    </span>
                   </button>
                 )}
                 {transferMode === "storefront" && (
                   <button
                     onClick={handleOpenTransferStorefrontModal}
-                    className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 flex items-center gap-2"
+                    className="bg-orange-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-orange-700 flex items-center gap-2 text-sm sm:text-base"
                   >
                     <Store className="w-4 h-4" />
-                    Confirm Storefront Transfer ({selectedProductIds.length})
+                    <span className="hidden sm:inline">
+                      Confirm Storefront Transfer ({selectedProductIds.length})
+                    </span>
+                    <span className="sm:hidden">
+                      Confirm ({selectedProductIds.length})
+                    </span>
                   </button>
                 )}
               </>
@@ -639,9 +655,10 @@ export const Inventory: React.FC = () => {
                   setSelectedProductIds([]);
                   setTransferMode(null);
                 }}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                className="bg-red-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-red-700 text-sm sm:text-base"
               >
-                Cancel Selection
+                <span className="hidden sm:inline">Cancel Selection</span>
+                <span className="sm:hidden">Cancel</span>
               </button>
             )}
             <button
@@ -649,15 +666,20 @@ export const Inventory: React.FC = () => {
                 resetForm();
                 setIsModalOpen(true);
               }}
-              className="bg-btn-primary text-dark px-4 py-2 rounded hover:bg-btn-primary-hover"
+              className="bg-btn-primary text-dark px-3 py-2 sm:px-4 rounded hover:bg-btn-primary-hover text-sm sm:text-base"
             >
-              + {t("inventory.addProduct")}
+              +{" "}
+              <span className="hidden sm:inline">
+                {" "}
+                {t("inventory.addProduct")}
+              </span>
+              <span className="sm:hidden"> Add</span>
             </button>
           </div>
         </div>
 
         {/* Search Input */}
-        <div className="max-w-md">
+        <div className="w-full sm:max-w-md">
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
@@ -741,7 +763,7 @@ export const Inventory: React.FC = () => {
       {/* Transfer to Warehouse Modal */}
       {isTransferModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-primary" />
@@ -799,19 +821,19 @@ export const Inventory: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseTransferModal}
                   disabled={isTransferring}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 order-2 sm:order-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleTransfer}
                   disabled={isTransferring || !selectedWarehouseId}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isTransferring ? (
                     <>
@@ -833,7 +855,7 @@ export const Inventory: React.FC = () => {
       {/* Transfer to Storefront Modal */}
       {isTransferStorefrontModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Store className="w-5 h-5 text-primary" />
@@ -891,19 +913,19 @@ export const Inventory: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseTransferStorefrontModal}
                   disabled={isTransferringToStorefront}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 order-2 sm:order-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleTransferToStorefront}
                   disabled={isTransferringToStorefront || !selectedStorefrontId}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isTransferringToStorefront ? (
                     <>

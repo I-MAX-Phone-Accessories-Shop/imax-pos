@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { printThermalReceipt } from "../components/ThermalReceipt";
+import { detectDevice } from "../utils/deviceDetect";
 import {
   fetchStorefrontStock,
   StorefrontStockItem,
@@ -33,6 +34,7 @@ import {
   fetchCreditPersonas,
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
+import { deviceDetect } from "react-device-detect";
 
 // Payment methods
 enum PaymentMethod {
@@ -53,6 +55,7 @@ interface CartItem {
 
 export const POS: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // Data State
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
@@ -72,6 +75,7 @@ export const POS: React.FC = () => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [markup, setMarkup] = useState(0);
+  const [markupAmount, setMarkupAmount] = useState(0);
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
@@ -82,7 +86,7 @@ export const POS: React.FC = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
-  const [markupAmount, setMarkupAmount] = useState("");
+  const devices = detectDevice();
 
   // Load storefronts and stock on mount
   useEffect(() => {
@@ -311,7 +315,7 @@ export const POS: React.FC = () => {
   const totalAfterDiscount = Math.ceil(
     subtotal * (1 - Math.ceil(discount) / 100),
   );
-  const totalAfterMarkup = Math.ceil(subtotal * (1 + Math.ceil(markup) / 100));
+  const totalAfterMarkup = subtotal + markupAmount;
 
   const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
   const combinedDiscountAmount = useMarkup
@@ -395,12 +399,26 @@ export const POS: React.FC = () => {
           paymentMethod,
           note,
         };
+        // Save receipt data and redirect to receipt page
+        const receiptId = `receipt_${receiptData.invoiceNumber}`;
+        localStorage.setItem(receiptId, JSON.stringify(receiptData));
 
-        // Auto-print receipt
-        printThermalReceipt(receiptData, "58mm");
+        // Device detection for print method selection
+        const device = detectDevice();
+        console.log("Device:", device);
+
+        // Auto-print receipt based on device
+        if (device.isAndroid || device.isIOS) {
+          // For mobile devices (Android/iOS), navigate to receipt page
+          navigate(`/print-receipt/${receiptData.invoiceNumber}`);
+        } else {
+          // For desktop/Windows, use thermal receipt function
+          printThermalReceipt(receiptData, "58mm");
+        }
         setCart([]);
         setDiscount(0);
         setMarkup(0);
+        setMarkupAmount(0);
         setNote("");
         setPaidAmount(0);
         setPaymentMethod(
@@ -754,7 +772,8 @@ export const POS: React.FC = () => {
             <div className="p-4 border-b bg-primary/10">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg text-gray-800">
-                  {t("pos.checkout")}
+                  {/* {t("pos.checkout")} */}
+                  {devices.isMobile ? "Mobile" : "Desktop"}
                 </h3>
                 <button
                   onClick={() => setShowCheckoutModal(false)}
@@ -918,9 +937,7 @@ export const POS: React.FC = () => {
                     max="100"
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={discount}
-                    onChange={(e) =>
-                      setDiscount(Math.ceil(Number(e.target.value)))
-                    }
+                    onChange={(e) => setDiscount(Number(e.target.value))}
                   />
                 </div>
               )}
@@ -929,11 +946,11 @@ export const POS: React.FC = () => {
               {useMarkup && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Markup (%)
+                    Markup Amount (MMK)
                     <button
                       onClick={() => setShowMarkupCalculator(true)}
                       className="ml-2 text-primary hover:text-primary-700 transition-colors"
-                      title="Calculate markup percentage"
+                      title="Add fixed markup amount"
                     >
                       <Calculator className="w-4 h-4" />
                     </button>
@@ -941,12 +958,9 @@ export const POS: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    max="100"
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                    value={markup}
-                    onChange={(e) =>
-                      setMarkup(Math.ceil(Number(e.target.value)))
-                    }
+                    value={markupAmount}
+                    onChange={(e) => setMarkupAmount(Number(e.target.value))}
                   />
                 </div>
               )}
@@ -967,7 +981,7 @@ export const POS: React.FC = () => {
                   onChange={(e) => {
                     const value = Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
-                    setPaidAmount(Math.ceil(value));
+                    setPaidAmount(value);
                   }}
                   placeholder={t("pos.enterPaidAmount")}
                 />
@@ -1001,12 +1015,10 @@ export const POS: React.FC = () => {
                     <span>-{combinedDiscountAmount.toLocaleString()} MMK</span>
                   </div>
                 )}
-                {useMarkup && markup > 0 && (
+                {useMarkup && markupAmount > 0 && (
                   <div className="flex justify-between text-sm text-blue-600">
-                    <span>Markup ({markup}%)</span>
-                    <span>
-                      +{((subtotal * markup) / 100).toLocaleString()} MMK
-                    </span>
+                    <span>Markup Amount</span>
+                    <span>+{markupAmount.toLocaleString()} MMK</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
@@ -1067,12 +1079,11 @@ export const POS: React.FC = () => {
             <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-primary" />
-                Markup Calculator
+                Fixed Amount Markup
               </h2>
               <button
                 onClick={() => {
                   setShowMarkupCalculator(false);
-                  setMarkupAmount("");
                 }}
                 className="text-slate-400 hover:text-slate-600 p-1"
               >
@@ -1103,7 +1114,6 @@ export const POS: React.FC = () => {
                   onChange={(e) => setMarkupAmount(e.target.value)}
                 />
               </div>
-
               {/* Calculated Percentage */}
               {markupAmount && Number(markupAmount) > 0 && (
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
@@ -1135,7 +1145,6 @@ export const POS: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowMarkupCalculator(false);
-                    setMarkupAmount("");
                   }}
                   className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
@@ -1144,13 +1153,10 @@ export const POS: React.FC = () => {
                 <button
                   onClick={() => {
                     if (markupAmount && Number(markupAmount) > 0) {
-                      const calculatedPercentage =
-                        (Number(markupAmount) / subtotal) * 100;
-                      setMarkup(Math.ceil(calculatedPercentage)); // Use Math.ceil for integer percentage
+                      setMarkupAmount(Number(markupAmount));
                       setShowMarkupCalculator(false);
-                      setMarkupAmount("");
                       toast.success(
-                        `Markup set to ${Math.ceil(calculatedPercentage)}%`,
+                        `Markup set to ${Number(markupAmount).toLocaleString()} MMK`,
                       );
                     }
                   }}
@@ -1250,14 +1256,14 @@ export const POS: React.FC = () => {
                 <button
                   onClick={() => {
                     if (discountAmount && Number(discountAmount) > 0) {
-                      const calculatedPercentage =
-                        (Number(discountAmount) / subtotal) * 100;
-                      setDiscount(Math.ceil(calculatedPercentage)); // Use Math.ceil for integer percentage
+                      const calculatedPercentage = (
+                        (Number(discountAmount) / subtotal) *
+                        100
+                      ).toFixed(2);
+                      setDiscount(calculatedPercentage); // Use Math.ceil for integer percentage
                       setShowDiscountCalculator(false);
                       setDiscountAmount("");
-                      toast.success(
-                        `Discount set to ${Math.ceil(calculatedPercentage)}%`,
-                      );
+                      toast.success(`Discount set to ${calculatedPercentage}%`);
                     }
                   }}
                   disabled={

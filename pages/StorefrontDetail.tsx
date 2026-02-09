@@ -219,42 +219,44 @@ export const StorefrontDetail: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate("/storefront")}
-          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-slate-600" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Store className="w-6 h-6 text-primary" />
-            {storefrontName}
-            {storefrontCode && (
-              <span className="text-sm px-2 py-1 bg-primary/20 text-primary-700 rounded-full font-medium">
-                {storefrontCode}
-              </span>
-            )}
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Storefront Stock Inventory
-          </p>
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            onClick={() => navigate("/storefront")}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2 flex-wrap">
+              <Store className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
+              <span className="truncate">{storefrontName}</span>
+              {storefrontCode && (
+                <span className="text-xs sm:text-sm px-2 py-1 bg-primary/20 text-primary-700 rounded-full font-medium flex-shrink-0">
+                  {storefrontCode}
+                </span>
+              )}
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Storefront Stock Inventory
+            </p>
+          </div>
         </div>
         <button
           onClick={loadStorefrontStock}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
+          className="hidden sm:flex items-center gap-2 px-3 py-2 sm:px-4 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
       {/* Search and Filter Section */}
       <div className="bg-white rounded-xl shadow-sm border p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           {/* Search Bar */}
           <div className="flex-1">
             <div className="relative">
@@ -270,7 +272,7 @@ export const StorefrontDetail: React.FC = () => {
           </div>
 
           {/* Category Filter */}
-          <div className="md:w-64">
+          <div className="sm:w-64">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <select
@@ -295,10 +297,11 @@ export const StorefrontDetail: React.FC = () => {
                 setSearchTerm("");
                 setSelectedCategory("all");
               }}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2"
+              className="px-3 py-2 sm:px-4 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
             >
               <X className="w-4 h-4" />
-              Clear Filters
+              <span className="hidden sm:inline">Clear Filters</span>
+              <span className="sm:hidden">Clear</span>
             </button>
           )}
         </div>
@@ -312,15 +315,17 @@ export const StorefrontDetail: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
-              <Box className="w-5 h-5 text-primary" />
+              <Box className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
-            <div>
-              <p className="text-sm text-slate-500">Total Products</p>
-              <p className="text-2xl font-bold text-slate-800">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">
+                Total Products
+              </p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems.length
                   : stockItems.length}
@@ -329,14 +334,16 @@ export const StorefrontDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
-              <Package className="w-5 h-5 text-green-600" />
+              <Package className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
-            <div>
-              <p className="text-sm text-slate-500">Total Quantity</p>
-              <p className="text-2xl font-bold text-slate-800">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">
+                Total Quantity
+              </p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredTotalQuantity
                   : totalQuantity}
@@ -345,14 +352,14 @@ export const StorefrontDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
             </div>
-            <div>
-              <p className="text-sm text-slate-500">Low Stock Items</p>
-              <p className="text-2xl font-bold text-slate-800">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">Low Stock</p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredLowStockCount
                   : lowStockCount}
@@ -361,14 +368,14 @@ export const StorefrontDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-indigo-100">
-          <div className="flex items-center gap-3">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-indigo-100">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-indigo-100 rounded-lg">
-              <Store className="w-5 h-5 text-indigo-600" />
+              <Store className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
             </div>
-            <div>
-              <p className="text-sm text-slate-500">Total Amount</p>
-              <p className="text-2xl font-bold text-indigo-600">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">Total Amount</p>
+              <p className="text-lg sm:text-2xl font-bold text-indigo-600 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems
                       .reduce((sum, item) => {
@@ -378,7 +385,7 @@ export const StorefrontDetail: React.FC = () => {
                       }, 0)
                       .toLocaleString()
                   : totalStorefrontAmount.toLocaleString()}{" "}
-                MMK
+                <span className="hidden sm:inline">MMK</span>
               </p>
             </div>
           </div>
@@ -417,143 +424,184 @@ export const StorefrontDetail: React.FC = () => {
             )}
           </div>
         ) : (
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b">
-              <tr>
-                <th className="px-4 py-3 font-medium text-slate-600">
-                  Product Name
-                </th>
-                <th className="px-4 py-3 font-medium text-slate-600">
-                  Product Code
-                </th>
-                {/* <th className="px-4 py-3 font-medium text-slate-600">SKU</th> */}
-                <th className="px-4 py-3 font-medium text-slate-600">
-                  Category
-                </th>
-                <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                  Quantity
-                </th>
-                <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                  Available
-                </th>
-                <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                  Selling Price
-                </th>
-                <th className="px-4 py-3 font-medium text-slate-600 text-right">
-                  Total Amount
-                </th>
-                <th className="px-4 py-3 font-medium text-slate-600">Status</th>
-                <th className="px-4 py-3 font-medium text-slate-600">
-                  Last Updated
-                </th>
-                {userRole === "owner" && (
-                  <th className="px-4 py-3 font-medium text-slate-600">
-                    Actions
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {filteredStockItems.map((item) => (
-                <tr key={item._id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">
-                    {item.inventoryId.productName}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">
-                      {item.inventoryId.productCode}
-                    </span>
-                  </td>
-                  {/* <td className="px-4 py-3 text-slate-500 font-mono text-xs">
-                    {item.inventoryId.SKU}
-                  </td> */}
-                  <td className="px-4 py-3">
-                    <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
-                      {item.inventoryId.category}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-bold text-slate-800">
-                    {item.quantity}
-                  </td>
-                  <td className="px-4 py-3 text-right text-slate-600">
-                    {item.availableQuantity}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium text-slate-700">
-                    {(item.inventoryId.sellingPrice || 0).toLocaleString()} MMK
-                  </td>
-                  <td className="px-4 py-3 text-right font-bold text-slate-800">
-                    {(
-                      item.quantity * (item.inventoryId.sellingPrice || 0)
-                    ).toLocaleString()}{" "}
-                    MMK
-                  </td>
-                  <td className="px-4 py-3">
-                    {item.isLowStock ? (
-                      <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
-                        <AlertTriangle className="w-3 h-3" /> Low Stock
-                      </span>
-                    ) : item.quantity === 0 ? (
-                      <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
-                        Out of Stock
-                      </span>
-                    ) : (
-                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                        In Stock
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-500 text-xs">
-                    {new Date(item.lastUpdated).toLocaleDateString()}{" "}
-                    {new Date(item.lastUpdated).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </td>
-                  <td className="px-4 py-3">
+          <div>
+            {/* Mobile scroll indicator */}
+            <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
+              ← Swipe to see more →
+            </div>
+
+            {/* Table container with horizontal scroll on mobile */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left min-w-[1000px]">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                      <span className="hidden sm:inline">Product Name</span>
+                      <span className="sm:hidden">Name</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                      <span className="hidden sm:inline">Product Code</span>
+                      <span className="sm:hidden">Code</span>
+                    </th>
+                    {/* <th className="px-4 py-3 font-medium text-slate-600">SKU</th> */}
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                      Category
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                      Qty
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                      <span className="hidden sm:inline">Available</span>
+                      <span className="sm:hidden">Avail</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                      <span className="hidden sm:inline">Price</span>
+                      <span className="sm:hidden">$</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                      <span className="hidden sm:inline">Total</span>
+                      <span className="sm:hidden">T</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                      <span className="hidden sm:inline">Status</span>
+                      <span className="sm:hidden">S</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                      <span className="hidden sm:inline">Updated</span>
+                      <span className="sm:hidden">U</span>
+                    </th>
                     {userRole === "owner" && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => openAdjustmentModal(item, "increase")}
-                          className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                          title="Increase Stock"
-                        >
-                          <TrendingUp className="w-3 h-3" /> +
-                        </button>
-                        <button
-                          onClick={() => openAdjustmentModal(item, "decrease")}
-                          disabled={item.quantity === 0}
-                          className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Decrease Stock"
-                        >
-                          <TrendingDown className="w-3 h-3" /> -
-                        </button>
-                      </div>
+                      <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                        <span className="hidden sm:inline">Actions</span>
+                        <span className="sm:hidden">A</span>
+                      </th>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            {/* <tfoot className="bg-slate-50 border-t-2">
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-4 py-4 font-bold text-slate-800 text-right"
-                >
-                  Total:
-                </td>
-                <td className="px-4 py-4 text-right font-bold text-slate-800">
-                  {totalQuantity}
-                </td>
-                <td className="px-4 py-4 text-right font-medium text-slate-600">
-                  -
-                </td>
-                <td className="px-4 py-4 text-right font-bold text-indigo-600 text-lg">
-                  {totalStorefrontAmount.toLocaleString()} MMK
-                </td>
-                <td colSpan={3}></td>
-              </tr>
-            </tfoot> */}
-          </table>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filteredStockItems.map((item) => (
+                    <tr key={item._id} className="hover:bg-slate-50">
+                      <td className="px-2 sm:px-4 py-3 font-medium text-slate-800">
+                        <div
+                          className="max-w-[150px] sm:max-w-none truncate"
+                          title={item.inventoryId.productName}
+                        >
+                          {item.inventoryId.productName}
+                        </div>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-slate-600">
+                        <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">
+                          {item.inventoryId.productCode}
+                        </span>
+                      </td>
+                      {/* <td className="px-4 py-3 text-slate-500 font-mono text-xs">
+                        {item.inventoryId.SKU}
+                      </td> */}
+                      <td className="px-2 sm:px-4 py-3">
+                        <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
+                          {item.inventoryId.category}
+                        </span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
+                        {item.quantity}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
+                        {item.availableQuantity}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
+                        {(item.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
+                        <span className="hidden sm:inline">MMK</span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
+                        {(
+                          item.quantity * (item.inventoryId.sellingPrice || 0)
+                        ).toLocaleString()}{" "}
+                        <span className="hidden sm:inline">MMK</span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        {item.isLowStock ? (
+                          <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
+                            <AlertTriangle className="w-3 h-3" />{" "}
+                            <span className="hidden sm:inline">Low Stock</span>
+                            <span className="sm:hidden">Low</span>
+                          </span>
+                        ) : item.quantity === 0 ? (
+                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                            <span className="hidden sm:inline">
+                              Out of Stock
+                            </span>
+                            <span className="sm:hidden">Out</span>
+                          </span>
+                        ) : (
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                            <span className="hidden sm:inline">In Stock</span>
+                            <span className="sm:hidden">In</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs">
+                        <span className="hidden sm:inline">
+                          {new Date(item.lastUpdated).toLocaleDateString()}{" "}
+                          {new Date(item.lastUpdated).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        <span className="sm:hidden">
+                          {new Date(item.lastUpdated).toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        {userRole === "owner" && (
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <button
+                              onClick={() =>
+                                openAdjustmentModal(item, "increase")
+                              }
+                              className="text-xs bg-green-50 text-green-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                              title="Increase Stock"
+                            >
+                              <TrendingUp className="w-3 h-3" /> +
+                            </button>
+                            <button
+                              onClick={() =>
+                                openAdjustmentModal(item, "decrease")
+                              }
+                              disabled={item.quantity === 0}
+                              className="text-xs bg-red-50 text-red-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Decrease Stock"
+                            >
+                              <TrendingDown className="w-3 h-3" /> -
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                {/* <tfoot className="bg-slate-50 border-t-2">
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-4 font-bold text-slate-800 text-right"
+                    >
+                      Total:
+                    </td>
+                    <td className="px-4 py-4 text-right font-bold text-slate-800">
+                      {totalQuantity}
+                    </td>
+                    <td className="px-4 py-4 text-right font-medium text-slate-600">
+                      -
+                    </td>
+                    <td className="px-4 py-4 text-right font-bold text-indigo-600 text-lg">
+                      {totalStorefrontAmount.toLocaleString()} MMK
+                    </td>
+                    <td colSpan={3}></td>
+                  </tr>
+                </tfoot> */}
+              </table>
+            </div>
+          </div>
         )}
       </div>
 
@@ -651,18 +699,18 @@ export const StorefrontDetail: React.FC = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={() => setIsAdjustmentModalOpen(false)}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitAdjustment}
                   disabled={isAdjusting || adjustmentQuantity <= 0}
-                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 ${
+                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${
                     adjustmentType === "increase"
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700"

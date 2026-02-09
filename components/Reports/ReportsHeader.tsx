@@ -12,6 +12,8 @@ interface ReportsHeaderProps {
   startDate: Date | null;
   endDate: Date | null;
   onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
+  fixedStartDate?: boolean;
+  singleDate?: boolean;
 }
 
 export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
@@ -23,15 +25,19 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   startDate,
   endDate,
   onDateRangeChange,
+  fixedStartDate,
+  singleDate,
 }) => {
   return (
-    <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-bold text-slate-800">Financial Reports</h1>
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+        Financial Reports
+      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         <select
           value={selectedStorefront}
           onChange={(e) => onStorefrontChange(e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+          className="px-3 py-2 sm:px-4 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm sm:text-base"
         >
           <option value="all">All Storefronts</option>
           {storefronts.map((sf) => (
@@ -44,6 +50,8 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
           startDate={startDate}
           endDate={endDate}
           onChange={onDateRangeChange}
+          fixedStartDate={fixedStartDate}
+          singleDate={singleDate}
         />
         {/* <button
           onClick={onRefresh}

@@ -45,7 +45,7 @@ export const AccountManagement: React.FC = () => {
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AdminAccount | null>(
-    null
+    null,
   );
   const [editFormData, setEditFormData] = useState({
     name: "",
@@ -56,13 +56,13 @@ export const AccountManagement: React.FC = () => {
   // Delete Confirmation Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<AdminAccount | null>(
-    null
+    null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Restore State
   const [restoringAccountId, setRestoringAccountId] = useState<string | null>(
-    null
+    null,
   );
 
   // Hard Delete Modal State
@@ -84,7 +84,7 @@ export const AccountManagement: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [locationProfiles, setLocationProfiles] = useState<LocationProfile[]>(
-    []
+    [],
   );
 
   useEffect(() => {
@@ -107,7 +107,7 @@ export const AccountManagement: React.FC = () => {
           (location) =>
             location.status === "active" &&
             !location.isDeleted &&
-            !location.deletedAt
+            !location.deletedAt,
         );
         // console.log("Active locations after filter:", activeLocations);
 
@@ -117,7 +117,7 @@ export const AccountManagement: React.FC = () => {
         } else {
           // Fallback: show all non-deleted locations
           const nonDeleted = locations.filter(
-            (location) => !location.isDeleted && !location.deletedAt
+            (location) => !location.isDeleted && !location.deletedAt,
           );
           // console.log("No active locations, using non-deleted:", nonDeleted);
           setLocationProfiles(nonDeleted);
@@ -209,14 +209,14 @@ export const AccountManagement: React.FC = () => {
       statusFilter === "all"
         ? true
         : statusFilter === "active"
-        ? !account.softDeleted && !account.deletedAt
-        : account.softDeleted || !!account.deletedAt;
+          ? !account.softDeleted && !account.deletedAt
+          : account.softDeleted || !!account.deletedAt;
 
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const uniqueRoles = Array.from(
-    new Set(accounts.map((a) => a.role).filter(Boolean))
+    new Set(accounts.map((a) => a.role).filter(Boolean)),
   );
 
   // Available roles for selection
@@ -296,7 +296,7 @@ export const AccountManagement: React.FC = () => {
 
       if (response.success) {
         toast.success(
-          `Account "${response.data.name}" deactivated successfully!`
+          `Account "${response.data.name}" deactivated successfully!`,
         );
         handleCloseDeleteModal();
         loadAccounts(); // Refresh the list
@@ -349,7 +349,7 @@ export const AccountManagement: React.FC = () => {
 
       if (response.success) {
         toast.success(
-          `Account "${accountToHardDelete.name}" permanently deleted!`
+          `Account "${accountToHardDelete.name}" permanently deleted!`,
         );
         handleCloseHardDeleteModal();
         loadAccounts(); // Refresh the list
@@ -429,96 +429,101 @@ export const AccountManagement: React.FC = () => {
   };
 
   const activeCount = accounts.filter(
-    (a) => !a.softDeleted && !a.deletedAt
+    (a) => !a.softDeleted && !a.deletedAt,
   ).length;
   const deletedCount = accounts.filter(
-    (a) => a.softDeleted || !!a.deletedAt
+    (a) => a.softDeleted || !!a.deletedAt,
   ).length;
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-start gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Users className="w-7 h-7 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <Users className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
             Account Management
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Manage system user accounts and permissions
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={() => {
               loadLocations(); // Reload locations when opening modal
               setIsCreateModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-dark px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-dark px-3 py-2 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
           >
-            <Plus className="w-4 h-4" /> Create Account
+            <Plus className="w-4 h-4" />{" "}
+            <span className="hidden sm:inline">Create Account</span>
           </button>
           <button
             onClick={loadAccounts}
             disabled={loading}
-            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors"
+            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
-              <Users className="w-5 h-5 text-primary" />
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Total Accounts</p>
-              <p className="text-2xl font-bold text-slate-800">
+              <p className="text-xs sm:text-sm text-slate-500">
+                Total Accounts
+              </p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800">
                 {accounts.length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Active</p>
-              <p className="text-2xl font-bold text-slate-800">{activeCount}</p>
+              <p className="text-xs sm:text-sm text-slate-500">Active</p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800">
+                {activeCount}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-red-100 rounded-lg">
-              <XCircle className="w-5 h-5 text-red-600" />
+              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Deleted</p>
-              <p className="text-2xl font-bold text-slate-800">
+              <p className="text-xs sm:text-sm text-slate-500">Deleted</p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800">
                 {deletedCount}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <Shield className="w-5 h-5 text-purple-600" />
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Roles</p>
-              <p className="text-2xl font-bold text-slate-800">
+              <p className="text-xs sm:text-sm text-slate-500">Roles</p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800">
                 {uniqueRoles.length}
               </p>
             </div>
@@ -528,9 +533,9 @@ export const AccountManagement: React.FC = () => {
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {/* Search */}
-          <div className="relative flex-1 min-w-[250px]">
+          <div className="relative flex-1 min-w-[200px] sm:min-w-[250px]">
             <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             <input
               type="text"
@@ -541,39 +546,46 @@ export const AccountManagement: React.FC = () => {
             />
           </div>
 
-          {/* Role Filter */}
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-slate-400" />
-            <select
-              className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <option value="all">All Roles</option>
-              {uniqueRoles.map((role) => (
-                <option key={String(role)} value={String(role)}>
-                  {String(role).charAt(0).toUpperCase() + String(role).slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Role Filter */}
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <option value="all">All Roles</option>
+                {uniqueRoles.map((role) => (
+                  <option key={String(role)} value={String(role)}>
+                    {String(role).charAt(0).toUpperCase() +
+                      String(role).slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <select
-              className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="deleted">Deleted</option>
-            </select>
-          </div>
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="deleted">Deleted</option>
+              </select>
+            </div>
 
-          {/* Results count */}
-          <div className="text-sm text-slate-500">
-            Showing {filteredAccounts.length} of {accounts.length} accounts
+            {/* Results count */}
+            <div className="text-sm text-slate-500 whitespace-nowrap">
+              <span className="hidden sm:inline">
+                Showing {filteredAccounts.length} of {accounts.length} accounts
+              </span>
+              <span className="sm:hidden">
+                {filteredAccounts.length}/{accounts.length}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -591,132 +603,192 @@ export const AccountManagement: React.FC = () => {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b">
-              <tr>
-                <th className="p-4 font-semibold text-slate-600">Name</th>
-                <th className="p-4 font-semibold text-slate-600">Role</th>
-                <th className="p-4 font-semibold text-slate-600">Location</th>
-                <th className="p-4 font-semibold text-slate-600">Status</th>
-                <th className="p-4 font-semibold text-slate-600">
-                  Last Active
-                </th>
-                <th className="p-4 font-semibold text-slate-600">Created</th>
-                <th className="p-4 font-semibold text-slate-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {filteredAccounts.map((account) => (
-                <tr key={account._id} className="hover:bg-slate-50">
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                        <User className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="font-medium text-slate-800">
-                        {account.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${getRoleColor(
-                        account.role
-                      )}`}
-                    >
-                      {account.role?.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {account.locationId ? (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-slate-400" />
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {account.locationId.locationName}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {account.locationId.locationCode} •{" "}
-                            {account.locationId.type}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 italic">No location</span>
-                    )}
-                  </td>
-                  <td className="p-4">{getStatusBadge(account)}</td>
-                  <td className="p-4 text-slate-500 text-xs">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(account.lastActiveAt)}
-                    </div>
-                  </td>
-                  <td className="p-4 text-slate-500 text-xs">
-                    {formatDate(account.createdAt)}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleOpenEditModal(account)}
-                        disabled={account.softDeleted}
-                        className="text-xs bg-primary/20 text-primary-600 px-3 py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Edit className="w-3 h-3" /> Edit
-                      </button>
-                      {!account.softDeleted ? (
-                        <button
-                          onClick={() => handleOpenDeleteModal(account)}
-                          className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" /> Deactivate
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleRestoreAccount(account)}
-                            disabled={restoringAccountId === account._id}
-                            className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {restoringAccountId === account._id ? (
-                              <>
-                                <Loader2 className="w-3 h-3 animate-spin" />{" "}
-                                Restoring...
-                              </>
-                            ) : (
-                              <>
-                                <RotateCcw className="w-3 h-3" /> Restore
-                              </>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleOpenHardDeleteModal(account)}
-                            disabled={
-                              isHardDeleting &&
-                              accountToHardDelete?._id === account._id
-                            }
-                            className="text-xs bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 border border-red-700 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isHardDeleting &&
-                            accountToHardDelete?._id === account._id ? (
-                              <>
-                                <Loader2 className="w-3 h-3 animate-spin" />{" "}
-                                Deleting...
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="w-3 h-3" /> Delete
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
+          {/* Mobile scroll indicator */}
+          <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
+            ← Swipe to see more →
+          </div>
+
+          {/* Table container with horizontal scroll on mobile */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left min-w-[900px]">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Name</span>
+                    <span className="sm:hidden">Name</span>
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Role</span>
+                    <span className="sm:hidden">Role</span>
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Location</span>
+                    <span className="sm:hidden">Location</span>
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Status</span>
+                    <span className="sm:hidden">Status</span>
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Last Active</span>
+                    <span className="sm:hidden">Active</span>
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Created</span>
+                    <span className="sm:hidden">Created</span>
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                    <span className="hidden sm:inline">Actions</span>
+                    <span className="sm:hidden">A</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y">
+                {filteredAccounts.map((account) => (
+                  <tr key={account._id} className="hover:bg-slate-50">
+                    <td className="px-2 sm:px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <User className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                        </div>
+                        <span className="font-medium text-slate-800 text-xs sm:text-sm truncate">
+                          {account.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 sm:px-4 py-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-bold ${getRoleColor(
+                          account.role,
+                        )}`}
+                      >
+                        {account.role?.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-2 sm:px-4 py-3">
+                      {account.locationId ? (
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p
+                              className="font-medium text-slate-800 text-xs sm:text-sm truncate"
+                              title={account.locationId.locationName}
+                            >
+                              {account.locationId.locationName}
+                            </p>
+                            <p
+                              className="text-xs text-slate-500 truncate"
+                              title={`${account.locationId.locationCode} • ${account.locationId.type}`}
+                            >
+                              {account.locationId.locationCode} •{" "}
+                              {account.locationId.type}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">
+                          <span className="hidden sm:inline">No location</span>
+                          <span className="sm:hidden">No loc</span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 sm:px-4 py-3">
+                      {getStatusBadge(account)}
+                    </td>
+                    <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">
+                          {formatDate(account.lastActiveAt)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs">
+                      <span className="truncate">
+                        {formatDate(account.createdAt)}
+                      </span>
+                    </td>
+                    <td className="px-2 sm:px-4 py-3">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <button
+                          onClick={() => handleOpenEditModal(account)}
+                          disabled={account.softDeleted}
+                          className="text-xs bg-primary/20 text-primary-600 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Edit className="w-3 h-3" />{" "}
+                          <span className="hidden sm:inline">Edit</span>
+                          <span className="sm:hidden">E</span>
+                        </button>
+                        {!account.softDeleted ? (
+                          <button
+                            onClick={() => handleOpenDeleteModal(account)}
+                            className="text-xs bg-red-50 text-red-600 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />{" "}
+                            <span className="hidden sm:inline">Deactivate</span>
+                            <span className="sm:hidden">Del</span>
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <button
+                              onClick={() => handleRestoreAccount(account)}
+                              disabled={restoringAccountId === account._id}
+                              className="text-xs bg-green-50 text-green-600 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {restoringAccountId === account._id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />{" "}
+                                  <span className="hidden sm:inline">
+                                    Restoring...
+                                  </span>
+                                  <span className="sm:hidden">...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <RotateCcw className="w-3 h-3" />{" "}
+                                  <span className="hidden sm:inline">
+                                    Restore
+                                  </span>
+                                  <span className="sm:hidden">R</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleOpenHardDeleteModal(account)}
+                              disabled={
+                                isHardDeleting &&
+                                accountToHardDelete?._id === account._id
+                              }
+                              className="text-xs bg-red-600 text-white px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-700 border border-red-700 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isHardDeleting &&
+                              accountToHardDelete?._id === account._id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />{" "}
+                                  <span className="hidden sm:inline">
+                                    Deleting...
+                                  </span>
+                                  <span className="sm:hidden">...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-3 h-3" />{" "}
+                                  <span className="hidden sm:inline">
+                                    Delete
+                                  </span>
+                                  <span className="sm:hidden">X</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -800,18 +872,18 @@ export const AccountManagement: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseEditModal}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-primary text-dark rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-primary text-dark rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -819,7 +891,9 @@ export const AccountManagement: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <Edit className="w-4 h-4" /> Update Account
+                      <Edit className="w-4 h-4" />{" "}
+                      <span className="hidden sm:inline">Update Account</span>
+                      <span className="sm:hidden">Update</span>
                     </>
                   )}
                 </button>
@@ -1098,7 +1172,7 @@ export const AccountManagement: React.FC = () => {
                   ) : (
                     <>
                       {locationProfiles.filter(
-                        (loc) => loc.type === "storefront"
+                        (loc) => loc.type === "storefront",
                       ).length > 0 && (
                         <optgroup label="Storefronts">
                           {locationProfiles
@@ -1111,7 +1185,7 @@ export const AccountManagement: React.FC = () => {
                         </optgroup>
                       )}
                       {locationProfiles.filter(
-                        (loc) => loc.type === "warehouse"
+                        (loc) => loc.type === "warehouse",
                       ).length > 0 && (
                         <optgroup label="Warehouses">
                           {locationProfiles
@@ -1125,10 +1199,10 @@ export const AccountManagement: React.FC = () => {
                       )}
                       {locationProfiles.length > 0 &&
                         locationProfiles.filter(
-                          (loc) => loc.type === "storefront"
+                          (loc) => loc.type === "storefront",
                         ).length === 0 &&
                         locationProfiles.filter(
-                          (loc) => loc.type === "warehouse"
+                          (loc) => loc.type === "warehouse",
                         ).length === 0 && (
                           <option disabled>
                             No active locations available

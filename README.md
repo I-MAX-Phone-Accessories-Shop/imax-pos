@@ -1,20 +1,78 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# OTAS POS
 
-# Run and deploy your AI Studio app
+A lightweight, offline-capable Point of Sale system tailored for mobile accessory shops with dual-location inventory management.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1VMM1digG5-ZlvomXs_wscwWps42hLPJ-
+- **Point of Sale**: Complete sales management with receipt printing
+- **Inventory Management**: Track products across multiple locations
+- **Warehouse & Storefront**: Dual-location inventory tracking
+- **Supplier Management**: Manage vendors and purchase orders
+- **Credit Sales**: Handle customer credit accounts and payments
+- **Expense Tracking**: Monitor business expenses
+- **Reporting**: Comprehensive sales and inventory reports
+- **Multi-language Support**: English and Myanmar language support
+- **Offline Capability**: Works without internet connection
+- **Modern UI**: Clean, responsive interface with light blue theme
 
-## Run Locally
+## Technology Stack
 
-**Prerequisites:**  Node.js
+- **Frontend**: React with TypeScript
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **Local Storage**: Data persistence
 
+## Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**Prerequisites:** Modern web browser (Chrome, Firefox, Safari, Edge)
+
+### Run Locally
+
+1. Clone or download the project files
+2. Open `index.html` in your web browser
+   - Or use a local server for better development experience:
+
+   ```bash
+   # Using Python
+   python -m http.server 8000
+
+   # Using Node.js
+   npx serve .
+
+   # Using PHP
+   php -S localhost:8000
+   ```
+
+3. Navigate to `http://localhost:8000` (or appropriate port)
+
+## Usage
+
+1. **First Time Setup**: Create admin account through login screen
+2. **Dashboard**: Access all main features from the sidebar
+3. **Sales**: Use POS interface for daily transactions
+4. **Inventory**: Manage products and stock levels
+5. **Reports**: View sales analytics and inventory reports
+
+## Data Storage
+
+All data is stored locally in the browser's localStorage:
+
+- Sales transactions
+- Product inventory
+- Customer information
+- Supplier details
+- User accounts
+
+**Note**: Data is stored locally and not synchronized across devices or browsers.
+
+## Browser Compatibility
+
+- Chrome 80+
+- Firefox 75+
+- Safari 13+
+- Edge 80+
+
+## License
+
+This project is proprietary software for OTAS POS system.

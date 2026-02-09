@@ -33,43 +33,45 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
       ? saleReports.filter((report) => report.success)
       : saleReports.filter(
           (report) =>
-            report.success && report.data.storefront._id === selectedStorefront
+            report.success && report.data.storefront._id === selectedStorefront,
         );
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow border border-primary/20">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-primary/20">
           <p className="text-slate-500 text-xs uppercase font-bold">
             Total Sales
           </p>
-          <p className="text-2xl font-bold text-slate-900">
-            {displayReport.finalAmount.toLocaleString()} MMK
+          <p className="text-lg sm:text-2xl font-bold text-slate-900">
+            {displayReport.finalAmount.toLocaleString()}{" "}
+            <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-green-100">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-green-100">
           <p className="text-slate-500 text-xs uppercase font-bold">
             Paid Amount
           </p>
-          <p className="text-2xl font-bold text-green-600">
-            {displayReport.paidAmount.toLocaleString()} MMK
+          <p className="text-lg sm:text-2xl font-bold text-green-600">
+            {displayReport.paidAmount.toLocaleString()}{" "}
+            <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-purple-100">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-purple-100">
           <p className="text-slate-500 text-xs uppercase font-bold">
             Credit Amount
           </p>
-          <p className="text-2xl font-bold text-purple-600">
+          <p className="text-lg sm:text-2xl font-bold text-purple-600">
             {(
               displayReport.finalAmount - displayReport.paidAmount
             ).toLocaleString()}{" "}
-            MMK
+            <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-blue-100">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-blue-100">
           <p className="text-slate-500 text-xs uppercase font-bold">
             Total Orders
           </p>
-          <p className="text-2xl font-bold text-blue-600">
+          <p className="text-lg sm:text-2xl font-bold text-blue-600">
             {displayReport.orderCount}
           </p>
         </div>
@@ -109,16 +111,16 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
       {/* Storefront Breakdown Table */}
       {reportsToShow.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <div className="p-4 border-b bg-slate-50">
-            <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary" />
+          <div className="p-3 sm:p-4 border-b bg-slate-50">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2 text-sm sm:text-base">
+              <Store className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               {selectedStorefront === "all"
                 ? "All Storefronts Breakdown"
                 : "Storefront Details"}
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
+            <table className="w-full text-sm text-left min-w-[800px]">
               <thead className="bg-slate-50 border-b">
                 <tr>
                   <th className="px-4 py-3 font-medium text-slate-600">

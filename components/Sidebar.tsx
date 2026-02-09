@@ -86,14 +86,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="px-4 py-4 flex items-center justify-between border-b border-primary/20">
           <div className="flex items-center gap-3">
-            <img
+            {/* <img
               src="/imaslogo.jpg"
               alt="IMAS Logo"
               className="w-12 h-12 object-contain rounded-lg"
-            />
+            /> */}
             <div>
               <h1 className="text-xl font-bold text-primary tracking-tight">
-                IMAS
+                OTAS POS
               </h1>
               <p className="text-dark-500 text-xs">{t("app.subtitle")}</p>
             </div>

@@ -23,6 +23,8 @@ import {
 } from "./orderUtils";
 import { useLanguage } from "../../context/LanguageContext";
 import { printThermalReceipt } from "../ThermalReceipt";
+import { detectDevice } from "../../utils/deviceDetect";
+import { useNavigate } from "react-router-dom";
 import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
 import { RemoveItemsFromOrderModal } from "./RemoveItemsFromOrderModal";
 
@@ -43,6 +45,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 }) => {
   console.log("orderdetail", order);
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
@@ -77,7 +80,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       note: order.notes,
     };
 
-    printThermalReceipt(receiptData, "58mm");
+    // Device detection for print method selection
+    const device = detectDevice();
+
+    // Save receipt data to localStorage for mobile printing
+    const receiptId = `receipt_${receiptData.invoiceNumber}`;
+    localStorage.setItem(receiptId, JSON.stringify(receiptData));
+
+    // Auto-print receipt based on device
+    if (device.isAndroid || device.isIOS) {
+      // For mobile devices (Android/iOS), navigate to receipt page
+      navigate(`/print-receipt/${receiptData.invoiceNumber}`);
+    } else {
+      // For desktop/Windows, use thermal receipt function
+      printThermalReceipt(receiptData, "58mm");
+    }
   };
 
   if (!isOpen) return null;
@@ -86,12 +103,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="flex justify-between items-center p-4 border-b bg-slate-50">
+        <div className="flex flex-row justify-between items-start gap-4 p-4 border-b bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
             <Receipt className="w-5 h-5 text-primary" />
             Order Details
           </h3>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-row items-center gap-2">
             {order && (
               <button
                 onClick={handlePrintOrder}
@@ -99,7 +116,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 title="Print Order"
               >
                 <Printer className="w-4 h-4" />
-                Print
+                <span className="hidden sm:inline">Print</span>
               </button>
             )}
             {order && userRole === "owner" && (
@@ -109,14 +126,18 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                 >
                   <Minus className="w-4 h-4" />
-                  {t("orders.removeItems") || "Remove Items"}
+                  <span className="hidden sm:inline">
+                    {t("orders.removeItems") || "Remove Items"}
+                  </span>
                 </button>
                 <button
                   onClick={() => setShowAddItemsModal(true)}
                   className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
                 >
                   <Plus className="w-4 h-4" />
-                  {t("orders.addItems") || "Add Items"}
+                  <span className="hidden sm:inline">
+                    {t("orders.addItems") || "Add Items"}
+                  </span>
                 </button>
               </>
             )}
@@ -299,6 +320,18 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       <span>-{order.discount?.toLocaleString()} MMK</span>
                     </div>
                   )}
+                  {order.discount === 0 &&
+                    order.finalAmount > order.subTotal && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Markup</span>
+                        <span>
+                          {(
+                            order.finalAmount - order.subTotal
+                          ).toLocaleString()}{" "}
+                          MMK
+                        </span>
+                      </div>
+                    )}
                   <div className="border-t pt-2 flex justify-between font-bold text-lg">
                     <span>Final Amount</span>
                     <span>{order.finalAmount?.toLocaleString()} MMK</span>

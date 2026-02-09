@@ -24,6 +24,7 @@ import { CreditOrders } from "./pages/CreditOrders";
 import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import PrintReceipt from "./pages/PrintReceipt";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -203,6 +204,7 @@ const AppLayout: React.FC = () => {
             }
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/print-receipt/:orderId" element={<PrintReceipt />} />
         </Routes>
       </main>
     </div>

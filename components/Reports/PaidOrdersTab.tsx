@@ -21,13 +21,14 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
   paidOrdersReport,
   loading,
 }) => {
+  console.log(paidOrdersReport);
   const paymentMethodChartData =
     paidOrdersReport?.success && paidOrdersReport.data.paymentMethods.length > 0
       ? paidOrdersReport.data.paymentMethods.map((pm) => ({
-          name: getPaymentMethodLabel(pm.paymentMethod),
-          value: pm.totalPaidAmount,
-          orderCount: pm.orderCount,
-        }))
+        name: getPaymentMethodLabel(pm.paymentMethod),
+        value: pm.totalPaidAmount,
+        orderCount: pm.orderCount,
+      }))
       : [];
 
   if (loading) {
@@ -48,14 +49,7 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
     );
   }
 
-  if (paidOrdersReport.data.paymentMethods.length === 0) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-        <CreditCard className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-        <p className="text-slate-600">No paid orders found</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6">
