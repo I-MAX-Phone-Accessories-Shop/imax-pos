@@ -25,9 +25,12 @@ import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import PrintReceipt from "./pages/PrintReceipt";
+import { Tutorial } from "./components/Tutorial";
+import { HelpCircle } from "lucide-react";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [runTutorial, setRunTutorial] = useState(false);
   const token = localStorage.getItem("authToken");
 
   return (
@@ -55,9 +58,21 @@ const AppLayout: React.FC = () => {
                   IMAS POS
                 </h1>
               </div>
-              <LanguageSwitcher />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setRunTutorial(true)}
+                  className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-primary flex items-center gap-2"
+                  title="Start Tutorial"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                  <span className="text-xs font-medium hidden sm:inline">Tour</span>
+                </button>
+                <LanguageSwitcher />
+              </div>
             </div>
           </header>
+
+          <Tutorial run={runTutorial} onFinish={() => setRunTutorial(false)} />
 
           {/* Sidebar */}
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

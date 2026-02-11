@@ -204,6 +204,8 @@ export const POS: React.FC = () => {
       }
       return [...prev, { stockItem, qty: 1 }];
     });
+    // Dispatch custom event for tutorial validation
+    window.dispatchEvent(new CustomEvent("product-added"));
   };
 
   const updateQty = (id: string, delta: number) => {
@@ -286,8 +288,7 @@ export const POS: React.FC = () => {
 
       // Show success feedback
       toast.success(
-        `${matchingProduct.inventoryId.productName} ${
-          t("pos.addedToCart") || "added to cart"
+        `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
         }`,
         {
           duration: 1500,
@@ -492,7 +493,7 @@ export const POS: React.FC = () => {
                   t("pos.searchOrScanBarcode") ||
                   "Search products or scan barcode..."
                 }
-                className="w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
+                className="search-input w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => {
@@ -542,9 +543,8 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
-                    showStorefrontMenu ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -571,18 +571,16 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
-                            sf._id === selectedStorefrontId
-                              ? "bg-primary/20 border-l-4 border-primary"
-                              : ""
-                          }`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
+                            ? "bg-primary/20 border-l-4 border-primary"
+                            : ""
+                            }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              sf._id === selectedStorefrontId
-                                ? "bg-primary text-dark"
-                                : "bg-dark-100 text-dark-500"
-                            }`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
+                              ? "bg-primary text-dark"
+                              : "bg-dark-100 text-dark-500"
+                              }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -643,11 +641,10 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
-                  stockItem.availableQuantity === 0
-                    ? "opacity-50 grayscale pointer-events-none"
-                    : ""
-                }`}
+                className={`product-item bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
+                  ? "opacity-50 grayscale pointer-events-none"
+                  : ""
+                  }`}
               >
                 <div className="">
                   <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -705,7 +702,7 @@ export const POS: React.FC = () => {
                     MMK
                   </p>
                 </div>
-                <div className="flex items-center gap-2 ml-2">
+                <div className="cart-item-controls flex items-center gap-2 ml-2">
                   <button
                     onClick={() => updateQty(item.stockItem._id, -1)}
                     className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
@@ -773,9 +770,11 @@ export const POS: React.FC = () => {
                 paymentMethod === PaymentMethod.FOC ? 0 : Math.ceil(total);
               setPaidAmount(initialPaidAmount);
               setShowCheckoutModal(true);
+              // Dispatch custom event for tutorial validation
+              window.dispatchEvent(new CustomEvent("checkout-initiated"));
             }}
             disabled={cart.length === 0}
-            className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="start-btn w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {t("pos.proceedToCheckout")}
           </button>
@@ -814,7 +813,7 @@ export const POS: React.FC = () => {
                   {t("pos.paymentType")}
                 </label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  className="payment-type-select w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={paymentType}
                   onChange={(e) => {
                     setPaymentType(e.target.value as "paid" | "credit");
@@ -867,7 +866,7 @@ export const POS: React.FC = () => {
                   {t("pos.paymentMethod")}
                 </label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  className="payment-method-select w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={paymentMethod}
                   onChange={(e) =>
                     setPaymentMethod(e.target.value as PaymentMethod)
@@ -956,7 +955,7 @@ export const POS: React.FC = () => {
                     type="number"
                     min="0"
                     max="100"
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    className="discount-input w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={discount}
                     onChange={(e) => setDiscount(Number(e.target.value))}
                   />
@@ -1001,11 +1000,10 @@ export const POS: React.FC = () => {
                   type="number"
                   min="0"
                   disabled={paymentMethod === PaymentMethod.FOC}
-                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
-                    paymentMethod === PaymentMethod.FOC
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : ""
-                  }`}
+                  className={`paid-amount-input w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : ""
+                    }`}
                   value={
                     paymentMethod === PaymentMethod.FOC ? 0 : paidAmount || ""
                   }
@@ -1063,7 +1061,7 @@ export const POS: React.FC = () => {
                 {paidAmount > 0 &&
                   paidAmount >= total &&
                   paymentType === "paid" && (
-                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                    <div className="change-display-row flex justify-between text-sm text-green-600 font-medium">
                       <span>{t("common.change")}</span>
                       <span>{(paidAmount - total).toLocaleString()} MMK</span>
                     </div>
@@ -1083,7 +1081,7 @@ export const POS: React.FC = () => {
                   isProcessing ||
                   (paymentType === "paid" && paidAmount < total)
                 }
-                className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="complete-sale-btn w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isProcessing ? (
                   <>
