@@ -46,6 +46,7 @@ enum PaymentMethod {
   BANK_TRANSFER = "Bank Transfer",
   NORMAL = "Normal",
   HOT = "Hot",
+  FOC = "FOC",
 }
 
 interface CartItem {
@@ -203,6 +204,8 @@ export const POS: React.FC = () => {
       }
       return [...prev, { stockItem, qty: 1 }];
     });
+    // Dispatch custom event for tutorial validation
+    window.dispatchEvent(new CustomEvent("product-added"));
   };
 
   const updateQty = (id: string, delta: number) => {
@@ -285,8 +288,7 @@ export const POS: React.FC = () => {
 
       // Show success feedback
       toast.success(
-        `${matchingProduct.inventoryId.productName} ${
-          t("pos.addedToCart") || "added to cart"
+        `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
         }`,
         {
           duration: 1500,
@@ -324,21 +326,34 @@ export const POS: React.FC = () => {
 
   // Auto-update paid amount when discount or subtotal changes in checkout modal
   useEffect(() => {
-    if (showCheckoutModal && paymentType === "paid") {
+    if (
+      showCheckoutModal &&
+      paymentType === "paid" &&
+      paymentMethod !== PaymentMethod.FOC
+    ) {
       // Update paid amount to match new total when discount or subtotal changes
       // Use Math.ceil to ensure it's always an integer
+      // Skip for FOC as paid amount should be 0
       setPaidAmount(Math.ceil(total));
     }
-  }, [showCheckoutModal, total, paymentType]);
+  }, [showCheckoutModal, total, paymentType, paymentMethod]);
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    // Only validate paid amount for "paid" payment type, not for "credit"
-    if (paymentType === "paid" && paidAmount < total) {
+    // Only validate paid amount for "paid" payment type, not for "credit" or "FOC"
+    if (
+      paymentType === "paid" &&
+      paymentMethod !== PaymentMethod.FOC &&
+      paidAmount < total
+    ) {
       toast.error(t("pos.paidAmountError"));
       return;
     }
+
+    // For FOC, set paid amount to 0
+    const finalPaidAmount =
+      paymentMethod === PaymentMethod.FOC ? 0 : paidAmount;
 
     setIsProcessing(true);
 
@@ -353,6 +368,7 @@ export const POS: React.FC = () => {
         [PaymentMethod.BANK_TRANSFER]: "bank_transfer",
         [PaymentMethod.NORMAL]: "normal",
         [PaymentMethod.HOT]: "hot",
+        [PaymentMethod.FOC]: "foc",
       };
 
       const discountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
@@ -366,7 +382,7 @@ export const POS: React.FC = () => {
         subTotal: subtotal,
         discount: discountAmount,
         finalAmount: total,
-        paidAmount: paidAmount,
+        paidAmount: finalPaidAmount,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         ...(paymentType === "credit" && selectedCreditPersonId
@@ -394,8 +410,8 @@ export const POS: React.FC = () => {
           subtotal,
           discountPercent: discount,
           total,
-          paidAmount,
-          change: paidAmount - total,
+          paidAmount: finalPaidAmount,
+          change: finalPaidAmount - total,
           paymentMethod,
           note,
         };
@@ -477,7 +493,7 @@ export const POS: React.FC = () => {
                   t("pos.searchOrScanBarcode") ||
                   "Search products or scan barcode..."
                 }
-                className="w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
+                className="search-input w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => {
@@ -527,9 +543,8 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
-                    showStorefrontMenu ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -556,18 +571,16 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
-                            sf._id === selectedStorefrontId
-                              ? "bg-primary/20 border-l-4 border-primary"
-                              : ""
-                          }`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
+                            ? "bg-primary/20 border-l-4 border-primary"
+                            : ""
+                            }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              sf._id === selectedStorefrontId
-                                ? "bg-primary text-dark"
-                                : "bg-dark-100 text-dark-500"
-                            }`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
+                              ? "bg-primary text-dark"
+                              : "bg-dark-100 text-dark-500"
+                              }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -628,11 +641,10 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
-                  stockItem.availableQuantity === 0
-                    ? "opacity-50 grayscale pointer-events-none"
-                    : ""
-                }`}
+                className={`product-item bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
+                  ? "opacity-50 grayscale pointer-events-none"
+                  : ""
+                  }`}
               >
                 <div className="">
                   <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -690,7 +702,7 @@ export const POS: React.FC = () => {
                     MMK
                   </p>
                 </div>
-                <div className="flex items-center gap-2 ml-2">
+                <div className="cart-item-controls flex items-center gap-2 ml-2">
                   <button
                     onClick={() => updateQty(item.stockItem._id, -1)}
                     className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
@@ -753,11 +765,16 @@ export const POS: React.FC = () => {
             onClick={() => {
               // Auto-fill paid amount with total when opening checkout modal
               // Use Math.ceil to ensure it's always an integer
-              setPaidAmount(Math.ceil(total));
+              // Set to 0 for FOC, otherwise use total
+              const initialPaidAmount =
+                paymentMethod === PaymentMethod.FOC ? 0 : Math.ceil(total);
+              setPaidAmount(initialPaidAmount);
               setShowCheckoutModal(true);
+              // Dispatch custom event for tutorial validation
+              window.dispatchEvent(new CustomEvent("checkout-initiated"));
             }}
             disabled={cart.length === 0}
-            className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="start-btn w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {t("pos.proceedToCheckout")}
           </button>
@@ -796,7 +813,7 @@ export const POS: React.FC = () => {
                   {t("pos.paymentType")}
                 </label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  className="payment-type-select w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={paymentType}
                   onChange={(e) => {
                     setPaymentType(e.target.value as "paid" | "credit");
@@ -849,7 +866,7 @@ export const POS: React.FC = () => {
                   {t("pos.paymentMethod")}
                 </label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  className="payment-method-select w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   value={paymentMethod}
                   onChange={(e) =>
                     setPaymentMethod(e.target.value as PaymentMethod)
@@ -883,6 +900,9 @@ export const POS: React.FC = () => {
                       </option>
                       <option value={PaymentMethod.BANK_TRANSFER}>
                         {t("pos.bankTransfer")}
+                      </option>
+                      <option value={PaymentMethod.FOC}>
+                        <span>FOC</span>
                       </option>
                     </>
                   )}
@@ -935,7 +955,7 @@ export const POS: React.FC = () => {
                     type="number"
                     min="0"
                     max="100"
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    className="discount-input w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     value={discount}
                     onChange={(e) => setDiscount(Number(e.target.value))}
                   />
@@ -968,22 +988,35 @@ export const POS: React.FC = () => {
               {/* Paid Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("pos.paidAmount")} (MMK){" "}
-                  {paymentType === "paid" && (
-                    <span className="text-red-500">*</span>
-                  )}
+                  {paymentMethod === PaymentMethod.FOC
+                    ? `${t("pos.paidAmount")} (MMK) - ${t("pos.focMessage") || "Free of Charge"}`
+                    : `${t("pos.paidAmount")} (MMK)`}
+                  {paymentType === "paid" &&
+                    paymentMethod !== PaymentMethod.FOC && (
+                      <span className="text-red-500">*</span>
+                    )}
                 </label>
                 <input
                   type="number"
                   min="0"
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  value={paidAmount || ""}
+                  disabled={paymentMethod === PaymentMethod.FOC}
+                  className={`paid-amount-input w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : ""
+                    }`}
+                  value={
+                    paymentMethod === PaymentMethod.FOC ? 0 : paidAmount || ""
+                  }
                   onChange={(e) => {
                     const value = Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
                     setPaidAmount(value);
                   }}
-                  placeholder={t("pos.enterPaidAmount")}
+                  placeholder={
+                    paymentMethod === PaymentMethod.FOC
+                      ? "0"
+                      : t("pos.enterPaidAmount")
+                  }
                 />
               </div>
 
@@ -1028,7 +1061,7 @@ export const POS: React.FC = () => {
                 {paidAmount > 0 &&
                   paidAmount >= total &&
                   paymentType === "paid" && (
-                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                    <div className="change-display-row flex justify-between text-sm text-green-600 font-medium">
                       <span>{t("common.change")}</span>
                       <span>{(paidAmount - total).toLocaleString()} MMK</span>
                     </div>
@@ -1048,7 +1081,7 @@ export const POS: React.FC = () => {
                   isProcessing ||
                   (paymentType === "paid" && paidAmount < total)
                 }
-                className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="complete-sale-btn w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isProcessing ? (
                   <>

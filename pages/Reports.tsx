@@ -21,6 +21,10 @@ import {
   CreditOrdersReportResponse,
 } from "../services/Reports/fetchCreditOrdersReport";
 import {
+  fetchCreditRecords,
+  CreditRecord,
+} from "../services/Reports/fetchCreditRecords";
+import {
   fetchProductSalesStatistics,
   fetchAllStorefrontsProductSalesStatistics,
   ProductSalesStatisticsResponse,
@@ -29,6 +33,11 @@ import {
   fetchStorefrontStock,
   StorefrontStockItem,
 } from "../services/Storefront/fetchStorefrontStock";
+import {
+  fetchFOCOrders,
+  fetchAllStorefrontsFOCOrders,
+  FOCOrder,
+} from "../services/Reports/fetchFOCOrders";
 import { ReportsHeader } from "../components/Reports/ReportsHeader";
 import { ReportTabs } from "../components/Reports/ReportTabs";
 import { OverallReportTab } from "../components/Reports/OverallReportTab";
@@ -36,8 +45,9 @@ import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
 import { CreditOrdersTab } from "../components/Reports/CreditOrdersTab";
 import { SaleStatisticsTab } from "../components/Reports/SaleStatisticsTab";
 import { TotalRevenueTab } from "../components/Reports/TotalRevenueTab";
+import { FOCTab } from "../components/Reports/FOCTab";
 
-type TabType = "overall" | "paid" | "credit" | "statistics" | "revenue";
+type TabType = "overall" | "paid" | "credit" | "statistics" | "revenue" | "foc";
 
 // Helper function to get today's date
 const getToday = () => {
@@ -61,6 +71,11 @@ export const Reports: React.FC = () => {
     allStorefrontsCreditOrdersReport,
     setAllStorefrontsCreditOrdersReport,
   ] = useState<CreditOrdersReportResponse | null>(null);
+  const [creditRecordsData, setCreditRecordsData] = useState<CreditRecord[]>(
+    [],
+  );
+  const [cumulativeCreditRecordsData, setCumulativeCreditRecordsData] =
+    useState<CreditRecord[]>([]);
   const [productSalesStatistics, setProductSalesStatistics] =
     useState<ProductSalesStatisticsResponse | null>(null);
   const [
@@ -78,11 +93,16 @@ export const Reports: React.FC = () => {
   const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
   const [loadingStatistics, setLoadingStatistics] = useState(false);
   const [loadingRevenue, setLoadingRevenue] = useState(false);
+  const [loadingFOC, setLoadingFOC] = useState(false);
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<TabType>("overall");
+  const [activeTab, setActiveTab] = useState<TabType>("revenue");
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
+  const [focOrders, setFocOrders] = useState<FOCOrder[]>([]);
+  const [allStorefrontsFocOrders, setAllStorefrontsFocOrders] = useState<
+    FOCOrder[]
+  >([]);
 
   useEffect(() => {
     loadReports();
@@ -98,6 +118,8 @@ export const Reports: React.FC = () => {
         loadProductSalesStatistics();
       } else if (activeTab === "revenue") {
         loadRevenueData();
+      } else if (activeTab === "foc") {
+        loadFOCOrders();
       } else if (activeTab === "overall") {
         loadReports();
       }
@@ -111,6 +133,8 @@ export const Reports: React.FC = () => {
         loadAllStorefrontsProductSalesStatistics();
       } else if (activeTab === "revenue") {
         loadRevenueData();
+      } else if (activeTab === "foc") {
+        loadAllStorefrontsFOCOrders();
       } else if (activeTab === "overall") {
         loadReports();
       }
@@ -344,62 +368,129 @@ export const Reports: React.FC = () => {
   const loadAllStorefrontsStock = async () => {
     setLoadingRevenue(true);
     try {
-      const response = await fetchStorefrontStock();
-      if (response.success) {
-        setAllStorefrontsStock(response.data);
-      } else {
-        toast.error("Failed to load all storefronts inventory");
-      }
+      // This would need to be implemented - for now using empty array
+      setAllStorefrontsStock([]);
     } catch (error) {
       console.error("Error loading all storefronts stock:", error);
-      toast.error("Failed to load all storefronts inventory");
+      toast.error("Failed to load all storefronts stock");
     } finally {
       setLoadingRevenue(false);
     }
   };
 
-  // Combined loading function for revenue tab
+  const loadFOCOrders = async () => {
+    if (selectedStorefront === "all") return;
+
+    setLoadingFOC(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchFOCOrders(
+        selectedStorefront,
+        startDateStr!,
+        endDateStr!,
+      );
+      setFocOrders(response);
+    } catch (error) {
+      console.error("Error loading FOC orders:", error);
+      toast.error("Failed to load FOC orders");
+    } finally {
+      setLoadingFOC(false);
+    }
+  };
+
+  const loadAllStorefrontsFOCOrders = async () => {
+    setLoadingFOC(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchAllStorefrontsFOCOrders(
+        startDateStr!,
+        endDateStr!,
+      );
+      setAllStorefrontsFocOrders(response);
+    } catch (error) {
+      console.error("Error loading all storefronts FOC orders:", error);
+      toast.error("Failed to load all storefronts FOC orders");
+    } finally {
+      setLoadingFOC(false);
+    }
+  };
+
   const loadRevenueData = async () => {
     setLoadingRevenue(true);
     try {
+      // For revenue tab, we use single date mode, so startDate and endDate should be the same (the chosen date).
+      // However, for Credit Remaining, we want "2025-12-01" to chosen date.
+      const chosenDateStr = formatDateForAPI(endDate); // endDate is the chosen date in single mode
+      const fixedStartStr = "2025-12-01";
+
       if (selectedStorefront === "all") {
-        const [stockResponse, creditResponse, paidResponse] = await Promise.all(
-          [
-            fetchStorefrontStock(),
-            fetchAllStorefrontsCreditOrdersReport(
-              formatDateForAPI(startDate),
-              formatDateForAPI(endDate),
-            ),
-            fetchAllStorefrontsPaidOrdersReport(
-              formatDateForAPI(startDate),
-              formatDateForAPI(endDate),
-            ),
-          ],
-        );
+        const [
+          stockResponse,
+          creditResponse,
+          paidResponse,
+          creditRecordsResponse,
+          cumulativeCreditRecordsResponse,
+        ] = await Promise.all([
+          fetchStorefrontStock(),
+          fetchAllStorefrontsCreditOrdersReport(fixedStartStr, chosenDateStr),
+          fetchAllStorefrontsPaidOrdersReport(chosenDateStr, chosenDateStr),
+          fetchCreditRecords(
+            chosenDateStr || undefined,
+            chosenDateStr || undefined,
+            "all",
+          ),
+          fetchCreditRecords(fixedStartStr, chosenDateStr || undefined, "all"),
+        ]);
 
         if (stockResponse.success) setAllStorefrontsStock(stockResponse.data);
         setAllStorefrontsCreditOrdersReport(creditResponse);
         setAllStorefrontsPaidOrdersReport(paidResponse);
+        if (creditRecordsResponse.success) {
+          setCreditRecordsData(creditRecordsResponse.data);
+        }
+        if (cumulativeCreditRecordsResponse.success) {
+          setCumulativeCreditRecordsData(cumulativeCreditRecordsResponse.data);
+        }
       } else {
-        const [stockResponse, creditResponse, paidResponse] = await Promise.all(
-          [
-            fetchStorefrontStock(selectedStorefront),
-            fetchCreditOrdersReport(
-              selectedStorefront,
-              formatDateForAPI(startDate),
-              formatDateForAPI(endDate),
-            ),
-            fetchPaidOrdersReport(
-              selectedStorefront,
-              formatDateForAPI(startDate),
-              formatDateForAPI(endDate),
-            ),
-          ],
-        );
+        const [
+          stockResponse,
+          creditResponse,
+          paidResponse,
+          creditRecordsResponse,
+          cumulativeCreditRecordsResponse,
+        ] = await Promise.all([
+          fetchStorefrontStock(selectedStorefront),
+          fetchCreditOrdersReport(
+            selectedStorefront,
+            fixedStartStr,
+            chosenDateStr,
+          ),
+          fetchPaidOrdersReport(
+            selectedStorefront,
+            chosenDateStr,
+            chosenDateStr,
+          ),
+          fetchCreditRecords(
+            chosenDateStr || undefined,
+            chosenDateStr || undefined,
+            selectedStorefront,
+          ),
+          fetchCreditRecords(
+            fixedStartStr,
+            chosenDateStr || undefined,
+            selectedStorefront,
+          ),
+        ]);
 
         if (stockResponse.success) setStorefrontStock(stockResponse.data);
         setCreditOrdersReport(creditResponse);
         setPaidOrdersReport(paidResponse);
+        if (creditRecordsResponse.success)
+          setCreditRecordsData(creditRecordsResponse.data);
+        if (cumulativeCreditRecordsResponse.success)
+          setCumulativeCreditRecordsData(cumulativeCreditRecordsResponse.data);
       }
     } catch (error) {
       console.error("Error loading revenue data:", error);
@@ -411,6 +502,9 @@ export const Reports: React.FC = () => {
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    // Logic to reset date if switching away from revenue or to revenue handled by user choice or default
+    // We don't force fixed start date anymore.
+
     if (selectedStorefront !== "all") {
       if (tab === "paid" && !paidOrdersReport) {
         loadPaidOrdersReport();
@@ -545,6 +639,7 @@ export const Reports: React.FC = () => {
         startDate={startDate}
         endDate={endDate}
         onDateRangeChange={handleDateRangeChange}
+        singleDate={activeTab === "revenue"}
       />
 
       <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
@@ -595,6 +690,16 @@ export const Reports: React.FC = () => {
         />
       )}
 
+      {/* FOC Products Tab */}
+      {activeTab === "foc" && (
+        <FOCTab
+          focOrders={
+            selectedStorefront === "all" ? allStorefrontsFocOrders : focOrders
+          }
+          loading={loadingFOC}
+        />
+      )}
+
       {/* Total Revenue Tab */}
       {activeTab === "revenue" && (
         <TotalRevenueTab
@@ -606,6 +711,14 @@ export const Reports: React.FC = () => {
           allStorefrontsCreditOrdersReport={allStorefrontsCreditOrdersReport}
           paidOrdersReport={paidOrdersReport}
           allStorefrontsPaidOrdersReport={allStorefrontsPaidOrdersReport}
+          totalCreditPaidAmountFromRecords={creditRecordsData.reduce(
+            (sum, record) => sum + (record.paidAmount || 0),
+            0,
+          )}
+          totalCumulativeCreditPaidAmountFromRecords={cumulativeCreditRecordsData.reduce(
+            (sum, record) => sum + (record.paidAmount || 0),
+            0,
+          )}
         />
       )}
 
@@ -638,7 +751,6 @@ export const Reports: React.FC = () => {
             {selectedStorefront === "all"
               ? "all storefronts"
               : "selected storefront"}
-            ...
           </p>
         </div>
       )}
