@@ -11,6 +11,7 @@ export enum PaymentMethod {
   UAB_PAY = "UAB Pay",
   BANK_TRANSFER = "Bank Transfer",
   CREDIT = "Credit (Pay Later)",
+  FOC = "FOC (Free of Charge)",
 }
 
 export enum ProductCategory {

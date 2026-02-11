@@ -46,6 +46,7 @@ enum PaymentMethod {
   BANK_TRANSFER = "Bank Transfer",
   NORMAL = "Normal",
   HOT = "Hot",
+  FOC = "FOC",
 }
 
 interface CartItem {
@@ -324,21 +325,34 @@ export const POS: React.FC = () => {
 
   // Auto-update paid amount when discount or subtotal changes in checkout modal
   useEffect(() => {
-    if (showCheckoutModal && paymentType === "paid") {
+    if (
+      showCheckoutModal &&
+      paymentType === "paid" &&
+      paymentMethod !== PaymentMethod.FOC
+    ) {
       // Update paid amount to match new total when discount or subtotal changes
       // Use Math.ceil to ensure it's always an integer
+      // Skip for FOC as paid amount should be 0
       setPaidAmount(Math.ceil(total));
     }
-  }, [showCheckoutModal, total, paymentType]);
+  }, [showCheckoutModal, total, paymentType, paymentMethod]);
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    // Only validate paid amount for "paid" payment type, not for "credit"
-    if (paymentType === "paid" && paidAmount < total) {
+    // Only validate paid amount for "paid" payment type, not for "credit" or "FOC"
+    if (
+      paymentType === "paid" &&
+      paymentMethod !== PaymentMethod.FOC &&
+      paidAmount < total
+    ) {
       toast.error(t("pos.paidAmountError"));
       return;
     }
+
+    // For FOC, set paid amount to 0
+    const finalPaidAmount =
+      paymentMethod === PaymentMethod.FOC ? 0 : paidAmount;
 
     setIsProcessing(true);
 
@@ -353,6 +367,7 @@ export const POS: React.FC = () => {
         [PaymentMethod.BANK_TRANSFER]: "bank_transfer",
         [PaymentMethod.NORMAL]: "normal",
         [PaymentMethod.HOT]: "hot",
+        [PaymentMethod.FOC]: "foc",
       };
 
       const discountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
@@ -366,7 +381,7 @@ export const POS: React.FC = () => {
         subTotal: subtotal,
         discount: discountAmount,
         finalAmount: total,
-        paidAmount: paidAmount,
+        paidAmount: finalPaidAmount,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         ...(paymentType === "credit" && selectedCreditPersonId
@@ -394,8 +409,8 @@ export const POS: React.FC = () => {
           subtotal,
           discountPercent: discount,
           total,
-          paidAmount,
-          change: paidAmount - total,
+          paidAmount: finalPaidAmount,
+          change: finalPaidAmount - total,
           paymentMethod,
           note,
         };
@@ -753,7 +768,10 @@ export const POS: React.FC = () => {
             onClick={() => {
               // Auto-fill paid amount with total when opening checkout modal
               // Use Math.ceil to ensure it's always an integer
-              setPaidAmount(Math.ceil(total));
+              // Set to 0 for FOC, otherwise use total
+              const initialPaidAmount =
+                paymentMethod === PaymentMethod.FOC ? 0 : Math.ceil(total);
+              setPaidAmount(initialPaidAmount);
               setShowCheckoutModal(true);
             }}
             disabled={cart.length === 0}
@@ -884,6 +902,9 @@ export const POS: React.FC = () => {
                       <option value={PaymentMethod.BANK_TRANSFER}>
                         {t("pos.bankTransfer")}
                       </option>
+                      <option value={PaymentMethod.FOC}>
+                        <span>FOC</span>
+                      </option>
                     </>
                   )}
                 </select>
@@ -968,22 +989,36 @@ export const POS: React.FC = () => {
               {/* Paid Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("pos.paidAmount")} (MMK){" "}
-                  {paymentType === "paid" && (
-                    <span className="text-red-500">*</span>
-                  )}
+                  {paymentMethod === PaymentMethod.FOC
+                    ? `${t("pos.paidAmount")} (MMK) - ${t("pos.focMessage") || "Free of Charge"}`
+                    : `${t("pos.paidAmount")} (MMK)`}
+                  {paymentType === "paid" &&
+                    paymentMethod !== PaymentMethod.FOC && (
+                      <span className="text-red-500">*</span>
+                    )}
                 </label>
                 <input
                   type="number"
                   min="0"
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                  value={paidAmount || ""}
+                  disabled={paymentMethod === PaymentMethod.FOC}
+                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
+                    paymentMethod === PaymentMethod.FOC
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : ""
+                  }`}
+                  value={
+                    paymentMethod === PaymentMethod.FOC ? 0 : paidAmount || ""
+                  }
                   onChange={(e) => {
                     const value = Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
                     setPaidAmount(value);
                   }}
-                  placeholder={t("pos.enterPaidAmount")}
+                  placeholder={
+                    paymentMethod === PaymentMethod.FOC
+                      ? "0"
+                      : t("pos.enterPaidAmount")
+                  }
                 />
               </div>
 
