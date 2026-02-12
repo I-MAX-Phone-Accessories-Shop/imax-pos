@@ -10,6 +10,11 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
     const [stepIndex, setStepIndex] = useState(0);
     const [steps] = useState<Step[]>([
         {
+            target: "body",
+            content: "မင်္ဂလာပါဗျာ။ ဒီနေ့ ကျွန်တော်တို့ OTAS POS စနစ်ထဲမှာ ဝယ်သူကို ပစ္စည်းရောင်းပြီး ငွေဘယ်လိုရှင်းမလဲဆိုတဲ့ Checkout လုပ်ငန်းစဉ်ကို လက်တွေ့ လေ့ကျင့်ကြည့်ပါမယ်။ အရောင်းဝန်ထမ်းတစ်ယောက်အနေနဲ့ အမှားအယွင်းမရှိအောင် ဒီအဆင့်တွေကို အတူတူ လိုက်လုပ်ကြည့်ရအောင်။",
+            placement: "center",
+        },
+        {
             target: ".search-input",
             content: "အရင်ဆုံး ဝယ်သူယူလာတဲ့ ပစ္စည်းကို စနစ်ထဲ ထည့်ရပါမယ်။ Screen ရဲ့ ဘယ်ဘက်အပေါ်က Search box မှာ ပစ္စည်းအမည်ကို ရိုက်ရှာပါ (ဒါမှမဟုတ်) Barcode ရှိရင် Scan ဖတ်လိုက်ပါ။",
             disableBeacon: true,
@@ -51,16 +56,16 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
 
     useEffect(() => {
         const handleProductAdded = () => {
-            // If we are on the product-item step (index 1), advance to next step
-            if (stepIndex === 1) {
-                setStepIndex(2);
+            // New index for product-item is 2
+            if (stepIndex === 2) {
+                setStepIndex(3);
             }
         };
 
         const handleCheckoutInitiated = () => {
-            // If we are on the start-btn step (index 3), advance to next step
-            if (stepIndex === 3) {
-                setStepIndex(4);
+            // New index for start-btn is 4
+            if (stepIndex === 4) {
+                setStepIndex(5);
             }
         };
 
@@ -103,6 +108,10 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
                     primaryColor: "#0ea5e9", // Adjust this to match your theme's primary color
                     textColor: "#333",
                     zIndex: 1000,
+                },
+                tooltip: {
+                    width: 500,
+                    padding: 20,
                 },
                 buttonNext: {
                     backgroundColor: "#0ea5e9",
