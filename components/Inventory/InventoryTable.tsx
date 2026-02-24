@@ -120,7 +120,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                     <div className="flex items-center justify-center gap-1 sm:gap-2">
                       <button
                         onClick={() => onViewDetails(p.id)}
-                        className="px-2 py-1 sm:px-3 sm:py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors whitespace-nowrap"
+                        className="inventory-view-btn px-2 py-1 sm:px-3 sm:py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors whitespace-nowrap"
                       >
                         <span className="hidden sm:inline">
                           {t("inventory.checkItem")}

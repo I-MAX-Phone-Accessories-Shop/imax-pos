@@ -4,11 +4,13 @@ import Joyride, { Step, CallBackProps, STATUS, EVENTS, ACTIONS } from "react-joy
 interface TutorialProps {
     run: boolean;
     onFinish: () => void;
+    tourType: "pos" | "inventory";
 }
 
-export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
+export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish, tourType }) => {
     const [stepIndex, setStepIndex] = useState(0);
-    const [steps] = useState<Step[]>([
+
+    const posSteps: Step[] = [
         {
             target: "body",
             content: "မင်္ဂလာပါဗျာ။ ဒီနေ့ ကျွန်တော်တို့ OTAS POS စနစ်ထဲမှာ ဝယ်သူကို ပစ္စည်းရောင်းပြီး ငွေဘယ်လိုရှင်းမလဲဆိုတဲ့ Checkout လုပ်ငန်းစဉ်ကို လက်တွေ့ လေ့ကျင့်ကြည့်ပါမယ်။ အရောင်းဝန်ထမ်းတစ်ယောက်အနေနဲ့ အမှားအယွင်းမရှိအောင် ဒီအဆင့်တွေကို အတူတူ လိုက်လုပ်ကြည့်ရအောင်။",
@@ -24,7 +26,6 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
             target: ".product-item",
             content: "ပစ္စည်းပုံလေး ပေါ်လာပြီဆိုရင် အဲဒီအပေါ်မှာ တစ်ချက်နှိပ်လိုက်ပါ။ ညာဘက်ခြမ်းက 'Current Sale' ဆိုတဲ့ နေရာကို ပစ္စည်းရောက်သွားတာ မြင်ရပါလိမ့်မယ်။",
             spotlightClicks: true,
-            hideNextButton: true, // Force user to click the product
         },
         {
             target: ".cart-item-controls",
@@ -34,7 +35,6 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
             target: ".start-btn",
             content: "၂။ ငွေပေးချေမှုစနစ်ထဲ ဝင်မယ် (Initiating Checkout)\nပစ္စည်းတွေ စုံပြီဆိုရင်တော့ ငွေတောင်းဖို့အတွက် Checkout စာမျက်နှာကို သွားပါမယ်။\nလုပ်ဆောင်ရန်: ညာဘက်အောက်ခြေက အပြာရောင်ခလုတ်ကြီး 'Proceed to Checkout' ကို နှိပ်လိုက်ပါ။\nဘာဖြစ်သွားမလဲ: ငွေရှင်းဖို့ အသေးစိတ်ဖြည့်ရမယ့် Pop-up window လေး ပွင့်လာပါလိမ့်မယ်။",
             spotlightClicks: true,
-            hideNextButton: true, // Force user to click the button
         },
         {
             target: ".payment-type-select",
@@ -50,23 +50,65 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
         },
         {
             target: ".complete-sale-btn",
-            content: "၅။ အရောင်းပိတ်သိမ်းမယ် (Complete Sale)\nအချက်အလက်တွေ အားလုံး မှန်ပြီဆိုရင်...\nအောက်က အပြာရောင် 'Complete Sale' ခလုတ်ကို နှိပ်လိုက်ပါ။ ဒါဆိုရင် အရောင်းစာရင်း သိမ်းဆည်းခြင်း အောင်မြင်သွားပါပြီ။",
+            content: "၅။ အရောင်းပိတ်သိမ်းမယ် (Complete Sale)\nအချက်အလက်တွေ အားလုံး မှန်ပြီဆိုရင်...\nအောက်က အပြာရောင် 'Complete Sale' ခလုတ်ကို နှိပ်လိုက်ပါ။ ဒါဆိုရင် အရောင်းစာရင်း သိည်းဆည်းခြင်း အောင်မြင်သွားပါပြီ။",
         },
-    ]);
+    ];
+
+    const inventorySteps: Step[] = [
+        {
+            target: "body",
+            content: "ကဲ... အခု ကျွန်တော်တို့ ဆိုင်ရဲ့ အသက်သွေးကြောဖြစ်တဲ့ ပစ္စည်းစာရင်း (Inventory) ကို ဘယ်လို စီမံမလဲဆိုတာ လေ့လာကြည့်ပါမယ်။ ပစ္စည်းအသစ်ထည့်တာ၊ ရှိပြီးသားစာရင်းကို စစ်တာနဲ့ ပစ္စည်းတွေကို ဂိုဒေါင်ကနေ ဆိုင်ရှေ့အရောင်းကောင်တာဆီ ရွှေ့တာတွေကို အတူတူ လုပ်ကြည့်ပါမယ်။",
+            placement: "center",
+        },
+        {
+            target: ".inventory-add-product-btn",
+            content: "၁။ ပစ္စည်းအသစ်စာရင်းသွင်းမယ် (Add New Product)\nဆိုင်ကို ပစ္စည်းအသစ်ရောက်လာရင် စနစ်ထဲမှာ အရင်ဆုံး နာမည်သွင်းရပါမယ်။\nလုပ်ဆောင်ချက်: အပြာရောင် '+ Add Product' ခလုတ်ကို နှိပ်လိုက်ပါ။\nဖြည့်သွင်းရန်:\nProduct Name: ပစ္စည်းအမည် (ဥပမာ - FQ9 PLUS ANC)။\nBarcode & Product Code: ဘားကုဒ်ဖတ်စက်နဲ့ စကန်ဖတ်ပါ (သို့မဟုတ်) ကုဒ်နံပါတ် ရိုက်ထည့်ပါ။\nCategory & Brand: ပစ္စည်းအမျိုးအစားနဲ့ တံဆိပ်ကို ရွေးပါ။\nPrices: ပစ္စည်းရင်းစျေး (Buying Price) နဲ့ ရောင်းစျေး (Selling Price) ကို သေချာအောင် ဖြည့်ပါ။\nအတည်ပြုရန်: အအားလုံးပြီးရင် 'Save Product' ကို နှိပ်ပြီး သိမ်းလိုက်ပါ။",
+        },
+        {
+            target: ".inventory-view-btn",
+            content: "၂။ ပစ္စည်းအသေးစိတ်ကို စစ်ဆေးမယ် (View Product Details)\nရှိပြီးသားပစ္စည်းတစ်ခုရဲ့ အချက်အလက် ဒါမှမဟုတ် အရေအတွက် ဘယ်လောက်ကျန်သေးလဲဆိုတာကို ကြည့်ချင်ရင် View ကို သုံးပါတယ်။\nလုပ်ဆောင်ချက်: 'View' ခလုတ်ကို နှိပ်ပါ။\nကြည့်ရှုနိုင်သည်များ:\nAbout Product: ပစ္စည်းအမည်၊ ကုဒ်နဲ့ စျေးနှုန်းတွေကို ပြန်စစ်လို့ရတယ်။\nProduct Quantity: ပစ္စည်းစုစုပေါင်း ဘယ်လောက်ရှိလဲ၊ ဆိုင်ရှေ့ (Storefront) မှာ ဘယ်လောက်၊ ဂိုဒေါင် (Warehouse) မှာ ဘယ်လောက်ကျန်လဲဆိုတာ တိတိကျကျ မြင်ရပါလိမ့်မယ်။",
+        },
+        {
+            target: ".inventory-refresh-btn",
+            content: "ပစ္စည်းစာရင်းတွေကို အသစ်ပြန်ဖြစ်သွားအောင် Refresh လုပ်နိုင်ပါတယ်။",
+        },
+        {
+            target: ".inventory-transfer-warehouse-btn",
+            content: "ပစ္စည်းတွေကို ဂိုဒေါင်ဆီ ပြန်ပို့ချင်ရင် ဒီခလုတ်ကို သုံးပါ။",
+        },
+        {
+            target: ".inventory-transfer-storefront-btn",
+            content: "ဂိုဒေါင်က ပစ္စည်းတွေကို ဆိုင်ရှေ့အရောင်းကောင်တာဆီ ပို့ချင်ရင် ဒီခလုတ်ကို သုံးပါ။",
+        },
+        {
+            target: ".inventory-add-product-btn",
+            content: "ပစ္စည်းအသစ်ထည့်ချင်ရင် ဒီခလုတ်ကို နှိပ်လိုက်ပါ။",
+        },
+        {
+            target: ".inventory-search-input",
+            content: "ဒီမှာ ပစ္စည်းအမည်၊ Barcode နဲ့ ရှာဖွေနိုင်ပါတယ်။",
+        },
+        {
+            target: ".inventory-category-filter",
+            content: "ပစ္စည်းအမျိုးအစားအလိုက် စစ်ထုတ်ကြည့်နိုင်ပါတယ်။",
+        },
+        {
+            target: ".inventory-table",
+            content: "ဒီမှာတော့ ရှိသမျှ ပစ္စည်းစာရင်းအားလုံးကို အသေးစိတ် ကြည့်နိုင်ပါတယ်။",
+        },
+    ];
+
+    const steps = tourType === "pos" ? posSteps : inventorySteps;
 
     useEffect(() => {
+        if (tourType !== "pos") return;
+
         const handleProductAdded = () => {
-            // New index for product-item is 2
-            if (stepIndex === 2) {
-                setStepIndex(3);
-            }
+            if (stepIndex === 2) setStepIndex(3);
         };
 
         const handleCheckoutInitiated = () => {
-            // New index for start-btn is 4
-            if (stepIndex === 4) {
-                setStepIndex(5);
-            }
+            if (stepIndex === 4) setStepIndex(5);
         };
 
         window.addEventListener("product-added", handleProductAdded);
@@ -75,14 +117,14 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
             window.removeEventListener("product-added", handleProductAdded);
             window.removeEventListener("checkout-initiated", handleCheckoutInitiated);
         };
-    }, [stepIndex]);
+    }, [stepIndex, tourType]);
 
-    // Reset stepIndex when tour is started
+    // Reset stepIndex when tour is started or tourType changes
     useEffect(() => {
         if (run) {
             setStepIndex(0);
         }
-    }, [run]);
+    }, [run, tourType]);
 
     const handleJoyrideCallback = (data: CallBackProps) => {
         const { action, index, status, type } = data;
@@ -96,7 +138,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
 
     return (
         <Joyride
-            steps={steps}
+            steps={steps as any}
             run={run}
             stepIndex={stepIndex}
             continuous
@@ -105,7 +147,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish }) => {
             callback={handleJoyrideCallback}
             styles={{
                 options: {
-                    primaryColor: "#0ea5e9", // Adjust this to match your theme's primary color
+                    primaryColor: "#0ea5e9",
                     textColor: "#333",
                     zIndex: 1000,
                 },

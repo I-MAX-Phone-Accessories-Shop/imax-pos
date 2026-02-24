@@ -552,7 +552,7 @@ export const Inventory: React.FC = () => {
       if (response.success) {
         toast.success(
           response.message ||
-            "Inventory transferred to storefront successfully",
+          "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
         handleCloseTransferStorefrontModal();
@@ -581,7 +581,7 @@ export const Inventory: React.FC = () => {
             <button
               onClick={loadProducts}
               disabled={isFetching}
-              className="bg-slate-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-slate-700 disabled:opacity-50 text-sm sm:text-base"
+              className="inventory-refresh-btn bg-slate-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-slate-700 disabled:opacity-50 text-sm sm:text-base"
             >
               {isFetching ? t("common.loading") : t("inventory.refresh")}
             </button>
@@ -592,7 +592,7 @@ export const Inventory: React.FC = () => {
                     setShowSelectBoxes(true);
                     setTransferMode("warehouse");
                   }}
-                  className="bg-blue-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base"
+                  className="inventory-transfer-warehouse-btn bg-blue-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base"
                 >
                   <Building2 className="w-4 h-4" />
                   <span className="hidden sm:inline">
@@ -607,7 +607,7 @@ export const Inventory: React.FC = () => {
                     setShowSelectBoxes(true);
                     setTransferMode("storefront");
                   }}
-                  className="bg-purple-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-purple-700 flex items-center gap-2 text-sm sm:text-base"
+                  className="inventory-transfer-storefront-btn bg-purple-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-purple-700 flex items-center gap-2 text-sm sm:text-base"
                 >
                   <Store className="w-4 h-4" />
                   <span className="hidden sm:inline">
@@ -678,7 +678,7 @@ export const Inventory: React.FC = () => {
                 resetForm();
                 setIsModalOpen(true);
               }}
-              className="bg-btn-primary text-dark px-3 py-2 sm:px-4 rounded hover:bg-btn-primary-hover text-sm sm:text-base"
+              className="inventory-add-product-btn bg-btn-primary text-dark px-3 py-2 sm:px-4 rounded hover:bg-btn-primary-hover text-sm sm:text-base"
             >
               +{" "}
               <span className="hidden sm:inline">
@@ -691,7 +691,7 @@ export const Inventory: React.FC = () => {
         </div>
 
         {/* Search Input */}
-        <div className="w-full sm:max-w-md">
+        <div className="inventory-search-input w-full sm:max-w-md">
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
@@ -707,13 +707,15 @@ export const Inventory: React.FC = () => {
       )}
 
       {/* Category Filter */}
-      <CategoryFilter
-        products={products}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        filteredCount={filteredProducts.length}
-        totalCount={products.length}
-      />
+      <div className="inventory-category-filter">
+        <CategoryFilter
+          products={products}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          filteredCount={filteredProducts.length}
+          totalCount={products.length}
+        />
+      </div>
 
       {isFetching && products.length === 0 ? (
         <div className="bg-white shadow-sm border rounded-xl p-8 text-center">
@@ -725,21 +727,23 @@ export const Inventory: React.FC = () => {
             {products.length === 0
               ? t("inventory.noProductsFound")
               : t("inventory.noProductsInCategory").replace(
-                  "{category}",
-                  selectedCategory,
-                )}
+                "{category}",
+                selectedCategory,
+              )}
           </p>
         </div>
       ) : (
-        <InventoryTable
-          products={filteredProducts}
-          onEdit={openEdit}
-          onViewDetails={handleViewDetails}
-          selectedProductIds={selectedProductIds}
-          onSelectionChange={handleSelectionChange}
-          onSelectAll={handleSelectAll}
-          showSelectBoxes={showSelectBoxes}
-        />
+        <div className="inventory-table">
+          <InventoryTable
+            products={filteredProducts}
+            onEdit={openEdit}
+            onViewDetails={handleViewDetails}
+            selectedProductIds={selectedProductIds}
+            onSelectionChange={handleSelectionChange}
+            onSelectAll={handleSelectAll}
+            showSelectBoxes={showSelectBoxes}
+          />
+        </div>
       )}
 
       {/* Product Modal */}
