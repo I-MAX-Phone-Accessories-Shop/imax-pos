@@ -6,11 +6,13 @@ import {
   CreditCard,
   UserPlus,
   Eye,
+  Edit2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchCreditOrders } from "../services/Order/fetchCreditOrders";
 import { Order } from "../services/Order/fetchOrders";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
+import { updatePaidAmount } from "../services/Order/updatePaidAmount";
 import {
   fetchStorefrontProfiles,
   StorefrontProfile,
@@ -53,6 +55,13 @@ export const CreditOrders: React.FC = () => {
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
+
+  // Paid Amount Edit States
+  const [showPaidAmountModal, setShowPaidAmountModal] = useState(false);
+  const [selectedOrderForPaidAmount, setSelectedOrderForPaidAmount] =
+    useState<Order | null>(null);
+  const [newPaidAmount, setNewPaidAmount] = useState("");
+  const [updatingPaidAmount, setUpdatingPaidAmount] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -207,6 +216,37 @@ export const CreditOrders: React.FC = () => {
     }
   };
 
+  const handleOpenPaidAmountModal = (order: Order) => {
+    setSelectedOrderForPaidAmount(order);
+    setNewPaidAmount(order.paidAmount.toString());
+    setShowPaidAmountModal(true);
+  };
+
+  const handleUpdatePaidAmount = async () => {
+    if (!selectedOrderForPaidAmount || !newPaidAmount) return;
+
+    setUpdatingPaidAmount(true);
+    try {
+      const response = await updatePaidAmount(
+        selectedOrderForPaidAmount._id,
+        newPaidAmount
+      );
+      if (response.success) {
+        toast.success("Paid amount updated successfully");
+        setShowPaidAmountModal(false);
+        setSelectedOrderForPaidAmount(null);
+        await loadOrders();
+      } else {
+        toast.error(response.message || "Failed to update paid amount");
+      }
+    } catch (error) {
+      console.error("Error updating paid amount:", error);
+      toast.error("Failed to update paid amount");
+    } finally {
+      setUpdatingPaidAmount(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -286,7 +326,7 @@ export const CreditOrders: React.FC = () => {
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Order Number</span>
+                      <span className="hidden sm:inline">Credit Order Number</span>
                       <span className="sm:hidden">Order #</span>
                     </th>
 
@@ -349,7 +389,7 @@ export const CreditOrders: React.FC = () => {
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         {order.creditPersonId &&
-                        typeof order.creditPersonId === "object" ? (
+                          typeof order.creditPersonId === "object" ? (
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
                             <div className="min-w-0">
@@ -386,9 +426,20 @@ export const CreditOrders: React.FC = () => {
                         {order.finalAmount.toLocaleString()}{" "}
                         <span className="hidden sm:inline">MMK</span>
                       </td>
-                      <td className="px-2 sm:px-4 py-3 font-medium text-slate-800 text-xs sm:text-sm">
-                        {order.paidAmount.toLocaleString()}{" "}
-                        <span className="hidden sm:inline">MMK</span>
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-800 text-xs sm:text-sm">
+                            {order.paidAmount.toLocaleString()}{" "}
+                            <span className="hidden sm:inline">MMK</span>
+                          </span>
+                          <button
+                            onClick={() => handleOpenPaidAmountModal(order)}
+                            className="p-1 hover:bg-slate-200 rounded text-slate-400 hover:text-blue-600 transition-colors"
+                            title="Edit Paid Amount"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         <span className="font-medium text-orange-600 text-xs sm:text-sm">
@@ -460,6 +511,93 @@ export const CreditOrders: React.FC = () => {
         }}
         onAssign={handleAssignCreditPerson}
       />
+      {/* Paid Amount Edit Modal */}
+      {showPaidAmountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+                <Edit2 className="w-5 h-5 text-blue-600" />
+                Edit Paid Amount
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Order Number
+                  </label>
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-600 text-sm">
+                    {selectedOrderForPaidAmount?.orderNumber}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Total Amount
+                  </label>
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-800 font-semibold text-sm">
+                    {selectedOrderForPaidAmount?.finalAmount.toLocaleString()} MMK
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Enter Paid Amount
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={newPaidAmount}
+                      onChange={(e) => setNewPaidAmount(e.target.value)}
+                      placeholder="Enter amount..."
+                      className="w-full pl-3 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-lg font-semibold"
+                      autoFocus
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
+                      MMK
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-blue-700">Remaining Balance:</span>
+                    <span className="font-bold text-blue-800">
+                      {Math.max(
+                        0,
+                        (selectedOrderForPaidAmount?.finalAmount || 0) - Number(newPaidAmount || 0)
+                      ).toLocaleString()} MMK
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => setShowPaidAmountModal(false)}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdatePaidAmount}
+                  disabled={updatingPaidAmount || !newPaidAmount}
+                  className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                >
+                  {updatingPaidAmount ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Confirm"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
