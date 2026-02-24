@@ -762,10 +762,11 @@ export const POS: React.FC = () => {
           <button
             onClick={() => {
               // Auto-fill paid amount with total when opening checkout modal
-              // Use Math.ceil to ensure it's always an integer
-              // Set to 0 for FOC, otherwise use total
+              // Set to 0 for FOC or Credit, otherwise use total
               const initialPaidAmount =
-                paymentMethod === PaymentMethod.FOC ? 0 : Math.ceil(total);
+                paymentMethod === PaymentMethod.FOC || paymentType === "credit"
+                  ? 0
+                  : Math.ceil(total);
               setPaidAmount(initialPaidAmount);
               setShowCheckoutModal(true);
             }}
@@ -816,8 +817,12 @@ export const POS: React.FC = () => {
                     if (e.target.value === "paid") {
                       setSelectedCreditPersonId("");
                       setPaymentMethod(PaymentMethod.CASH);
+                      // Reset to total when switching back to paid
+                      setPaidAmount(Math.ceil(total));
                     } else if (e.target.value === "credit") {
                       setPaymentMethod(PaymentMethod.NORMAL);
+                      // Set initial value to zero for credit
+                      setPaidAmount(0);
                     }
                   }}
                 >
@@ -1001,12 +1006,12 @@ export const POS: React.FC = () => {
                     : ""
                     }`}
                   value={
-                    paymentMethod === PaymentMethod.FOC ? 0 : paidAmount || ""
+                    paymentMethod === PaymentMethod.FOC ? 0 : paidAmount
                   }
                   onChange={(e) => {
-                    const value = Number(e.target.value);
+                    const value = e.target.value === "" ? 0 : Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
-                    setPaidAmount(value);
+                    setPaidAmount(Math.ceil(value));
                   }}
                   placeholder={
                     paymentMethod === PaymentMethod.FOC
@@ -1289,7 +1294,7 @@ export const POS: React.FC = () => {
                         (Number(discountAmount) / subtotal) *
                         100
                       ).toFixed(2);
-                      setDiscount(calculatedPercentage); // Use Math.ceil for integer percentage
+                      setDiscount(Number(calculatedPercentage)); // Use number for consistency
                       setShowDiscountCalculator(false);
                       setDiscountAmount("");
                       toast.success(`Discount set to ${calculatedPercentage}%`);
