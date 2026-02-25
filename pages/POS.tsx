@@ -304,7 +304,7 @@ export const POS: React.FC = () => {
   // Calculate totals
   const getItemPrice = (item: StorefrontStockItem) => {
     // Use sellingPrice from inventory if available, otherwise use placeholder
-    return item.inventoryId.sellingPrice || 10000; // Default to 10000 MMK if not available
+    return item.inventoryId.sellingPrice; // Default to 10000 MMK if not available
   };
 
   const subtotal = cart.reduce(
