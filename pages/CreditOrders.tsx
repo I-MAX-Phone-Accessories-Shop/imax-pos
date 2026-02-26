@@ -7,12 +7,14 @@ import {
   UserPlus,
   Eye,
   Edit2,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchCreditOrders } from "../services/Order/fetchCreditOrders";
 import { Order } from "../services/Order/fetchOrders";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
 import { updatePaidAmount } from "../services/Order/updatePaidAmount";
+import { deleteCreditOrder } from "../services/Order/deleteCreditOrder";
 import {
   fetchStorefrontProfiles,
   StorefrontProfile,
@@ -62,6 +64,11 @@ export const CreditOrders: React.FC = () => {
     useState<Order | null>(null);
   const [newPaidAmount, setNewPaidAmount] = useState("");
   const [updatingPaidAmount, setUpdatingPaidAmount] = useState(false);
+
+  // Delete Order States
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -218,7 +225,7 @@ export const CreditOrders: React.FC = () => {
 
   const handleOpenPaidAmountModal = (order: Order) => {
     setSelectedOrderForPaidAmount(order);
-    setNewPaidAmount(order.paidAmount.toString());
+    setNewPaidAmount(order.paidAmount);
     setShowPaidAmountModal(true);
   };
 
@@ -229,7 +236,7 @@ export const CreditOrders: React.FC = () => {
     try {
       const response = await updatePaidAmount(
         selectedOrderForPaidAmount._id,
-        newPaidAmount
+        newPaidAmount,
       );
       if (response.success) {
         toast.success("Paid amount updated successfully");
@@ -252,6 +259,39 @@ export const CreditOrders: React.FC = () => {
       style: "currency",
       currency: "MMK",
     }).format(amount);
+  };
+
+  // Delete Order Handlers
+  const handleOpenDeleteConfirm = (order: Order) => {
+    setOrderToDelete(order);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleCloseDeleteConfirm = () => {
+    setOrderToDelete(null);
+    setShowDeleteConfirmModal(false);
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    setDeletingOrder(true);
+    try {
+      const response = await deleteCreditOrder(orderToDelete._id);
+      if (response.success) {
+        toast.success("Credit order deleted successfully");
+        setShowDeleteConfirmModal(false);
+        setOrderToDelete(null);
+        await loadOrders();
+      } else {
+        toast.error(response.message || "Failed to delete credit order");
+      }
+    } catch (error) {
+      console.error("Error deleting credit order:", error);
+      toast.error("Failed to delete credit order");
+    } finally {
+      setDeletingOrder(false);
+    }
   };
 
   return (
@@ -326,7 +366,9 @@ export const CreditOrders: React.FC = () => {
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                      <span className="hidden sm:inline">Credit Order Number</span>
+                      <span className="hidden sm:inline">
+                        Credit Order Number
+                      </span>
                       <span className="sm:hidden">Order #</span>
                     </th>
 
@@ -389,7 +431,7 @@ export const CreditOrders: React.FC = () => {
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         {order.creditPersonId &&
-                          typeof order.creditPersonId === "object" ? (
+                        typeof order.creditPersonId === "object" ? (
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
                             <div className="min-w-0">
@@ -432,13 +474,13 @@ export const CreditOrders: React.FC = () => {
                             {order.paidAmount.toLocaleString()}{" "}
                             <span className="hidden sm:inline">MMK</span>
                           </span>
-                          <button
+                          {/* <button
                             onClick={() => handleOpenPaidAmountModal(order)}
                             className="p-1 hover:bg-slate-200 rounded text-slate-400 hover:text-blue-600 transition-colors"
                             title="Edit Paid Amount"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
@@ -479,6 +521,14 @@ export const CreditOrders: React.FC = () => {
                               <span className="xl:hidden sm:hidden">✓</span>
                             </span>
                           )}
+                          {/* <button
+                            onClick={() => handleOpenDeleteConfirm(order)}
+                            className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span className="hidden xl:block">Delete</span>
+                            <span className="xl:hidden sm:hidden">Del</span>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -536,7 +586,8 @@ export const CreditOrders: React.FC = () => {
                     Total Amount
                   </label>
                   <div className="p-2 bg-slate-50 rounded-lg text-slate-800 font-semibold text-sm">
-                    {selectedOrderForPaidAmount?.finalAmount.toLocaleString()} MMK
+                    {selectedOrderForPaidAmount?.finalAmount.toLocaleString()}{" "}
+                    MMK
                   </div>
                 </div>
 
@@ -565,8 +616,10 @@ export const CreditOrders: React.FC = () => {
                     <span className="font-bold text-blue-800">
                       {Math.max(
                         0,
-                        (selectedOrderForPaidAmount?.finalAmount || 0) - Number(newPaidAmount || 0)
-                      ).toLocaleString()} MMK
+                        (selectedOrderForPaidAmount?.finalAmount || 0) -
+                          Number(newPaidAmount || 0),
+                      ).toLocaleString()}{" "}
+                      MMK
                     </span>
                   </div>
                 </div>
@@ -591,6 +644,87 @@ export const CreditOrders: React.FC = () => {
                     </>
                   ) : (
                     "Confirm"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">
+                    Delete Credit Order
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    This action cannot be undone
+                  </p>
+                </div>
+              </div>
+
+              {orderToDelete && (
+                <div className="bg-slate-50 rounded-lg p-4 mb-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Order Number:</span>
+                      <span className="font-medium text-slate-800">
+                        {orderToDelete.orderNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Total Amount:</span>
+                      <span className="font-medium text-slate-800">
+                        {orderToDelete.finalAmount.toLocaleString()} MMK
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Customer:</span>
+                      <span className="font-medium text-slate-800">
+                        {orderToDelete.creditPersonId?.name ||
+                          "No customer assigned"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+                <p className="text-sm text-red-800">
+                  <strong>Warning:</strong> Deleting this credit order will
+                  permanently remove all associated data including payment
+                  records and customer balance information.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCloseDeleteConfirm}
+                  disabled={deletingOrder}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteOrder}
+                  disabled={deletingOrder}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                >
+                  {deletingOrder ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Order"
                   )}
                 </button>
               </div>

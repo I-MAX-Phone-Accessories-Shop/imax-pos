@@ -182,7 +182,7 @@ export const CreditDetail: React.FC = () => {
       if (response.success && response.data) {
         // Filter stock for selected storefront
         const filteredStock = response.data.filter(
-          (item) => item.storefrontId?._id === storefrontId
+          (item) => item.storefrontId?._id === storefrontId,
         );
         setStockItems(filteredStock);
       }
@@ -195,7 +195,7 @@ export const CreditDetail: React.FC = () => {
 
   const handleProductChange = (inventoryId: string) => {
     const selectedItem = stockItems.find(
-      (item) => item.inventoryId._id === inventoryId
+      (item) => item.inventoryId._id === inventoryId,
     );
     const price = selectedItem?.inventoryId.sellingPrice || 0;
     setCreditForm({
@@ -207,7 +207,7 @@ export const CreditDetail: React.FC = () => {
 
   const handleQuantityChange = (quantity: number) => {
     const selectedItem = stockItems.find(
-      (item) => item.inventoryId._id === creditForm.inventoryId
+      (item) => item.inventoryId._id === creditForm.inventoryId,
     );
     const price = selectedItem?.inventoryId.sellingPrice || 0;
     setCreditForm({
@@ -347,7 +347,7 @@ export const CreditDetail: React.FC = () => {
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           {t("creditDetail.refresh")}
         </button>
-        {personaDetail && (
+        {/* {personaDetail && (
           <div className="flex gap-2">
             <button
               onClick={handleOpenAddCredit}
@@ -366,7 +366,7 @@ export const CreditDetail: React.FC = () => {
               </button>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
       {loading ? (
@@ -526,10 +526,11 @@ export const CreditDetail: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span
-                          className={`font-medium ${record.orderId.remainingBalance > 0
-                            ? "text-orange-600"
-                            : "text-green-600"
-                            }`}
+                          className={`font-medium ${
+                            record.orderId.remainingBalance > 0
+                              ? "text-orange-600"
+                              : "text-green-600"
+                          }`}
                         >
                           {record.orderId.remainingBalance.toLocaleString()} MMK
                         </span>
@@ -721,7 +722,6 @@ export const CreditDetail: React.FC = () => {
                 </select>
               </div>
 
-
               <div className="grid grid-cols-2 gap-4">
                 {/* Subtotal */}
                 <div className="col-span-2">
@@ -734,18 +734,23 @@ export const CreditDetail: React.FC = () => {
                     placeholder="Enter subtotal amount..."
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm font-bold text-lg"
                     value={creditForm.finalAmount}
-                    onChange={(e) => setCreditForm({ ...creditForm, finalAmount: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setCreditForm({
+                        ...creditForm,
+                        finalAmount: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
               </div>
-
-
 
               {/* Summary Summary */}
               <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center text-blue-900">
                 <span className="font-medium">Credit Amount to be added:</span>
                 <span className="text-xl font-bold">
-                  {(creditForm.finalAmount - creditForm.paidAmount).toLocaleString()}{" "}
+                  {(
+                    creditForm.finalAmount - creditForm.paidAmount
+                  ).toLocaleString()}{" "}
                   MMK
                 </span>
               </div>
