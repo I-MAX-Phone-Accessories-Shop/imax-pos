@@ -140,7 +140,7 @@ export const POS: React.FC = () => {
 
   const loadStockItems = async () => {
     try {
-      const response = await fetchStorefrontStock();
+      const response = await fetchStorefrontStock(selectedStorefrontId);
       // console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
@@ -160,7 +160,8 @@ export const POS: React.FC = () => {
 
   // Filter products by selected storefront and search
   const filteredProducts = allStockItems.filter((item) => {
-    const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
+    const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3"
+    // const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
     const matchesSearch = item.inventoryId?.productName
       ?.toLowerCase()
       .includes(search.toLowerCase());
@@ -168,7 +169,7 @@ export const POS: React.FC = () => {
       selectedCategory === "All" ||
       item.inventoryId?.category === selectedCategory;
 
-    return matchesStorefront && matchesSearch && matchesCategory;
+    return !hideProduct && matchesSearch && matchesCategory;
   });
 
   // Get unique categories from current storefront products
@@ -253,7 +254,8 @@ export const POS: React.FC = () => {
     // Filter products by selected storefront first
     const storefrontProducts = allStockItems.filter((item) => {
       const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-      return matchesStorefront;
+      const isHidden = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
+      return matchesStorefront && !isHidden;
     });
 
     // Find matching product by barcode, productCode, or SKU (case-insensitive)

@@ -229,14 +229,14 @@ export const CreditDetail: React.FC = () => {
         storefrontId: creditForm.storefrontId,
         ordersProducts: [
           {
-            inventoryId: "699dbe7827a8b47f58095191",
+            inventoryId: "69a15d55218ec5ff9a3fe4a3",
             quantity: 1,
           },
         ],
         subTotal: creditForm.finalAmount,
         finalAmount: creditForm.finalAmount,
         paidAmount: creditForm.paidAmount,
-        paymentType: "credit",
+        paymentType: "credit" as "credit" | "credit",
         paymentMethod: "normal",
         creditPersonId: id, // current credit person
       };
@@ -347,7 +347,7 @@ export const CreditDetail: React.FC = () => {
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           {t("creditDetail.refresh")}
         </button>
-        {/* {personaDetail && (
+        {personaDetail && (
           <div className="flex gap-2">
             <button
               onClick={handleOpenAddCredit}
@@ -366,7 +366,7 @@ export const CreditDetail: React.FC = () => {
               </button>
             )}
           </div>
-        )} */}
+        )}
       </div>
 
       {loading ? (
@@ -526,11 +526,10 @@ export const CreditDetail: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span
-                          className={`font-medium ${
-                            record.orderId.remainingBalance > 0
-                              ? "text-orange-600"
-                              : "text-green-600"
-                          }`}
+                          className={`font-medium ${record.orderId.remainingBalance > 0
+                            ? "text-orange-600"
+                            : "text-green-600"
+                            }`}
                         >
                           {record.orderId.remainingBalance.toLocaleString()} MMK
                         </span>
