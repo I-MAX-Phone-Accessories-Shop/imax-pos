@@ -13,6 +13,9 @@ import {
   Loader2,
   Plus,
   X,
+  Store,
+  Box,
+  Coins,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -21,6 +24,15 @@ import {
 } from "../services/Credit/fetchCreditPersonaRecords";
 import { createCreditRecord } from "../services/Credit/createCreditRecord";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
+import { createOrder } from "../services/Order/createOrder";
+import {
+  fetchStorefrontProfiles,
+  StorefrontProfile,
+} from "../services/Storefront/fetchStorefrontProfiles";
+import {
+  fetchStorefrontStock,
+  StorefrontStockItem,
+} from "../services/Storefront/fetchStorefrontStock";
 import { Order } from "../services/Order/fetchOrders";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { useLanguage } from "../context/LanguageContext";
@@ -57,6 +69,21 @@ export const CreditDetail: React.FC = () => {
   // Order Detail Modal State
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
+
+  // Add Credit Order Modal State
+  const [showAddCreditModal, setShowAddCreditModal] = useState(false);
+  const [isCreatingCredit, setIsCreatingCredit] = useState(false);
+  const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
+  const [stockItems, setStockItems] = useState<StorefrontStockItem[]>([]);
+  const [loadingStock, setLoadingStock] = useState(false);
+  const [creditForm, setCreditForm] = useState({
+    storefrontId: "",
+    inventoryId: "",
+    quantity: 1,
+    finalAmount: 0,
+    paidAmount: 0,
+    paymentMethod: "normal",
+  });
 
   useEffect(() => {
     if (id) {
@@ -125,6 +152,116 @@ export const CreditDetail: React.FC = () => {
       paymentMethod: "cash",
     });
     setShowAddPaymentModal(true);
+  };
+
+  const handleOpenAddCredit = async () => {
+    setShowAddCreditModal(true);
+    setLoadingStock(true);
+    try {
+      const response = await fetchStorefrontProfiles();
+      if (response.success && response.data) {
+        setStorefronts(response.data.filter((sf) => sf.status === "active"));
+      }
+    } catch (error) {
+      console.error("Error loading storefronts:", error);
+    } finally {
+      setLoadingStock(false);
+    }
+  };
+
+  const handleStorefrontChange = async (storefrontId: string) => {
+    setCreditForm({
+      ...creditForm,
+      storefrontId,
+      inventoryId: "",
+      finalAmount: 0,
+    });
+    setLoadingStock(true);
+    try {
+      const response = await fetchStorefrontStock();
+      if (response.success && response.data) {
+        // Filter stock for selected storefront
+        const filteredStock = response.data.filter(
+          (item) => item.storefrontId?._id === storefrontId,
+        );
+        setStockItems(filteredStock);
+      }
+    } catch (error) {
+      console.error("Error loading stock:", error);
+    } finally {
+      setLoadingStock(false);
+    }
+  };
+
+  const handleProductChange = (inventoryId: string) => {
+    const selectedItem = stockItems.find(
+      (item) => item.inventoryId._id === inventoryId,
+    );
+    const price = selectedItem?.inventoryId.sellingPrice || 0;
+    setCreditForm({
+      ...creditForm,
+      inventoryId,
+      finalAmount: price * creditForm.quantity,
+    });
+  };
+
+  const handleQuantityChange = (quantity: number) => {
+    const selectedItem = stockItems.find(
+      (item) => item.inventoryId._id === creditForm.inventoryId,
+    );
+    const price = selectedItem?.inventoryId.sellingPrice || 0;
+    setCreditForm({
+      ...creditForm,
+      quantity,
+      finalAmount: price * quantity,
+    });
+  };
+
+  const handleAddCreditOrder = async () => {
+    if (!creditForm.storefrontId) {
+      toast.error("Please select a storefront");
+      return;
+    }
+
+    setIsCreatingCredit(true);
+    try {
+      const payload = {
+        storefrontId: creditForm.storefrontId,
+        ordersProducts: [
+          {
+            inventoryId: "69a15d55218ec5ff9a3fe4a3",
+            quantity: 1,
+          },
+        ],
+        subTotal: creditForm.finalAmount,
+        finalAmount: creditForm.finalAmount,
+        paidAmount: creditForm.paidAmount,
+        paymentType: "credit" as "credit" | "credit",
+        paymentMethod: "normal",
+        creditPersonId: id, // current credit person
+      };
+
+      const response = await createOrder(payload);
+      if (response.success) {
+        toast.success("Credit order created successfully");
+        setShowAddCreditModal(false);
+        setCreditForm({
+          storefrontId: "",
+          quantity: 1,
+          finalAmount: 0,
+          paidAmount: 0,
+          paymentMethod: "normal",
+        });
+        await loadCreditDetail();
+      } else {
+        toast.error(response.message || "Failed to create credit order");
+      }
+    } catch (error) {
+      console.error("Error creating credit order:", error);
+      toast.error("Failed to create credit order");
+    } finally {
+      setIsCreatingCredit(false);
+    }
   };
 
   const handleCloseAddPayment = () => {
@@ -210,14 +347,25 @@ export const CreditDetail: React.FC = () => {
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           {t("creditDetail.refresh")}
         </button>
-        {personaDetail && personaDetail.orders.length > 0 && (
-          <button
-            onClick={handleOpenAddPayment}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-          >
-            <Plus className="w-4 h-4" />
-            {t("creditDetail.addPayment")}
-          </button>
+        {personaDetail && (
+          <div className="flex gap-2">
+            <button
+              onClick={handleOpenAddCredit}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm transition-all active:scale-95"
+            >
+              <Box className="w-4 h-4" />
+              Add Credit
+            </button>
+            {personaDetail.orders.length > 0 && (
+              <button
+                onClick={handleOpenAddPayment}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm transition-all active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                {t("creditDetail.addPayment")}
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -378,11 +526,10 @@ export const CreditDetail: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span
-                          className={`font-medium ${
-                            record.orderId.remainingBalance > 0
-                              ? "text-orange-600"
-                              : "text-green-600"
-                          }`}
+                          className={`font-medium ${record.orderId.remainingBalance > 0
+                            ? "text-orange-600"
+                            : "text-green-600"
+                            }`}
                         >
                           {record.orderId.remainingBalance.toLocaleString()} MMK
                         </span>
@@ -536,6 +683,106 @@ export const CreditDetail: React.FC = () => {
           setLoadingOrderDetail(false);
         }}
       />
+      {/* Add Credit Model */}
+      {showAddCreditModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in duration-200">
+            <div className="p-4 border-b flex justify-between items-center bg-blue-50">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Box className="w-6 h-6 text-blue-600" />
+                Add New Credit Order
+              </h2>
+              <button
+                onClick={() => setShowAddCreditModal(false)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-white/50 p-1.5 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+              {/* Storefront Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                  <Store className="w-4 h-4 text-slate-400" />
+                  Select Storefront <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full border border-slate-300 rounded-xl p-3 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
+                  value={creditForm.storefrontId}
+                  onChange={(e) => handleStorefrontChange(e.target.value)}
+                >
+                  <option value="">-- Choose a Storefront --</option>
+                  {storefronts.map((sf) => (
+                    <option key={sf._id} value={sf._id}>
+                      {sf.locationName} ({sf.locationCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Subtotal */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Subtotal (MMK)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Enter subtotal amount..."
+                    className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm font-bold text-lg"
+                    value={creditForm.finalAmount}
+                    onChange={(e) =>
+                      setCreditForm({
+                        ...creditForm,
+                        finalAmount: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Summary Summary */}
+              <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center text-blue-900">
+                <span className="font-medium">Credit Amount to be added:</span>
+                <span className="text-xl font-bold">
+                  {(
+                    creditForm.finalAmount - creditForm.paidAmount
+                  ).toLocaleString()}{" "}
+                  MMK
+                </span>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-slate-50 flex justify-end gap-3">
+              <button
+                onClick={() => setShowAddCreditModal(false)}
+                className="px-6 py-3 text-slate-700 hover:bg-slate-200 rounded-xl transition-colors font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddCreditOrder}
+                disabled={isCreatingCredit}
+                className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center gap-2 font-bold shadow-lg shadow-blue-200 active:scale-95"
+              >
+                {isCreatingCredit ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Coins className="w-5 h-5" />
+                    Add Credit
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

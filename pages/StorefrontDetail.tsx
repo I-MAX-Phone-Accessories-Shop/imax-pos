@@ -73,13 +73,13 @@ export const StorefrontDetail: React.FC = () => {
           const firstItem = response.data[0];
           setStorefrontName(
             firstItem.storefrontId.locationName ||
-              firstItem.storefrontId.storefrontName ||
-              "Storefront",
+            firstItem.storefrontId.storefrontName ||
+            "Storefront",
           );
           setStorefrontCode(
             firstItem.storefrontId.locationCode ||
-              firstItem.storefrontId.storefrontCode ||
-              "",
+            firstItem.storefrontId.storefrontCode ||
+            "",
           );
         }
       } else {
@@ -106,6 +106,7 @@ export const StorefrontDetail: React.FC = () => {
 
   // Filter stock items based on search term and category
   const filteredStockItems = stockItems.filter((item) => {
+    const hideProduct = item.inventoryId._id === "69a15d55218ec5ff9a3fe4a3";
     const matchesSearch =
       searchTerm === "" ||
       item.inventoryId.productName
@@ -119,7 +120,7 @@ export const StorefrontDetail: React.FC = () => {
       selectedCategory === "all" ||
       item.inventoryId.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    return !hideProduct && matchesSearch && matchesCategory;
   });
 
   // Calculate totals based on filtered items
@@ -199,8 +200,7 @@ export const StorefrontDetail: React.FC = () => {
 
       if (result.success) {
         toast.success(
-          `Stock ${
-            adjustmentType === "increase" ? "increased" : "decreased"
+          `Stock ${adjustmentType === "increase" ? "increased" : "decreased"
           } successfully!`,
         );
         setIsAdjustmentModalOpen(false);
@@ -378,12 +378,12 @@ export const StorefrontDetail: React.FC = () => {
               <p className="text-lg sm:text-2xl font-bold text-indigo-600 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems
-                      .reduce((sum, item) => {
-                        const sellingPrice = item.inventoryId.sellingPrice || 0;
-                        const itemTotal = item.quantity * sellingPrice;
-                        return sum + itemTotal;
-                      }, 0)
-                      .toLocaleString()
+                    .reduce((sum, item) => {
+                      const sellingPrice = item.inventoryId.sellingPrice || 0;
+                      const itemTotal = item.quantity * sellingPrice;
+                      return sum + itemTotal;
+                    }, 0)
+                    .toLocaleString()
                   : totalStorefrontAmount.toLocaleString()}{" "}
                 <span className="hidden sm:inline">MMK</span>
               </p>
@@ -643,11 +643,10 @@ export const StorefrontDetail: React.FC = () => {
 
               {/* Adjustment Type Info */}
               <div
-                className={`p-3 rounded-lg ${
-                  adjustmentType === "increase"
+                className={`p-3 rounded-lg ${adjustmentType === "increase"
                     ? "bg-green-50 border border-green-200"
                     : "bg-red-50 border border-red-200"
-                }`}
+                  }`}
               >
                 <p className="text-sm font-medium">
                   {adjustmentType === "increase"
@@ -710,11 +709,10 @@ export const StorefrontDetail: React.FC = () => {
                 <button
                   onClick={handleSubmitAdjustment}
                   disabled={isAdjusting || adjustmentQuantity <= 0}
-                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${
-                    adjustmentType === "increase"
+                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${adjustmentType === "increase"
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700"
-                  }`}
+                    }`}
                 >
                   {isAdjusting ? (
                     <>
