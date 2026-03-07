@@ -226,7 +226,7 @@ export const CreditDetail: React.FC = () => {
         storefrontId: creditForm.storefrontId,
         ordersProducts: [
           {
-            inventoryId: "69a15d55218ec5ff9a3fe4a3",
+            inventoryId: import.meta.env.VITE_CREDIT_ID,
             quantity: 1,
           },
         ],
@@ -432,8 +432,8 @@ export const CreditDetail: React.FC = () => {
             <button
               onClick={() => setActiveTab("orders")}
               className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "orders"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
             >
               <Receipt className="w-4 h-4" />
@@ -442,8 +442,8 @@ export const CreditDetail: React.FC = () => {
             <button
               onClick={() => setActiveTab("products")}
               className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "products"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
             >
               <Box className="w-4 h-4" />
@@ -452,8 +452,8 @@ export const CreditDetail: React.FC = () => {
             <button
               onClick={() => setActiveTab("payments")}
               className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "payments"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
             >
               <CreditCard className="w-4 h-4" />

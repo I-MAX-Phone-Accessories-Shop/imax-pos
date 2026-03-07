@@ -132,7 +132,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
         const calculatedTax = Math.max(
           0,
           Math.round(((totalSubtotal * existingTax) / existingSubtotal) * 100) /
-            100,
+          100,
         );
         setTax(calculatedTax);
       }
@@ -192,8 +192,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
 
         if (products.length === 0) {
           console.warn(
-            `No products found for storefront: ${
-              order.storefrontId.storefrontName || order.storefrontId._id
+            `No products found for storefront: ${order.storefrontId.storefrontName || order.storefrontId._id
             }`,
           );
         }
@@ -202,7 +201,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       console.error("Error loading storefront products:", error);
       toast.error(
         t("orders.failedToLoadProducts") ||
-          "Failed to load storefront products",
+        "Failed to load storefront products",
       );
       setInventoryProducts([]);
     } finally {
@@ -225,10 +224,10 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       const updatedItems = selectedItems.map((item) =>
         item.inventoryId === product._id
           ? {
-              ...item,
-              quantity: item.quantity + 1,
-              subtotal: (item.quantity + 1) * item.unitPrice,
-            }
+            ...item,
+            quantity: item.quantity + 1,
+            subtotal: (item.quantity + 1) * item.unitPrice,
+          }
           : item,
       );
       setSelectedItems(updatedItems);
@@ -260,10 +259,10 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
     const updatedItems = selectedItems.map((item) =>
       item.inventoryId === inventoryId
         ? {
-            ...item,
-            quantity,
-            subtotal: quantity * item.unitPrice,
-          }
+          ...item,
+          quantity,
+          subtotal: quantity * item.unitPrice,
+        }
         : item,
     );
     setSelectedItems(updatedItems);
@@ -287,11 +286,11 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       ? tax
       : existingSubtotal > 0
         ? Math.max(
-            0,
-            Math.round(
-              ((totalSubtotal * existingTax) / existingSubtotal) * 100,
-            ) / 100,
-          )
+          0,
+          Math.round(
+            ((totalSubtotal * existingTax) / existingSubtotal) * 100,
+          ) / 100,
+        )
         : 0;
 
     // Calculate discount or markup based on toggle
@@ -371,8 +370,8 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       } else {
         toast.error(
           response.message ||
-            t("orders.failedToAddItems") ||
-            "Failed to add items",
+          t("orders.failedToAddItems") ||
+          "Failed to add items",
         );
       }
     } catch (error: any) {
@@ -450,7 +449,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                     {searchProduct
                       ? t("orders.noProductsFound") || "No products found"
                       : t("orders.noProductsInStorefront") ||
-                        "No products available in this storefront"}
+                      "No products available in this storefront"}
                   </p>
                 </div>
               ) : (
@@ -471,16 +470,14 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                         </p>
                         {product.availableQuantity !== undefined && (
                           <span
-                            className={`text-xs px-2 py-0.5 rounded ${
-                              product.availableQuantity > 0
+                            className={`text-xs px-2 py-0.5 rounded ${product.availableQuantity > 0
                                 ? "bg-green-100 text-green-700"
                                 : "bg-red-100 text-red-700"
-                            }`}
+                              }`}
                           >
                             {product.availableQuantity > 0
-                              ? `${product.availableQuantity} ${
-                                  t("orders.inStock") || "in stock"
-                                }`
+                              ? `${product.availableQuantity} ${t("orders.inStock") || "in stock"
+                              }`
                               : t("orders.outOfStock") || "Out of stock"}
                           </span>
                         )}
@@ -747,7 +744,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
               </div>
             )}
           </div>
-          <div className="mb-3">
+          {/* <div className="mb-3">
             <label className="block text-xs font-medium text-slate-700 mb-1">
               {t("orders.paidAmount") || "Paid Amount"} (MMK)
             </label>
@@ -759,7 +756,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
               onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
               className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
-          </div>
+          </div> */}
           <div className="bg-slate-50 p-3 rounded-lg space-y-1.5 text-xs mb-3">
             {(() => {
               const totals = calculateTotals();
