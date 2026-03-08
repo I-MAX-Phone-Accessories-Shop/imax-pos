@@ -1094,6 +1094,28 @@ export const POS: React.FC = () => {
                   </>
                 )}
               </button>
+
+              <button
+                onClick={() => {
+                  // Simulate sending for approval
+                  setIsProcessing(true);
+                  setTimeout(() => {
+                    setIsProcessing(false);
+                    setShowCheckoutModal(false);
+                    setCart([]);
+                    toast.success("Order sent for approval successfully!");
+                  }, 1500);
+                }}
+                disabled={cart.length === 0 || isProcessing}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Send for Approval"
+                )}
+              </button>
+
               <button
                 onClick={() => setShowCheckoutModal(false)}
                 className="w-full py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

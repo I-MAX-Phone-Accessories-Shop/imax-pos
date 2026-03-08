@@ -15,6 +15,11 @@ import {
   Receipt,
   Shield,
   LogOut,
+  Building2,
+  HardHat,
+  FileText,
+  ClipboardList,
+  Wallet,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { removeAuthToken } from "../services/axios";
@@ -53,22 +58,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const menuItems = [
-    { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
+    { path: "/pos", label: t("sidebar.checkout"), icon: FileText },
     { path: "/inventory", label: t("sidebar.inventory"), icon: Package },
-    { path: "/warehouse", label: t("sidebar.warehouse"), icon: Truck },
+    { path: "/warehouse", label: t("sidebar.warehouse"), icon: Building2 },
     { path: "/storefront", label: t("sidebar.storefront"), icon: Store },
     { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
-    { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
+    { path: "/purchasing", label: t("sidebar.purchasing"), icon: ClipboardList },
     { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
-    {
-      path: "/credit-orders",
-      label: t("sidebar.creditOrder"),
-      icon: CreditCard,
-    },
-    { path: "/credits", label: t("sidebar.creditSales"), icon: CreditCard },
+    { path: "/credit-orders", label: t("sidebar.creditOrder"), icon: ShoppingBag },
+    { path: "/credits", label: t("sidebar.creditSales"), icon: Wallet },
     { path: "/expenses", label: t("sidebar.expenses"), icon: PieChart },
     { path: "/reports", label: t("sidebar.reports"), icon: LayoutDashboard },
     { path: "/accounts", label: t("sidebar.accountManagement"), icon: Shield },
+    { path: "/settings", label: t("sidebar.settings"), icon: Settings },
   ];
 
   return (
@@ -95,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             /> */}
             <div>
               <h1 className="text-xl font-bold text-primary tracking-tight">
-                OTAS POS
+                {t("app.title")}
               </h1>
               <p className="text-dark-500 text-xs">{t("app.subtitle")}</p>
             </div>
@@ -113,33 +115,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
 
-            // Permission check: Only owner can access Account Management
-            const userRole = adminData?.role || currentUser.role;
-            if (item.path === "/accounts" && userRole !== "owner") return null;
-            if (
-              item.path === "/purchasing" &&
-              userRole !== "admin" &&
-              userRole !== "owner"
-            )
-              return null;
-            if (
-              item.path === "/inventory" &&
-              userRole !== "admin" &&
-              userRole !== "owner"
-            )
-              return null;
-            if (
-              item.path === "/warehouse" &&
-              userRole !== "admin" &&
-              userRole !== "owner"
-            )
-              return null;
-            if (
-              item.path === "/suppliers" &&
-              userRole !== "admin" &&
-              userRole !== "owner"
-            )
-              return null;
+            // Permission check based on user roles
+            const userRole = (adminData?.role || currentUser.role)?.toLowerCase();
+
+            // 1. Account Management: Only owner/admin
+            if (item.path === "/accounts" && userRole !== "owner" && userRole !== "admin") return null;
+
+            // 2. Settings: Only owner/admin
+            if (item.path === "/settings" && userRole !== "owner" && userRole !== "admin") return null;
+
+            // 3. Purchasing & Suppliers: Owner, Admin, Manager, Accountant
+            const canManageSupply = ["owner", "admin", "manager", "accountant"].includes(userRole);
+            if ((item.path === "/purchasing" || item.path === "/suppliers") && !canManageSupply) return null;
+
+            // 4. Inventory/Stock & Warehouse: All except perhaps basic staff, but in this ERP everyone needs to check stock
+            // We'll allow access but maybe restrict write actions in the components themselves
+            const canManageWarehouse = ["owner", "admin", "manager", "accountant"].includes(userRole);
+            if (item.path === "/warehouse" && !canManageWarehouse) return null;
+
+            // 5. Reports/Dashboard: Owner, Admin, Manager, Accountant
+            const canViewReports = ["owner", "admin", "manager", "accountant"].includes(userRole);
+            if (item.path === "/reports" && !canViewReports) return null;
+
+            // 6. Expenses: Owner, Admin, Manager, Accountant, Cashier (Cashiers might record basic day-to-day)
+            // Current code allows Cashier to record expenses, so we keep it.
+
+            // Everyone can see POS, Orders, Credits (maybe restricted views)
 
             return (
               <NavLink

@@ -4,112 +4,131 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OTAS POS</title>
+    <title>I-MAX Construction Materials ERP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              // Primary - Light Blue
+              // Primary - Construction Blue/Steel
               primary: {
-                50: "#F0F9FF",
-                100: "#E0F2FE",
-                200: "#BAE6FD",
-                300: "#7DD3FC",
-                400: "#38BDF8",
-                500: "#0EA5E9",
-                600: "#0284C7",
-                700: "#0369A1",
-                800: "#075985",
-                900: "#0C4A6E",
-                950: "#082F49",
-                DEFAULT: "#0EA5E9",
+                50: "#f0f7ff",
+                100: "#e0effe",
+                200: "#b9dffd",
+                300: "#7cc5fb",
+                400: "#36a7f8",
+                500: "#0c8de9",
+                600: "#006fca",
+                700: "#0058a3",
+                800: "#044b86",
+                900: "#093f6f",
+                950: "#06284a",
+                DEFAULT: "#0c8de9",
               },
-              // Dark - Black/Gray (from IMAS logo)
+              // Dark - Professional Slate
               dark: {
-                50: "#F9FAFB",
-                100: "#F3F4F6",
-                200: "#E5E7EB",
-                300: "#D1D5DB",
-                400: "#9CA3AF",
-                500: "#6B7280",
-                600: "#4B5563",
-                700: "#374151",
-                800: "#1F2937",
-                900: "#111827",
-                950: "#030712",
-                DEFAULT: "#111827",
+                50: "#f8fafc",
+                100: "#f1f5f9",
+                200: "#e2e8f0",
+                300: "#cbd5e1",
+                400: "#94a3b8",
+                500: "#64748b",
+                600: "#475569",
+                700: "#334155",
+                800: "#1e293b",
+                900: "#0f172a",
+                950: "#020617",
+                DEFAULT: "#0f172a",
               },
-              // Button colors
-              btn: {
-                primary: "#0EA5E9",
-                "primary-hover": "#0284C7",
-                secondary: "#111827",
-                "secondary-hover": "#1F2937",
-                danger: "#EF4444",
-                "danger-hover": "#DC2626",
-                success: "#22C55E",
-                "success-hover": "#16A34A",
-              },
-              // Status colors
-              status: {
-                success: "#22C55E",
-                warning: "#F59E0B",
-                error: "#EF4444",
-                info: "#0EA5E9",
-              },
+              // Premium Yellow/Gold for highlights
+              accent: {
+                50: "#fffce8",
+                100: "#fff8c2",
+                200: "#ffef89",
+                300: "#ffde45",
+                400: "#ffcf12",
+                500: "#f5b102",
+                600: "#d38600",
+                700: "#a85f02",
+                800: "#894a0a",
+                900: "#743d0d",
+                950: "#441f02",
+                DEFAULT: "#f5b102",
+              }
             },
             fontFamily: {
-              sans: ["Inter", "system-ui", "sans-serif"],
+              sans: ["Outfit", "Inter", "system-ui", "sans-serif"],
             },
             boxShadow: {
-              glow: "0 0 20px rgba(14, 165, 233, 0.3)",
-              "glow-sm": "0 0 10px rgba(14, 165, 233, 0.2)",
+              glow: "0 0 20px rgba(12, 141, 233, 0.4)",
+              "glow-sm": "0 0 10px rgba(12, 141, 233, 0.2)",
+              "premium": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
             },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+            }
           },
         },
       };
     </script>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
       body {
-        font-family: "Inter", sans-serif;
+        font-family: "Outfit", "Inter", sans-serif;
+        background-color: #f8fafc;
       }
-      /* Print styles for receipt */
-      @media print {
-        .no-print {
-          display: none !important;
-        }
-        .print-only {
-          display: block !important;
-        }
-        body {
-          background: white;
-        }
-      }
-      .print-only {
-        display: none;
+      
+      /* Smooth transitions */
+      * {
+        transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
       }
 
-      /* Scrollbar styling */
+      /* Premium card style */
+      .premium-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+      }
+
+      /* Hover effects */
+      .hover-lift {
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .hover-lift:hover {
+        transform: translateY(-4px);
+      }
+
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: transparent;
+        background: #f1f5f9;
       }
       ::-webkit-scrollbar-thumb {
         background: #cbd5e1;
-        border-radius: 3px;
+        border-radius: 10px;
+        border: 2px solid #f1f5f9;
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
       }
+
+      /* Print styles */
+      @media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        body { background: white; }
+      }
+      .print-only { display: none; }
     </style>
     <script type="importmap">
       {

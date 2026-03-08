@@ -28,10 +28,13 @@ import PrintReceipt from "./pages/PrintReceipt";
 import { Tutorial } from "./components/Tutorial";
 import { HelpCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { useLanguage } from "./context/LanguageContext";
+
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [runTutorial, setRunTutorial] = useState(false);
+  const { t } = useLanguage();
   const token = localStorage.getItem("authToken");
   const location = useLocation();
 
@@ -62,7 +65,7 @@ const AppLayout: React.FC = () => {
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
                 <h1 className="text-lg font-bold text-primary tracking-wide">
-                  OTAS POS
+                  {t("app.title")}
                 </h1>
               </div>
               <div className="flex items-center gap-2">

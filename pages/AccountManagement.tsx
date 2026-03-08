@@ -220,7 +220,7 @@ export const AccountManagement: React.FC = () => {
   );
 
   // Available roles for selection
-  const availableRoles = ["owner", "cashier"];
+  const availableRoles = ["owner", "admin", "manager", "accountant", "cashier"];
 
   const handleOpenEditModal = (account: AdminAccount) => {
     setSelectedAccount(account);
@@ -762,7 +762,7 @@ export const AccountManagement: React.FC = () => {
                               className="text-xs bg-red-600 text-white px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-700 border border-red-700 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {isHardDeleting &&
-                              accountToHardDelete?._id === account._id ? (
+                                accountToHardDelete?._id === account._id ? (
                                 <>
                                   <Loader2 className="w-3 h-3 animate-spin" />{" "}
                                   <span className="hidden sm:inline">
@@ -1174,29 +1174,29 @@ export const AccountManagement: React.FC = () => {
                       {locationProfiles.filter(
                         (loc) => loc.type === "storefront",
                       ).length > 0 && (
-                        <optgroup label="Storefronts">
-                          {locationProfiles
-                            .filter((loc) => loc.type === "storefront")
-                            .map((loc) => (
-                              <option key={loc._id} value={loc._id}>
-                                {loc.locationName} ({loc.locationCode})
-                              </option>
-                            ))}
-                        </optgroup>
-                      )}
+                          <optgroup label="Storefronts">
+                            {locationProfiles
+                              .filter((loc) => loc.type === "storefront")
+                              .map((loc) => (
+                                <option key={loc._id} value={loc._id}>
+                                  {loc.locationName} ({loc.locationCode})
+                                </option>
+                              ))}
+                          </optgroup>
+                        )}
                       {locationProfiles.filter(
                         (loc) => loc.type === "warehouse",
                       ).length > 0 && (
-                        <optgroup label="Warehouses">
-                          {locationProfiles
-                            .filter((loc) => loc.type === "warehouse")
-                            .map((loc) => (
-                              <option key={loc._id} value={loc._id}>
-                                {loc.locationName} ({loc.locationCode})
-                              </option>
-                            ))}
-                        </optgroup>
-                      )}
+                          <optgroup label="Warehouses">
+                            {locationProfiles
+                              .filter((loc) => loc.type === "warehouse")
+                              .map((loc) => (
+                                <option key={loc._id} value={loc._id}>
+                                  {loc.locationName} ({loc.locationCode})
+                                </option>
+                              ))}
+                          </optgroup>
+                        )}
                       {locationProfiles.length > 0 &&
                         locationProfiles.filter(
                           (loc) => loc.type === "storefront",

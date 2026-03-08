@@ -176,9 +176,9 @@ export const Expenses: React.FC = () => {
       );
       toast.error(
         error.message ||
-          (editingId
-            ? t("expenses.failedToUpdate")
-            : t("expenses.failedToCreate")),
+        (editingId
+          ? t("expenses.failedToUpdate")
+          : t("expenses.failedToCreate")),
       );
     } finally {
       setIsSubmitting(false);
@@ -206,24 +206,24 @@ export const Expenses: React.FC = () => {
       if (response.success) {
         toast.success(
           response.message ||
-            t("expenses.expenseDeleted") ||
-            "Expense deleted successfully",
+          t("expenses.expenseDeleted") ||
+          "Expense deleted successfully",
         );
         setExpenseToDelete(null);
         loadExpenses();
       } else {
         toast.error(
           response.message ||
-            t("expenses.failedToDelete") ||
-            "Failed to delete expense",
+          t("expenses.failedToDelete") ||
+          "Failed to delete expense",
         );
       }
     } catch (error: any) {
       console.error("Error deleting expense:", error);
       toast.error(
         error.message ||
-          t("expenses.failedToDelete") ||
-          "Failed to delete expense",
+        t("expenses.failedToDelete") ||
+        "Failed to delete expense",
       );
     } finally {
       setIsDeleting(false);
@@ -502,6 +502,13 @@ export const Expenses: React.FC = () => {
                     {t("expenses.maintenance")}
                   </option>
                   <option value="rent">{t("expenses.rent")}</option>
+                  <option value="fuelCost">{t("expenses.fuelCost")}</option>
+                  <option value="loadingExpense">{t("expenses.loadingExpense")}</option>
+                  <option value="laborExpense">{t("expenses.laborExpense")}</option>
+                  <option value="vehicleMaintenance">{t("expenses.vehicleMaintenance")}</option>
+                  <option value="officeExpense">{t("expenses.officeExpense")}</option>
+                  <option value="yardExpense">{t("expenses.yardExpense")}</option>
+                  <option value="miscellaneousExpense">{t("expenses.miscellaneousExpense")}</option>
                   <option value="other">{t("expenses.other")}</option>
                 </select>
               </div>
@@ -627,12 +634,12 @@ export const Expenses: React.FC = () => {
         message={
           expenseToDelete
             ? t("expenses.confirmDeleteMessage")?.replace(
-                "{amount}",
-                expenseToDelete.amount.toLocaleString(),
-              ) ||
-              `Are you sure you want to delete this expense of ${expenseToDelete.amount.toLocaleString()} MMK? This action cannot be undone.`
+              "{amount}",
+              expenseToDelete.amount.toLocaleString(),
+            ) ||
+            `Are you sure you want to delete this expense of ${expenseToDelete.amount.toLocaleString()} MMK? This action cannot be undone.`
             : t("expenses.confirmDelete") ||
-              "Are you sure you want to delete this expense?"
+            "Are you sure you want to delete this expense?"
         }
         confirmText={t("common.delete") || "Delete"}
         cancelText={t("common.cancel") || "Cancel"}
