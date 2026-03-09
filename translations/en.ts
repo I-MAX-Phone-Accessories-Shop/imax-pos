@@ -52,7 +52,7 @@ export const en = {
     processing: "Processing...",
   },
   app: {
-    title: "I-MAX Construction ERP",
+    title: "OTAS Construction ERP",
     subtitle: "Construction Materials Management",
   },
   login: {

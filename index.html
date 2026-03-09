@@ -1,136 +1,151 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>I-MAX Construction Materials ERP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              // Primary - Construction Blue/Steel
-              primary: {
-                50: "#f0f7ff",
-                100: "#e0effe",
-                200: "#b9dffd",
-                300: "#7cc5fb",
-                400: "#36a7f8",
-                500: "#0c8de9",
-                600: "#006fca",
-                700: "#0058a3",
-                800: "#044b86",
-                900: "#093f6f",
-                950: "#06284a",
-                DEFAULT: "#0c8de9",
-              },
-              // Dark - Professional Slate
-              dark: {
-                50: "#f8fafc",
-                100: "#f1f5f9",
-                200: "#e2e8f0",
-                300: "#cbd5e1",
-                400: "#94a3b8",
-                500: "#64748b",
-                600: "#475569",
-                700: "#334155",
-                800: "#1e293b",
-                900: "#0f172a",
-                950: "#020617",
-                DEFAULT: "#0f172a",
-              },
-              // Premium Yellow/Gold for highlights
-              accent: {
-                50: "#fffce8",
-                100: "#fff8c2",
-                200: "#ffef89",
-                300: "#ffde45",
-                400: "#ffcf12",
-                500: "#f5b102",
-                600: "#d38600",
-                700: "#a85f02",
-                800: "#894a0a",
-                900: "#743d0d",
-                950: "#441f02",
-                DEFAULT: "#f5b102",
-              }
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTAS Construction Materials ERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Primary - Construction Blue/Steel
+            primary: {
+              50: "#f0f7ff",
+              100: "#e0effe",
+              200: "#b9dffd",
+              300: "#7cc5fb",
+              400: "#36a7f8",
+              500: "#0c8de9",
+              600: "#006fca",
+              700: "#0058a3",
+              800: "#044b86",
+              900: "#093f6f",
+              950: "#06284a",
+              DEFAULT: "#0c8de9",
             },
-            fontFamily: {
-              sans: ["Outfit", "Inter", "system-ui", "sans-serif"],
+            // Dark - Professional Slate
+            dark: {
+              50: "#f8fafc",
+              100: "#f1f5f9",
+              200: "#e2e8f0",
+              300: "#cbd5e1",
+              400: "#94a3b8",
+              500: "#64748b",
+              600: "#475569",
+              700: "#334155",
+              800: "#1e293b",
+              900: "#0f172a",
+              950: "#020617",
+              DEFAULT: "#0f172a",
             },
-            boxShadow: {
-              glow: "0 0 20px rgba(12, 141, 233, 0.4)",
-              "glow-sm": "0 0 10px rgba(12, 141, 233, 0.2)",
-              "premium": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-            },
-            borderRadius: {
-              'xl': '1rem',
-              '2xl': '1.5rem',
+            // Premium Yellow/Gold for highlights
+            accent: {
+              50: "#fffce8",
+              100: "#fff8c2",
+              200: "#ffef89",
+              300: "#ffde45",
+              400: "#ffcf12",
+              500: "#f5b102",
+              600: "#d38600",
+              700: "#a85f02",
+              800: "#894a0a",
+              900: "#743d0d",
+              950: "#441f02",
+              DEFAULT: "#f5b102",
             }
           },
+          fontFamily: {
+            sans: ["Outfit", "Inter", "system-ui", "sans-serif"],
+          },
+          boxShadow: {
+            glow: "0 0 20px rgba(12, 141, 233, 0.4)",
+            "glow-sm": "0 0 10px rgba(12, 141, 233, 0.2)",
+            "premium": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          },
+          borderRadius: {
+            'xl': '1rem',
+            '2xl': '1.5rem',
+          }
         },
-      };
-    </script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
+      },
+    };
+  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    body {
+      font-family: "Outfit", "Inter", sans-serif;
+      background-color: #f8fafc;
+    }
+
+    /* Smooth transitions */
+    * {
+      transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    /* Premium card style */
+    .premium-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    /* Hover effects */
+    .hover-lift {
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-4px);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Print styles */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+
+      .print-only {
+        display: block !important;
+      }
+
       body {
-        font-family: "Outfit", "Inter", sans-serif;
-        background-color: #f8fafc;
+        background: white;
       }
-      
-      /* Smooth transitions */
-      * {
-        transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-      }
+    }
 
-      /* Premium card style */
-      .premium-card {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-      }
-
-      /* Hover effects */
-      .hover-lift {
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      .hover-lift:hover {
-        transform: translateY(-4px);
-      }
-
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-        border: 2px solid #f1f5f9;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
-
-      /* Print styles */
-      @media print {
-        .no-print { display: none !important; }
-        .print-only { display: block !important; }
-        body { background: white; }
-      }
-      .print-only { display: none; }
-    </style>
-    <script type="importmap">
+    .print-only {
+      display: none;
+    }
+  </style>
+  <script type="importmap">
       {
         "imports": {
           "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
@@ -142,10 +157,12 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="/index.css" />
-  </head>
-  <body class="bg-gray-50 text-slate-900 antialiased">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+  <link rel="stylesheet" href="/index.css" />
+</head>
+
+<body class="bg-gray-50 text-slate-900 antialiased">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
