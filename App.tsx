@@ -25,6 +25,7 @@ import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import PrintReceipt from "./pages/PrintReceipt";
+import { AIChat } from "./components/AIChat";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -207,6 +208,7 @@ const AppLayout: React.FC = () => {
           <Route path="/print-receipt/:orderId" element={<PrintReceipt />} />
         </Routes>
       </main>
+      {token && <AIChat />}
     </div>
   );
 };
