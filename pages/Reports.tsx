@@ -687,6 +687,9 @@ export const Reports: React.FC = () => {
               : productSalesStatistics
           }
           loading={loadingStatistics}
+          startDate={startDate}
+          endDate={endDate}
+          selectedStorefront={selectedStorefront}
         />
       )}
 
