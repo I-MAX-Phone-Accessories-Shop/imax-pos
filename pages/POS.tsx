@@ -140,7 +140,7 @@ export const POS: React.FC = () => {
 
   const loadStockItems = async () => {
     try {
-      const response = await fetchStorefrontStock();
+      const response = await fetchStorefrontStock(selectedStorefrontId);
       // console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
@@ -160,7 +160,8 @@ export const POS: React.FC = () => {
 
   // Filter products by selected storefront and search
   const filteredProducts = allStockItems.filter((item) => {
-    const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
+    const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
+    // const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
     const matchesSearch = item.inventoryId?.productName
       ?.toLowerCase()
       .includes(search.toLowerCase());
@@ -168,7 +169,7 @@ export const POS: React.FC = () => {
       selectedCategory === "All" ||
       item.inventoryId?.category === selectedCategory;
 
-    return matchesStorefront && matchesSearch && matchesCategory;
+    return !hideProduct && matchesSearch && matchesCategory;
   });
 
   // Get unique categories from current storefront products
@@ -255,7 +256,8 @@ export const POS: React.FC = () => {
     // Filter products by selected storefront first
     const storefrontProducts = allStockItems.filter((item) => {
       const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-      return matchesStorefront;
+      const isHidden = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
+      return matchesStorefront && !isHidden;
     });
 
     // Find matching product by barcode, productCode, or SKU (case-insensitive)
@@ -288,7 +290,8 @@ export const POS: React.FC = () => {
 
       // Show success feedback
       toast.success(
-        `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
+        `${matchingProduct.inventoryId.productName} ${
+          t("pos.addedToCart") || "added to cart"
         }`,
         {
           duration: 1500,
@@ -306,7 +309,7 @@ export const POS: React.FC = () => {
   // Calculate totals
   const getItemPrice = (item: StorefrontStockItem) => {
     // Use sellingPrice from inventory if available, otherwise use placeholder
-    return item.inventoryId.sellingPrice || 10000; // Default to 10000 MMK if not available
+    return item.inventoryId.sellingPrice; // Default to 10000 MMK if not available
   };
 
   const subtotal = cart.reduce(
@@ -543,8 +546,9 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
-                    }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
+                    showStorefrontMenu ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -571,16 +575,18 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
-                            ? "bg-primary/20 border-l-4 border-primary"
-                            : ""
-                            }`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
+                            sf._id === selectedStorefrontId
+                              ? "bg-primary/20 border-l-4 border-primary"
+                              : ""
+                          }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
-                              ? "bg-primary text-dark"
-                              : "bg-dark-100 text-dark-500"
-                              }`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              sf._id === selectedStorefrontId
+                                ? "bg-primary text-dark"
+                                : "bg-dark-100 text-dark-500"
+                            }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -641,10 +647,11 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`product-item bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
-                  ? "opacity-50 grayscale pointer-events-none"
-                  : ""
-                  }`}
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
+                  stockItem.availableQuantity === 0
+                    ? "opacity-50 grayscale pointer-events-none"
+                    : ""
+                }`}
               >
                 <div className="">
                   <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -764,10 +771,11 @@ export const POS: React.FC = () => {
           <button
             onClick={() => {
               // Auto-fill paid amount with total when opening checkout modal
-              // Use Math.ceil to ensure it's always an integer
-              // Set to 0 for FOC, otherwise use total
+              // Set to 0 for FOC or Credit, otherwise use total
               const initialPaidAmount =
-                paymentMethod === PaymentMethod.FOC ? 0 : Math.ceil(total);
+                paymentMethod === PaymentMethod.FOC || paymentType === "credit"
+                  ? 0
+                  : Math.ceil(total);
               setPaidAmount(initialPaidAmount);
               setShowCheckoutModal(true);
               // Dispatch custom event for tutorial validation
@@ -820,8 +828,12 @@ export const POS: React.FC = () => {
                     if (e.target.value === "paid") {
                       setSelectedCreditPersonId("");
                       setPaymentMethod(PaymentMethod.CASH);
+                      // Reset to total when switching back to paid
+                      setPaidAmount(Math.ceil(total));
                     } else if (e.target.value === "credit") {
                       setPaymentMethod(PaymentMethod.NORMAL);
+                      // Set initial value to zero for credit
+                      setPaidAmount(0);
                     }
                   }}
                 >
@@ -1000,17 +1012,17 @@ export const POS: React.FC = () => {
                   type="number"
                   min="0"
                   disabled={paymentMethod === PaymentMethod.FOC}
-                  className={`paid-amount-input w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : ""
-                    }`}
-                  value={
-                    paymentMethod === PaymentMethod.FOC ? 0 : paidAmount || ""
-                  }
+                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
+                    paymentMethod === PaymentMethod.FOC
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : ""
+                  }`}
+                  value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
                   onChange={(e) => {
-                    const value = Number(e.target.value);
+                    const value =
+                      e.target.value === "" ? 0 : Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
-                    setPaidAmount(value);
+                    setPaidAmount(Math.ceil(value));
                   }}
                   placeholder={
                     paymentMethod === PaymentMethod.FOC
@@ -1293,7 +1305,7 @@ export const POS: React.FC = () => {
                         (Number(discountAmount) / subtotal) *
                         100
                       ).toFixed(2);
-                      setDiscount(calculatedPercentage); // Use Math.ceil for integer percentage
+                      setDiscount(Number(calculatedPercentage)); // Use number for consistency
                       setShowDiscountCalculator(false);
                       setDiscountAmount("");
                       toast.success(`Discount set to ${calculatedPercentage}%`);

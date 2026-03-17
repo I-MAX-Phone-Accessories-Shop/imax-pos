@@ -6,11 +6,15 @@ import {
   CreditCard,
   UserPlus,
   Eye,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchCreditOrders } from "../services/Order/fetchCreditOrders";
 import { Order } from "../services/Order/fetchOrders";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
+import { updatePaidAmount } from "../services/Order/updatePaidAmount";
+import { deleteCreditOrder } from "../services/Order/deleteCreditOrder";
 import {
   fetchStorefrontProfiles,
   StorefrontProfile,
@@ -53,6 +57,18 @@ export const CreditOrders: React.FC = () => {
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
+
+  // Paid Amount Edit States
+  const [showPaidAmountModal, setShowPaidAmountModal] = useState(false);
+  const [selectedOrderForPaidAmount, setSelectedOrderForPaidAmount] =
+    useState<Order | null>(null);
+  const [newPaidAmount, setNewPaidAmount] = useState("");
+  const [updatingPaidAmount, setUpdatingPaidAmount] = useState(false);
+
+  // Delete Order States
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -207,11 +223,75 @@ export const CreditOrders: React.FC = () => {
     }
   };
 
+  const handleOpenPaidAmountModal = (order: Order) => {
+    setSelectedOrderForPaidAmount(order);
+    setNewPaidAmount(order.paidAmount);
+    setShowPaidAmountModal(true);
+  };
+
+  const handleUpdatePaidAmount = async () => {
+    if (!selectedOrderForPaidAmount || !newPaidAmount) return;
+
+    setUpdatingPaidAmount(true);
+    try {
+      const response = await updatePaidAmount(
+        selectedOrderForPaidAmount._id,
+        newPaidAmount,
+      );
+      if (response.success) {
+        toast.success("Paid amount updated successfully");
+        setShowPaidAmountModal(false);
+        setSelectedOrderForPaidAmount(null);
+        await loadOrders();
+      } else {
+        toast.error(response.message || "Failed to update paid amount");
+      }
+    } catch (error) {
+      console.error("Error updating paid amount:", error);
+      toast.error("Failed to update paid amount");
+    } finally {
+      setUpdatingPaidAmount(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "MMK",
     }).format(amount);
+  };
+
+  // Delete Order Handlers
+  const handleOpenDeleteConfirm = (order: Order) => {
+    setOrderToDelete(order);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleCloseDeleteConfirm = () => {
+    setOrderToDelete(null);
+    setShowDeleteConfirmModal(false);
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    setDeletingOrder(true);
+    try {
+      const response = await deleteCreditOrder(orderToDelete._id);
+      if (response.success) {
+        toast.success("Credit order deleted successfully");
+        setShowDeleteConfirmModal(false);
+        setOrderToDelete(null);
+        await loadOrders();
+      } else {
+        toast.error(response.message || "Failed to delete credit order");
+      }
+    } catch (error) {
+      console.error("Error deleting credit order:", error);
+      toast.error("Failed to delete credit order");
+    } finally {
+      setDeletingOrder(false);
+    }
   };
 
   return (
@@ -289,11 +369,9 @@ export const CreditOrders: React.FC = () => {
                   <tr>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
                       <span className="hidden sm:inline">
-                        {t("creditOrders.orderNumber")}
+                        Credit Order Number
                       </span>
-                      <span className="sm:hidden">
-                        {t("creditOrders.orderNumber")}
-                      </span>
+                      <span className="sm:hidden">Order #</span>
                     </th>
 
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
@@ -419,9 +497,20 @@ export const CreditOrders: React.FC = () => {
                         {order.finalAmount.toLocaleString()}{" "}
                         <span className="hidden sm:inline">MMK</span>
                       </td>
-                      <td className="px-2 sm:px-4 py-3 font-medium text-slate-800 text-xs sm:text-sm">
-                        {order.paidAmount.toLocaleString()}{" "}
-                        <span className="hidden sm:inline">MMK</span>
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-800 text-xs sm:text-sm">
+                            {order.paidAmount.toLocaleString()}{" "}
+                            <span className="hidden sm:inline">MMK</span>
+                          </span>
+                          {/* <button
+                            onClick={() => handleOpenPaidAmountModal(order)}
+                            className="p-1 hover:bg-slate-200 rounded text-slate-400 hover:text-blue-600 transition-colors"
+                            title="Edit Paid Amount"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button> */}
+                        </div>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         <span className="font-medium text-orange-600 text-xs sm:text-sm">
@@ -467,6 +556,14 @@ export const CreditOrders: React.FC = () => {
                               <span className="xl:hidden sm:hidden">✓</span>
                             </span>
                           )}
+                          {/* <button
+                            onClick={() => handleOpenDeleteConfirm(order)}
+                            className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span className="hidden xl:block">Delete</span>
+                            <span className="xl:hidden sm:hidden">Del</span>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -499,6 +596,177 @@ export const CreditOrders: React.FC = () => {
         }}
         onAssign={handleAssignCreditPerson}
       />
+      {/* Paid Amount Edit Modal */}
+      {showPaidAmountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+                <Edit2 className="w-5 h-5 text-blue-600" />
+                Edit Paid Amount
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Order Number
+                  </label>
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-600 text-sm">
+                    {selectedOrderForPaidAmount?.orderNumber}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Total Amount
+                  </label>
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-800 font-semibold text-sm">
+                    {selectedOrderForPaidAmount?.finalAmount.toLocaleString()}{" "}
+                    MMK
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Enter Paid Amount
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={newPaidAmount}
+                      onChange={(e) => setNewPaidAmount(e.target.value)}
+                      placeholder="Enter amount..."
+                      className="w-full pl-3 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-lg font-semibold"
+                      autoFocus
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
+                      MMK
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-blue-700">Remaining Balance:</span>
+                    <span className="font-bold text-blue-800">
+                      {Math.max(
+                        0,
+                        (selectedOrderForPaidAmount?.finalAmount || 0) -
+                          Number(newPaidAmount || 0),
+                      ).toLocaleString()}{" "}
+                      MMK
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => setShowPaidAmountModal(false)}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdatePaidAmount}
+                  disabled={updatingPaidAmount || !newPaidAmount}
+                  className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                >
+                  {updatingPaidAmount ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Confirm"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">
+                    Delete Credit Order
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    This action cannot be undone
+                  </p>
+                </div>
+              </div>
+
+              {orderToDelete && (
+                <div className="bg-slate-50 rounded-lg p-4 mb-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Order Number:</span>
+                      <span className="font-medium text-slate-800">
+                        {orderToDelete.orderNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Total Amount:</span>
+                      <span className="font-medium text-slate-800">
+                        {orderToDelete.finalAmount.toLocaleString()} MMK
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Customer:</span>
+                      <span className="font-medium text-slate-800">
+                        {orderToDelete.creditPersonId?.name ||
+                          "No customer assigned"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+                <p className="text-sm text-red-800">
+                  <strong>Warning:</strong> Deleting this credit order will
+                  permanently remove all associated data including payment
+                  records and customer balance information.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCloseDeleteConfirm}
+                  disabled={deletingOrder}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteOrder}
+                  disabled={deletingOrder}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                >
+                  {deletingOrder ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Order"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

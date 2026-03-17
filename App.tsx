@@ -25,6 +25,7 @@ import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import PrintReceipt from "./pages/PrintReceipt";
+import { AIChat } from "./pages/AIChat";
 import { Tutorial } from "./components/Tutorial";
 import { HelpCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
@@ -72,7 +73,9 @@ const AppLayout: React.FC = () => {
                   title="Start Tutorial"
                 >
                   <HelpCircle className="w-5 h-5" />
-                  <span className="text-xs font-medium hidden sm:inline">Tour</span>
+                  <span className="text-xs font-medium hidden sm:inline">
+                    Tour
+                  </span>
                 </button>
                 <LanguageSwitcher />
               </div>
@@ -226,6 +229,14 @@ const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <AccountManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-chat"
+            element={
+              <ProtectedRoute>
+                <AIChat />
               </ProtectedRoute>
             }
           />
