@@ -16,6 +16,7 @@ import {
   Store,
   Box,
   Coins,
+  LayoutGrid,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -33,9 +34,15 @@ import {
   fetchStorefrontStock,
   StorefrontStockItem,
 } from "../services/Storefront/fetchStorefrontStock";
+import {
+  fetchCreditPersonaProducts,
+  CreditPersonaProductReportResponse,
+} from "../services/Reports/fetchCreditPersonaProducts";
 import { Order } from "../services/Order/fetchOrders";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { useLanguage } from "../context/LanguageContext";
+
+type TabType = "orders" | "products" | "payments";
 
 export const CreditDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -50,8 +57,12 @@ export const CreditDetail: React.FC = () => {
   } | null;
 
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabType>("orders");
   const [personaDetail, setPersonaDetail] =
     useState<CreditPersonaRecordsData | null>(null);
+  const [productsReport, setProductsReport] =
+    useState<CreditPersonaProductReportResponse | null>(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const [personName, setPersonName] = useState(
     personInfo?.name || "Credit Person",
   );
@@ -94,20 +105,30 @@ export const CreditDetail: React.FC = () => {
   const loadCreditDetail = async () => {
     if (!id) return;
     setLoading(true);
+    setLoadingProducts(true);
     try {
-      const response = await fetchCreditPersonaRecords(id);
-      if (response.success && response.data) {
-        setPersonaDetail(response.data);
-        setPersonName(response.data.creditPerson.name);
-        setPersonPhone(response.data.creditPerson.phone);
+      const [personaResponse, productsResponse] = await Promise.all([
+        fetchCreditPersonaRecords(id),
+        fetchCreditPersonaProducts(id),
+      ]);
+
+      if (personaResponse.success && personaResponse.data) {
+        setPersonaDetail(personaResponse.data);
+        setPersonName(personaResponse.data.creditPerson.name);
+        setPersonPhone(personaResponse.data.creditPerson.phone);
       } else {
-        toast.error(response.message || "Failed to load credit details");
+        toast.error(personaResponse.message || "Failed to load credit details");
+      }
+
+      if (productsResponse.success) {
+        setProductsReport(productsResponse);
       }
     } catch (error) {
       console.error("Error loading credit details:", error);
       toast.error("Failed to load credit details");
     } finally {
       setLoading(false);
+      setLoadingProducts(false);
     }
   };
 
@@ -193,30 +214,6 @@ export const CreditDetail: React.FC = () => {
     }
   };
 
-  const handleProductChange = (inventoryId: string) => {
-    const selectedItem = stockItems.find(
-      (item) => item.inventoryId._id === inventoryId,
-    );
-    const price = selectedItem?.inventoryId.sellingPrice || 0;
-    setCreditForm({
-      ...creditForm,
-      inventoryId,
-      finalAmount: price * creditForm.quantity,
-    });
-  };
-
-  const handleQuantityChange = (quantity: number) => {
-    const selectedItem = stockItems.find(
-      (item) => item.inventoryId._id === creditForm.inventoryId,
-    );
-    const price = selectedItem?.inventoryId.sellingPrice || 0;
-    setCreditForm({
-      ...creditForm,
-      quantity,
-      finalAmount: price * quantity,
-    });
-  };
-
   const handleAddCreditOrder = async () => {
     if (!creditForm.storefrontId) {
       toast.error("Please select a storefront");
@@ -229,14 +226,14 @@ export const CreditDetail: React.FC = () => {
         storefrontId: creditForm.storefrontId,
         ordersProducts: [
           {
-            inventoryId: "69a15d55218ec5ff9a3fe4a3",
+            inventoryId: import.meta.env.VITE_CREDIT_ID,
             quantity: 1,
           },
         ],
         subTotal: creditForm.finalAmount,
         finalAmount: creditForm.finalAmount,
         paidAmount: creditForm.paidAmount,
-        paymentType: "credit" as "credit" | "credit",
+        paymentType: "credit" as "credit",
         paymentMethod: "normal",
         creditPersonId: id, // current credit person
       };
@@ -251,6 +248,7 @@ export const CreditDetail: React.FC = () => {
           finalAmount: 0,
           paidAmount: 0,
           paymentMethod: "normal",
+          inventoryId: "",
         });
         await loadCreditDetail();
       } else {
@@ -381,7 +379,7 @@ export const CreditDetail: React.FC = () => {
             <div className="bg-white p-5 rounded-xl shadow-sm border">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-blue-100 rounded-xl">
-                  <Receipt className="w-6 h-6 text-blue-600" />
+                  <LayoutGrid className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">
@@ -429,118 +427,236 @@ export const CreditDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Associated Orders */}
-          <div className="bg-white rounded-xl shadow-sm border mb-6">
-            <div className="p-4 border-b bg-slate-50">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-primary" />
-                {t("creditDetail.associatedOrders")} (
-                {personaDetail.orders.length})
-              </h2>
-            </div>
-            <div className="p-4">
-              {personaDetail.orders.length === 0 ? (
-                <p className="text-slate-400 text-sm text-center py-4">
-                  {t("creditDetail.noOrders")}
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {personaDetail.orders.map((order) => (
-                    <button
-                      key={order._id}
-                      onClick={() => handleViewOrder(order._id)}
-                      className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer"
-                    >
-                      {order.orderNumber}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Tabs Navigation */}
+          <div className="flex gap-2 mb-6 border-b">
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "orders"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <Receipt className="w-4 h-4" />
+              {t("creditDetail.associatedOrders")} ({personaDetail.orders.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("products")}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "products"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <Box className="w-4 h-4" />
+              Purchased Products ({productsReport?.data.totals.totalUniqueProducts || 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("payments")}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "payments"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              {t("creditDetail.paymentRecords")} ({personaDetail.creditRecords.count})
+            </button>
           </div>
 
-          {/* Payment Records */}
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div className="p-4 border-b bg-slate-50">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-primary" />
-                {t("creditDetail.paymentRecords")} (
-                {personaDetail.creditRecords.count})
-              </h2>
-            </div>
-            {personaDetail.creditRecords.records.length === 0 ? (
-              <div className="p-8 text-center text-slate-400">
-                {t("creditDetail.noRecords")}
-              </div>
-            ) : (
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 text-slate-600 border-b">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">
-                      {t("creditDetail.order")}
-                    </th>
-                    <th className="px-4 py-3 font-medium">
-                      {t("creditDetail.paymentDate")}
-                    </th>
-                    <th className="px-4 py-3 font-medium">
-                      {t("common.method")}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-right">
-                      {t("creditDetail.orderAmount")}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-right">
-                      {t("creditDetail.amountPaid")}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-right">
-                      {t("creditDetail.remaining")}
-                    </th>
-                    <th className="px-4 py-3 font-medium">
-                      {t("common.notes")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {personaDetail.creditRecords.records.map((record) => (
-                    <tr key={record._id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3">
-                        <span className="text-blue-600 font-medium">
-                          {record.orderId.orderNumber}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatDate(record.paymentDate)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
-                          {getPaymentMethodLabel(record.paymentMethod)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right text-slate-600">
-                        {record.orderId.finalAmount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-green-600">
-                        {record.paidAmount.toLocaleString()} MMK
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span
-                          className={`font-medium ${record.orderId.remainingBalance > 0
-                            ? "text-orange-600"
-                            : "text-green-600"
-                            }`}
+          {/* Tab Content */}
+          <div className="mb-6">
+            {activeTab === "orders" && (
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="p-4 border-b bg-slate-50">
+                  <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Receipt className="w-5 h-5 text-primary" />
+                    {t("creditDetail.associatedOrders")}
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {personaDetail.orders.length === 0 ? (
+                    <p className="text-slate-400 text-sm text-center py-4">
+                      {t("creditDetail.noOrders")}
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {personaDetail.orders.map((order) => (
+                        <button
+                          key={order._id}
+                          onClick={() => handleViewOrder(order._id)}
+                          className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer"
                         >
-                          {record.orderId.remainingBalance.toLocaleString()} MMK
+                          {order.orderNumber}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "products" && (
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                  <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Box className="w-5 h-5 text-primary" />
+                    Purchased Products Summary
+                  </h2>
+                  {productsReport && (
+                    <div className="flex gap-4 text-sm">
+                      <span className="text-slate-500">
+                        Total Qty:{" "}
+                        <span className="font-bold text-slate-800">
+                          {productsReport.data.totals.totalQuantity}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">
-                        {record.notes || "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </span>
+                      <span className="text-slate-500">
+                        Total Orders:{" "}
+                        <span className="font-bold text-slate-800">
+                          {productsReport.data.totals.totalOrderCount}
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  {loadingProducts ? (
+                    <div className="p-12 text-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                      <p className="text-slate-400 text-sm">Loading products...</p>
+                    </div>
+                  ) : !productsReport || productsReport.data.products.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 text-sm">
+                      No products found for this credit persona.
+                    </div>
+                  ) : (
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 text-slate-600 border-b">
+                        <tr>
+                          <th className="px-4 py-3 font-medium">Product Name</th>
+                          <th className="px-4 py-3 font-medium">SKU</th>
+                          <th className="px-4 py-3 font-medium text-right">
+                            Quantity
+                          </th>
+                          <th className="px-4 py-3 font-medium text-right">
+                            Order Count
+                          </th>
+                          <th className="px-4 py-3 font-medium">Unit</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {productsReport.data.products.map((product, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-slate-800">
+                                {product.productName}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {product.productCode}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {product.SKU}
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-slate-800">
+                              {product.totalQuantity.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 text-right text-slate-600">
+                              {product.orderCount}
+                            </td>
+                            <td className="px-4 py-3 text-slate-500 uppercase">
+                              {product.unitOfMeasure}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "payments" && (
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="p-4 border-b bg-slate-50">
+                  <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-primary" />
+                    {t("creditDetail.paymentRecords")}
+                  </h2>
+                </div>
+                {personaDetail.creditRecords.records.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400">
+                    {t("creditDetail.noRecords")}
+                  </div>
+                ) : (
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-slate-50 text-slate-600 border-b">
+                      <tr>
+                        <th className="px-4 py-3 font-medium">
+                          {t("creditDetail.order")}
+                        </th>
+                        <th className="px-4 py-3 font-medium">
+                          {t("creditDetail.paymentDate")}
+                        </th>
+                        <th className="px-4 py-3 font-medium">
+                          {t("common.method")}
+                        </th>
+                        <th className="px-4 py-3 font-medium text-right">
+                          {t("creditDetail.orderAmount")}
+                        </th>
+                        <th className="px-4 py-3 font-medium text-right">
+                          {t("creditDetail.amountPaid")}
+                        </th>
+                        <th className="px-4 py-3 font-medium text-right">
+                          {t("creditDetail.remaining")}
+                        </th>
+                        <th className="px-4 py-3 font-medium">
+                          {t("common.notes")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {personaDetail.creditRecords.records.map((record) => (
+                        <tr key={record._id} className="hover:bg-slate-50">
+                          <td className="px-4 py-3">
+                            <span className="text-blue-600 font-medium">
+                              {record.orderId.orderNumber}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5" />
+                              {formatDate(record.paymentDate)}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
+                              {getPaymentMethodLabel(record.paymentMethod)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right text-slate-600">
+                            {record.orderId.finalAmount.toLocaleString()} MMK
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-green-600">
+                            {record.paidAmount.toLocaleString()} MMK
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span
+                              className={`font-medium ${record.orderId.remainingBalance > 0
+                                ? "text-orange-600"
+                                : "text-green-600"
+                                }`}
+                            >
+                              {record.orderId.remainingBalance.toLocaleString()} MMK
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 text-xs">
+                            {record.notes || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             )}
           </div>
         </>
@@ -557,7 +673,7 @@ export const CreditDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Add Payment Modal */}
+      {/* Modals remain same as before */}
       {showAddPaymentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -686,7 +802,7 @@ export const CreditDetail: React.FC = () => {
       {/* Add Credit Model */}
       {showAddCreditModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-lg overflow-hidden flex flex-col animate-in zoom-in duration-200">
             <div className="p-4 border-b flex justify-between items-center bg-blue-50">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Box className="w-6 h-6 text-blue-600" />
