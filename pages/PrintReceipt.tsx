@@ -96,6 +96,19 @@ const PrintReceipt: React.FC = () => {
     });
   };
 
+  const fonts = {
+    title: "26px",
+    header: "18px",
+    address: "16px",
+    item: "18px",
+    summary: "16px",
+    total: "20px",
+    footer: "16px",
+    orderInfo: "16px",
+  };
+
+  const maxNameLength = 40;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -133,9 +146,11 @@ const PrintReceipt: React.FC = () => {
     <div>
       {/* Print Styles */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
         @media print {
           @page {
-            size: 58mm auto;
+            size: 80mm auto;
             margin: 0;
             padding: 0;
           }
@@ -145,105 +160,129 @@ const PrintReceipt: React.FC = () => {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            filter: contrast(200%) !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-            overflow: visible !important;
           }
-          html {
+          html, body {
             margin: 0 !important;
             padding: 0 !important;
             height: auto !important;
             overflow: visible !important;
+            width: 80mm !important;
           }
           body {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            width: 58mm;
-            max-width: 58mm;
-            margin: 0 auto !important;
-            padding: 1mm 0.5mm !important;
-            line-height: 1.3;
-            text-align: center;
-            color: #000000 !important;
-            font-weight: bold;
+            font-family: 'Inter', 'Pyidaungsu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
             background: white !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
+          }
+          .no-print {
+            display: none !important;
           }
           .thermal-receipt-container {
-            display: block !important;
-            background: white !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .thermal-receipt-page {
-            width: 58mm !important;
-            max-width: 58mm !important;
-            background: white !important;
-            color: #000000 !important;
-            font-weight: bold !important;
-            filter: contrast(200%) !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .print-receipt {
+            width: 80mm !important;
             margin: 0 !important;
-            padding: 1mm 0.5mm !important;
-            background: white !important;
-            min-height: auto !important;
-            height: auto !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-          }
-          .print-receipt * {
-            font-family: 'Courier New', monospace;
-            font-weight: bold !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
+            padding: 4mm 2mm !important;
           }
         }
         @media screen {
           body {
             background: #f5f5f5;
-            padding: 20px;
           }
           .thermal-receipt-container {
             display: flex;
             justify-content: center;
-            padding: 20px;
-            background: #f5f5f5;
+            padding: 40px 20px;
           }
           .thermal-receipt-page {
             border: 1px solid #ccc;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             background: white;
-            width: 58mm;
-            max-width: 58mm;
+            width: 80mm;
+            padding: 8mm 4mm;
           }
+        }
+
+        .thermal-receipt-page {
+          font-family: 'Inter', 'Pyidaungsu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          color: #000;
+          line-height: 1.4;
+          font-weight: 600;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 4mm;
+        }
+        .store-name {
+          font-size: 24px;
+          font-weight: 900;
+          margin-bottom: 1mm;
+          text-transform: uppercase;
+        }
+        .store-tagline {
+          font-size: 16px;
+          margin-bottom: 1mm;
+        }
+        .store-sub-tagline {
+          font-size: 14px;
+          margin-bottom: 1mm;
+        }
+        .store-address {
+          font-size: 12px;
+          margin-bottom: 0.5mm;
+        }
+        .store-phone {
+          font-size: 12px;
+          margin-bottom: 2mm;
+        }
+        .date-row {
+          text-align: left;
+          font-size: 12px;
+          margin-bottom: 2mm;
+        }
+        .divider {
+          border-top: 2px dashed #000;
+          margin: 2mm 0;
+        }
+        .items-header {
+          display: flex;
+          justify-content: space-between;
+          font-size: 14px;
+          font-weight: 900;
+          padding-bottom: 1mm;
+        }
+        .item-main {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          font-size: 14px;
+          margin-bottom: 2mm;
+        }
+        .col-name { flex: 2; text-align: left; word-break: break-word; }
+        .col-qty { flex: 1; text-align: center; }
+        .col-price { flex: 1.5; text-align: right; }
+        .col-total { flex: 1.5; text-align: right; }
+
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1.5mm;
+          font-size: 14px;
+        }
+        .thank-you {
+          font-size: 18px;
+          font-weight: 900;
+          margin: 4mm 0 2mm;
+          text-align: center;
+        }
+        .payment-info {
+          font-size: 12px;
+          text-align: center;
+          margin-bottom: 1mm;
+        }
+        .print-time {
+          font-size: 12px;
+          text-align: center;
+          opacity: 0.8;
+          margin-top: 2mm;
         }
       `}</style>
 
@@ -272,298 +311,90 @@ const PrintReceipt: React.FC = () => {
 
       {/* Thermal Receipt Content */}
       <div className="thermal-receipt-container">
-        <div className="thermal-receipt-page print-receipt">
+        <div className="thermal-receipt-page">
           {/* Header */}
-          <div
-            className="header"
-            style={{ textAlign: "center", marginBottom: "1mm" }}
-          >
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: "900",
-                marginBottom: "1mm",
-                marginTop: "0",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)
-            </h2>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              လိပ်စာ - A(30)၊ပထမထပ်၊
-              <br />
-              &nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09780511511(Viber)
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09440064007(Viber)
-            </div>
+          <div className="header">
+            <div className="store-name">SUPER KING</div>
+            <div className="store-tagline">ဖုန်း နှင့် ဖုန်းအပိုပစ္စည်း</div>
+            <div className="store-sub-tagline">လက်လီ/ လက်ကား ရောင်းဝယ်ရေး</div>
+            <div className="store-address">ဆိုင်အမှတ်(C15) ယုဇနပလာဇာ၊ ပထမထပ်/</div>
+            <div className="store-address">ဝင်ပေါက်(၈) ဓာတ်လှေကားအနီး</div>
+            <div className="store-phone">09400016001-09970994888</div>
           </div>
 
-          {/* Order Info */}
-          <div
-            className="order-info"
-            style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "0.5mm 0",
-              margin: "1mm 0",
-            }}
-          >
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Order: {receiptData.invoiceNumber}
-            </p>
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "12px",
-                fontWeight: "900",
-              }}
-            >
-              {formatDate(receiptData.date)} {formatTime(receiptData.date)}
-            </p>
+          <div className="date-row">
+            ရက်စွဲ: {formatDate(receiptData.date)} {formatTime(receiptData.date)}
           </div>
+
+          <div className="divider"></div>
+
+          <div className="items-header">
+            <span className="col-name">အမည်</span>
+            <span className="col-qty">ဦးရေ</span>
+            <span className="col-price">ဈေးနှုန်း</span>
+            <span className="col-total">သင့်ငွေ</span>
+          </div>
+
+          <div className="divider"></div>
 
           {/* Items */}
-          <div style={{ marginBottom: "2mm" }}>
-            <div
-              className="items-header"
-              style={{
-                borderBottom: "1px dashed #000",
-                paddingBottom: "1mm",
-                marginBottom: "2mm",
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              <span style={{ flex: "1", textAlign: "left" }}>Item</span>
-              <span style={{ width: "55px", textAlign: "right" }}>Amt</span>
+          {receiptData.items.map((item, index) => (
+            <div key={`${item.code || item.name}-${index}`} className="item-row">
+              <div className="item-main">
+                <span className="col-name">{item.name}</span>
+                <span className="col-qty">{item.qty} ခု</span>
+                <span className="col-price">{item.price.toLocaleString()}</span>
+                <span className="col-total">{(item.price * item.qty).toLocaleString()}</span>
+              </div>
             </div>
+          ))}
 
-            {receiptData.items.length > 0 ? (
-              receiptData.items.map((item, index) => (
-                <div
-                  key={`${item.code || item.name}-${index}`}
-                  style={{
-                    marginBottom: "1mm",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <span
-                      style={{
-                        flex: "1",
-                        fontSize: "14px",
-                        wordBreak: "break-word",
-                        paddingRight: "1mm",
-                        textAlign: "left",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {item.name.substring(0, 25)}
-                      {item.name.length > 25 ? "..." : ""} x{item.qty}
-                    </span>
-                    <span
-                      style={{
-                        width: "55px",
-                        textAlign: "right",
-                        fontSize: "14px",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {(item.price * item.qty).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: "14px",
-                  fontWeight: "900",
-                }}
-              >
-                No items
-              </p>
-            )}
-          </div>
+          <div className="divider"></div>
 
           {/* Summary */}
-          <div
-            className="summary-section"
-            style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "2mm 0",
-              marginBottom: "2mm",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Subtotal</span>
-              <span>{receiptData.subtotal.toLocaleString()}</span>
+          <div className="summary-section">
+            <div className="summary-row">
+              <span>ကျသင့်ငွေ</span>
+              <span>{receiptData.subtotal.toLocaleString()} Ks</span>
             </div>
-
             {receiptData.discountPercent > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
+              <div className="summary-row">
                 <span>Discount</span>
-                <span style={{ fontWeight: "900" }}>
-                  {receiptData.discountPercent}%
-                </span>
+                <span>{receiptData.discountPercent}%</span>
               </div>
             )}
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: "2mm",
-                paddingTop: "2mm",
-                borderTop: "1px solid #000",
-                fontSize: "16px",
-                fontWeight: "900",
-              }}
-            >
-              <span>TOTAL</span>
-              <span>{receiptData.total.toLocaleString()}</span>
+            <div className="divider"></div>
+            <div className="summary-row" style={{ fontWeight: 900, fontSize: '18px' }}>
+              <span>စုစုပေါင်း</span>
+              <span>{receiptData.total.toLocaleString()} Ks</span>
             </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Payment</span>
-              <span>{receiptData.paymentMethod}</span>
+            <div className="summary-row">
+              <span>ပေးငွေ</span>
+              <span>{(receiptData.paidAmount || receiptData.total).toLocaleString()} Ks</span>
             </div>
-
-            {receiptData.paidAmount && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Paid</span>
-                <span>{receiptData.paidAmount.toLocaleString()}</span>
-              </div>
-            )}
-
-            {receiptData.change && receiptData.change > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Change</span>
-                <span>{receiptData.change.toLocaleString()}</span>
-              </div>
-            )}
+            <div className="divider"></div>
+            <div className="summary-row">
+              <span>အမ်းငွေ</span>
+              <span>{(receiptData.change || 0).toLocaleString()} Ks</span>
+            </div>
           </div>
 
+          <div className="divider"></div>
+
           {receiptData.note && (
-            <div
-              style={{
-                marginBottom: "2mm",
-                fontSize: "11px",
-                fontStyle: "italic",
-                fontWeight: "900",
-              }}
-            >
+            <div style={{ margin: '2mm 0', fontSize: '14px', fontStyle: 'italic' }}>
               Note: {receiptData.note}
             </div>
           )}
 
           {/* Footer */}
-          <div
-            className="footer"
-            style={{
-              textAlign: "center",
-              marginTop: "2mm",
-              paddingTop: "2mm",
-              borderTop: "1px dashed #000",
-              fontSize: "12px",
-            }}
-          >
-            <p
-              style={{
-                margin: "1mm 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Thank you!
-            </p>
-            <p style={{ margin: "1mm 0", opacity: 0.7, fontWeight: "900" }}>
-              IMAS POS System Receipt
-            </p>
+          <div className="footer">
+            <div style={{ textAlign: "left", fontSize: "14px", marginBottom: "2mm" }}>
+              ပြေစာအမှတ်: {receiptData.invoiceNumber}
+            </div>
+            <div className="thank-you">အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</div>
+            <div className="payment-info">kpay 09400016001/ U myolwin</div>
+            <div className="print-time">Print Time: {new Date().toLocaleString('en-GB')}</div>
           </div>
         </div>
       </div>

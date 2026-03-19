@@ -438,7 +438,7 @@ interface ThermalReceiptProps {
 // Helper function to print receipt
 export const printThermalReceipt = (
   receiptData: ReceiptData,
-  paperSize: string = "58mm",
+  paperSize: string = "80mm",
 ) => {
   // Create a hidden iframe for printing
   const iframe = document.createElement("iframe");
@@ -458,6 +458,26 @@ export const printThermalReceipt = (
     return;
   }
 
+  // Adjust font sizes based on paper width
+  const isWide = paperSize.includes("80");
+  const fonts = {
+    title: isWide ? "24px" : "18px",
+    header: isWide ? "16px" : "14px",
+    subHeader: isWide ? "14px" : "12px",
+    address: isWide ? "12px" : "11px",
+    item: isWide ? "14px" : "12px",
+    summary: isWide ? "14px" : "12px",
+    total: isWide ? "16px" : "14px",
+    footer: isWide ? "14px" : "12px",
+    orderInfo: isWide ? "12px" : "10px",
+    thankYou: isWide ? "18px" : "16px",
+  };
+
+  const formatDateShort = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB") + " " + date.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
   // Generate receipt HTML
   const receiptHTML = `
     <!DOCTYPE html>
@@ -465,6 +485,8 @@ export const printThermalReceipt = (
     <head>
       <title>Receipt - ${receiptData.invoiceNumber}</title>
       <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
         @page {
           size: ${paperSize} auto;
           margin: 0;
@@ -476,246 +498,204 @@ export const printThermalReceipt = (
           box-sizing: border-box;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
-          filter: contrast(200%) !important;
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
-        html {
-          margin: 0;
-          padding: 0;
-        }
         body {
-          font-family: 'Courier New', monospace;
-          font-size: 14px;
+          font-family: 'Inter', 'Pyidaungsu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-size: ${fonts.item};
           width: ${paperSize};
           max-width: ${paperSize};
           margin: 0 auto;
-          padding: 1mm 0.5mm;
-          line-height: 1.3;
-          text-align: center;
+          padding: 4mm 2mm;
+          line-height: 1.4;
           color: #000000 !important;
-          font-weight: bold;
           background: white !important;
-          height: auto;
-          overflow: visible;
-        }
-        .thermal-receipt-page {
-          width: ${paperSize} !important;
-          max-width: ${paperSize} !important;
-          background: white !important;
-          color: #000000 !important;
-          font-weight: bold !important;
-          filter: contrast(200%) !important;
+          font-weight: 600;
         }
         .header {
           text-align: center;
-          margin-bottom: 1mm;
+          margin-bottom: 4mm;
         }
         .store-name {
-          font-size: 20px;
+          font-size: ${fonts.title};
           font-weight: 900;
           margin-bottom: 1mm;
           text-transform: uppercase;
-          letter-spacing: 0;
+        }
+        .store-tagline {
+          font-size: ${fonts.header};
+          margin-bottom: 1mm;
+        }
+        .store-sub-tagline {
+          font-size: ${fonts.subHeader};
+          margin-bottom: 1mm;
         }
         .store-address {
-          font-size: 14px;
-          font-weight: 800;
-          margin-bottom: 1mm;
-          text-transform: uppercase;
-          letter-spacing: 0;
+          font-size: ${fonts.address};
+          margin-bottom: 0.5mm;
         }
-        .system-name {
-          font-size: 12px;
-          margin-bottom: 1mm;
-          font-weight: 900;
+        .store-phone {
+          font-size: ${fonts.address};
+          margin-bottom: 2mm;
         }
-        .order-info {
-          border-top: 1px dashed #000;
-          border-bottom: 1px dashed #000;
-          padding: 0.5mm 0;
-          margin: 1mm 0;
+        .date-row {
+          text-align: left;
+          font-size: ${fonts.orderInfo};
+          margin-bottom: 2mm;
         }
-        .order-row {
-          margin: 1px 0;
-          font-size: 12px;
-          font-weight: 900;
+        .divider {
+          border-top: 2px dashed #000;
+          margin: 2mm 0;
+        }
+        .items-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 2mm;
         }
         .items-header {
-          border-bottom: 1px dashed #000;
-          padding-bottom: 1mm;
-          margin-bottom: 2mm;
           display: flex;
           justify-content: space-between;
-          font-size: 14px;
+          font-size: ${fonts.item};
           font-weight: 900;
+          padding-bottom: 1mm;
         }
+        .header-col-name { flex: 2; text-align: left; }
+        .header-col-qty { flex: 1; text-align: center; }
+        .header-col-price { flex: 1.5; text-align: right; }
+        .header-col-total { flex: 1.5; text-align: right; }
+
         .item-row {
+          margin-bottom: 2mm;
+        }
+        .item-main {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 1mm;
+          font-size: ${fonts.item};
         }
-        .item-name {
-          flex: 1;
-          font-size: 14px;
-          word-break: break-word;
-          padding-right: 1mm;
-          text-align: left;
-          font-weight: 900;
-        }
-        .item-price {
-          width: 55px;
-          text-align: right;
-          font-size: 14px;
-          font-weight: 900;
-        }
+        .col-name { flex: 2; text-align: left; word-break: break-word; }
+        .col-qty { flex: 1; text-align: center; }
+        .col-price { flex: 1.5; text-align: right; }
+        .col-total { flex: 1.5; text-align: right; }
+
         .summary-section {
-          border-top: 1px dashed #000;
-          border-bottom: 1px dashed #000;
-          padding: 2mm 0;
-          margin-bottom: 2mm;
+          width: 100%;
+          margin-top: 2mm;
         }
         .summary-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 1mm;
-          font-size: 13px;
-          font-weight: 900;
+          margin-bottom: 1.5mm;
+          font-size: ${fonts.summary};
         }
         .total-row {
           display: flex;
           justify-content: space-between;
           margin-top: 2mm;
           padding-top: 2mm;
-          border-top: 1px solid #000;
-          font-size: 16px;
+          font-size: ${fonts.total};
           font-weight: 900;
         }
         .footer {
           text-align: center;
-          margin-top: 2mm;
-          padding-top: 2mm;
-          border-top: 1px dashed #000;
-          font-size: 12px;
-          font-weight: 900;
+          margin-top: 4mm;
         }
-        @media print {
-          body {
-            margin: 0 !important;
-            padding: 1mm 0.5mm !important;
-            width: ${paperSize} !important;
-            height: auto !important;
-            overflow: visible !important;
-          }
-          .thermal-receipt-page {
-            box-shadow: none !important;
-            border: none !important;
-          }
+        .thank-you {
+          font-size: ${fonts.thankYou};
+          font-weight: 900;
+          margin-bottom: 2mm;
+          margin-top: 2mm;
+        }
+        .payment-info {
+          font-size: ${fonts.address};
+          margin-bottom: 1mm;
+        }
+        .print-time {
+          font-size: ${fonts.orderInfo};
+          opacity: 0.8;
+          margin-top: 2mm;
         }
       </style>
     </head>
     <body>
-      <div class="thermal-receipt-page">
-        <!-- Header -->
-        <div class="header">
-          <div class="store-name">IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)</div>
-          <div class="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ </br>&nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ</div>
-          <div class="store-address">ဖုန်း-09780511511(Viber)</div>
-          <div class="store-address">ဖုန်း-09440064007(Viber)</div>
-        </div>
-        
-        <!-- Order Info -->
-        <div class="order-info">
-          <div class="order-row">Order: ${receiptData.invoiceNumber}</div>
-          <div class="order-row">${new Date(
-            receiptData.date,
-          ).toLocaleString()}</div>
-        </div>
-        
-        <!-- Items Header -->
-        <div class="items-header">
-          <span style="flex: 1; text-align: left;">Item</span>
-          <span style="width: 55px; text-align: right;">Amt</span>
-        </div>
-        
-        <!-- Items -->
-        ${receiptData.items
-          .map(
-            (item: any) => `
-          <div class="item-row">
-            <span class="item-name">${item.name.substring(0, 25)}${
-              item.name.length > 25 ? "..." : ""
-            } x${item.qty}</span>
-            <span class="item-price">${(
-              item.price * item.qty
-            ).toLocaleString()}</span>
+      <div class="header">
+        <div class="store-name">IMAS</div>
+        <div class="store-tagline">ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)</div>
+        <div class="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ ယုဇနပလာဇာ</div>
+        <div class="store-phone">ဖုန်း-09780511511(Viber)</div>
+        <div class="store-phone">ဖုန်း-09440064007(Viber)</div>
+      </div>
+      
+      <div class="date-row">
+        ရက်စွဲ: ${formatDateShort(receiptData.date)}
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="items-header">
+        <span class="header-col-name">အမည်</span>
+        <span class="header-col-qty">ဦးရေ</span>
+        <span class="header-col-price">ဈေးနှုန်း</span>
+        <span class="header-col-total">သင့်ငွေ</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      ${receiptData.items
+      .map(
+        (item: any) => `
+        <div class="item-row">
+          <div class="item-main">
+            <span class="col-name">${item.name}</span>
+            <span class="col-qty">${item.qty} ခု</span>
+            <span class="col-price">${item.price.toLocaleString()}</span>
+            <span class="col-total">${(item.price * item.qty).toLocaleString()}</span>
           </div>
-        `,
-          )
-          .join("")}
-        
-        <!-- Summary -->
-        <div class="summary-section">
+        </div>
+      `,
+      )
+      .join("")}
+      
+      <div class="divider"></div>
+      
+      <div class="summary-section">
+        <div class="summary-row">
+          <span>ကျသင့်ငွေ</span>
+          <span>${receiptData.subtotal.toLocaleString()} Ks</span>
+        </div>
+        ${receiptData.discountPercent > 0
+      ? `
           <div class="summary-row">
-            <span>Subtotal</span>
-            <span>${receiptData.subtotal.toLocaleString()}</span>
-          </div>
-          ${
-            receiptData.discountPercent > 0
-              ? `
-            <div class="summary-row">
-              <span>Discount</span>
-              <span>${receiptData.discountPercent}%</span>
-            </div>
-          `
-              : ""
-          }
-          <div class="total-row">
-            <span>TOTAL</span>
-            <span>${receiptData.total.toLocaleString()}</span>
-          </div>
-          <div class="summary-row">
-            <span>Payment</span>
-            <span>${receiptData.paymentMethod}</span>
-          </div>
-          ${
-            receiptData.paidAmount
-              ? `
-            <div class="summary-row">
-              <span>Paid</span>
-              <span>${receiptData.paidAmount.toLocaleString()}</span>
-            </div>
-          `
-              : ""
-          }
-          ${
-            receiptData.change && receiptData.change > 0
-              ? `
-            <div class="summary-row">
-              <span>Change</span>
-              <span>${receiptData.change.toLocaleString()}</span>
-            </div>
-          `
-              : ""
-          }
-        </div>
-        
-        ${
-          receiptData.note
-            ? `
-          <div style="margin-bottom: 2mm; font-size: 11px; font-style: italic;">
-            Note: ${receiptData.note}
+            <span>Discount</span>
+            <span>${receiptData.discountPercent}%</span>
           </div>
         `
-            : ""
-        }
-        
-        <!-- Footer -->
-        <div class="footer">
-          <div style="margin: 1mm 0; font-size: 14px;">Thank you!</div>
-          <div style="margin: 1mm 0; opacity: 0.7;">IMAS POS System Receipt</div>
+      : ""
+    }
+        <div class="divider"></div>
+        <div class="summary-row" style="font-weight: 900;">
+          <span>စုစုပေါင်း</span>
+          <span>${receiptData.total.toLocaleString()} Ks</span>
         </div>
+        <div class="summary-row">
+          <span>ပေးငွေ</span>
+          <span>${(receiptData.paidAmount || receiptData.total).toLocaleString()} Ks</span>
+        </div>
+        <div class="divider"></div>
+        <div class="summary-row">
+          <span>အမ်းငွေ</span>
+          <span>${(receiptData.change || 0).toLocaleString()} Ks</span>
+        </div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="footer">
+        <div style="text-align: left; font-size: ${fonts.orderInfo}; margin-bottom: 2mm;">
+          ပြေစာအမှတ်: ${receiptData.invoiceNumber}
+        </div>
+        <div class="thank-you">အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</div>
       </div>
     </body>
     </html>
@@ -736,5 +716,6 @@ export const printThermalReceipt = (
     }, 500);
   };
 };
+
 
 // export default ThermalReceipt;

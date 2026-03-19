@@ -93,7 +93,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       navigate(`/print-receipt/${receiptData.invoiceNumber}`);
     } else {
       // For desktop/Windows, use thermal receipt function
-      printThermalReceipt(receiptData, "58mm");
+      printThermalReceipt(receiptData, "80mm");
     }
   };
 
