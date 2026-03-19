@@ -185,19 +185,34 @@ const PrintReceipt: React.FC = () => {
         }
         @media screen {
           body {
-            background: #f5f5f5;
+            background: #f0f2f5;
           }
           .thermal-receipt-container {
             display: flex;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 20px 10px;
           }
           .thermal-receipt-page {
-            border: 1px solid #ccc;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             background: white;
             width: 80mm;
-            padding: 8mm 4mm;
+            max-width: 100%;
+            padding: 20px 15px;
+            border-radius: 8px;
+          }
+        }
+        
+        @media screen and (max-width: 480px) {
+          .thermal-receipt-page {
+            width: 100%;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 15px 10px;
+          }
+          .thermal-receipt-container {
+            padding: 0;
+            background: white;
           }
         }
 
@@ -212,77 +227,68 @@ const PrintReceipt: React.FC = () => {
           margin-bottom: 4mm;
         }
         .store-name {
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 900;
-          margin-bottom: 1mm;
-          text-transform: uppercase;
+          margin-bottom: 2mm;
+          color: #1a1a1a;
         }
         .store-tagline {
           font-size: 16px;
-          margin-bottom: 1mm;
-        }
-        .store-sub-tagline {
-          font-size: 14px;
-          margin-bottom: 1mm;
+          margin-bottom: 1.5mm;
+          color: #333;
         }
         .store-address {
-          font-size: 12px;
-          margin-bottom: 0.5mm;
+          font-size: 13px;
+          margin-bottom: 1mm;
+          color: #444;
         }
         .store-phone {
-          font-size: 12px;
-          margin-bottom: 2mm;
+          font-size: 13px;
+          margin-bottom: 0.5mm;
+          color: #444;
         }
         .date-row {
           text-align: left;
-          font-size: 12px;
-          margin-bottom: 2mm;
+          font-size: 13px;
+          margin-bottom: 3mm;
+          color: #333;
         }
         .divider {
-          border-top: 2px dashed #000;
-          margin: 2mm 0;
+          border-top: 1.5px dashed #ccc;
+          margin: 3mm 0;
         }
         .items-header {
           display: flex;
           justify-content: space-between;
           font-size: 14px;
           font-weight: 900;
-          padding-bottom: 1mm;
+          padding-bottom: 1.5mm;
+          color: #1a1a1a;
         }
         .item-main {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
           font-size: 14px;
-          margin-bottom: 2mm;
+          margin-bottom: 2.5mm;
         }
         .col-name { flex: 2; text-align: left; word-break: break-word; }
-        .col-qty { flex: 1; text-align: center; }
+        .col-qty { flex: 0.8; text-align: center; }
         .col-price { flex: 1.5; text-align: right; }
         .col-total { flex: 1.5; text-align: right; }
 
         .summary-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 1.5mm;
+          margin-bottom: 2mm;
           font-size: 14px;
         }
         .thank-you {
           font-size: 18px;
           font-weight: 900;
-          margin: 4mm 0 2mm;
+          margin: 5mm 0 2mm;
           text-align: center;
-        }
-        .payment-info {
-          font-size: 12px;
-          text-align: center;
-          margin-bottom: 1mm;
-        }
-        .print-time {
-          font-size: 12px;
-          text-align: center;
-          opacity: 0.8;
-          margin-top: 2mm;
+          color: #1a1a1a;
         }
       `}</style>
 
@@ -314,12 +320,11 @@ const PrintReceipt: React.FC = () => {
         <div className="thermal-receipt-page">
           {/* Header */}
           <div className="header">
-            <div className="store-name">SUPER KING</div>
-            <div className="store-tagline">ဖုန်း နှင့် ဖုန်းအပိုပစ္စည်း</div>
-            <div className="store-sub-tagline">လက်လီ/ လက်ကား ရောင်းဝယ်ရေး</div>
-            <div className="store-address">ဆိုင်အမှတ်(C15) ယုဇနပလာဇာ၊ ပထမထပ်/</div>
-            <div className="store-address">ဝင်ပေါက်(၈) ဓာတ်လှေကားအနီး</div>
-            <div className="store-phone">09400016001-09970994888</div>
+            <div className="store-name">IMAS</div>
+            <div className="store-tagline">ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)</div>
+            <div className="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ ယုဇနပလာဇာ</div>
+            <div className="store-phone">ဖုန်း-09780511511(Viber)</div>
+            <div className="store-phone">ဖုန်း-09440064007(Viber)</div>
           </div>
 
           <div className="date-row">
@@ -382,19 +387,17 @@ const PrintReceipt: React.FC = () => {
           <div className="divider"></div>
 
           {receiptData.note && (
-            <div style={{ margin: '2mm 0', fontSize: '14px', fontStyle: 'italic' }}>
+            <div style={{ margin: '3mm 0', fontSize: '14px', fontStyle: 'italic', color: '#666' }}>
               Note: {receiptData.note}
             </div>
           )}
 
           {/* Footer */}
           <div className="footer">
-            <div style={{ textAlign: "left", fontSize: "14px", marginBottom: "2mm" }}>
+            <div style={{ textAlign: "left", fontSize: "12px", marginBottom: "3mm", color: '#666' }}>
               ပြေစာအမှတ်: {receiptData.invoiceNumber}
             </div>
             <div className="thank-you">အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</div>
-            <div className="payment-info">kpay 09400016001/ U myolwin</div>
-            <div className="print-time">Print Time: {new Date().toLocaleString('en-GB')}</div>
           </div>
         </div>
       </div>
