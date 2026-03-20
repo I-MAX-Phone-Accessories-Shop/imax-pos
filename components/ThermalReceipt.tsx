@@ -629,8 +629,8 @@ export const printThermalReceipt = (
         <div class="order-info">
           <div class="order-row">Order: ${receiptData.invoiceNumber}</div>
           <div class="order-row">${new Date(
-            receiptData.date,
-          ).toLocaleString()}</div>
+    receiptData.date,
+  ).toLocaleString()}</div>
         </div>
         
         <!-- Items Header -->
@@ -641,19 +641,18 @@ export const printThermalReceipt = (
         
         <!-- Items -->
         ${receiptData.items
-          .map(
-            (item: any) => `
+      .map(
+        (item: any) => `
           <div class="item-row">
-            <span class="item-name">${item.name.substring(0, 25)}${
-              item.name.length > 25 ? "..." : ""
-            } x${item.qty}</span>
+            <span class="item-name">${item.name.substring(0, 25)}${item.name.length > 25 ? "..." : ""
+          } x${item.qty}</span>
             <span class="item-price">${(
-              item.price * item.qty
-            ).toLocaleString()}</span>
+            item.price * item.qty
+          ).toLocaleString()}</span>
           </div>
         `,
-          )
-          .join("")}
+      )
+      .join("")}
         
         <!-- Summary -->
         <div class="summary-section">
@@ -661,16 +660,15 @@ export const printThermalReceipt = (
             <span>Subtotal</span>
             <span>${receiptData.subtotal.toLocaleString()}</span>
           </div>
-          ${
-            receiptData.discountPercent > 0
-              ? `
+          ${receiptData.discountPercent > 0
+      ? `
             <div class="summary-row">
               <span>Discount</span>
               <span>${receiptData.discountPercent}%</span>
             </div>
           `
-              : ""
-          }
+      : ""
+    }
           <div class="total-row">
             <span>TOTAL</span>
             <span>${receiptData.total.toLocaleString()}</span>
@@ -679,42 +677,39 @@ export const printThermalReceipt = (
             <span>Payment</span>
             <span>${receiptData.paymentMethod}</span>
           </div>
-          ${
-            receiptData.paidAmount
-              ? `
+          ${receiptData.paidAmount
+      ? `
             <div class="summary-row">
               <span>Paid</span>
               <span>${receiptData.paidAmount.toLocaleString()}</span>
             </div>
           `
-              : ""
-          }
-          ${
-            receiptData.change && receiptData.change > 0
-              ? `
+      : ""
+    }
+          ${receiptData.change && receiptData.change > 0
+      ? `
             <div class="summary-row">
               <span>Change</span>
               <span>${receiptData.change.toLocaleString()}</span>
             </div>
           `
-              : ""
-          }
+      : ""
+    }
         </div>
         
-        ${
-          receiptData.note
-            ? `
-          <div style="margin-bottom: 2mm; font-size: 11px; font-style: italic;">
+        ${receiptData.note
+      ? `
+          <div style="margin-bottom: 2mm; font-size: 12px; font-style: italic,font-weight: bold;">
             Note: ${receiptData.note}
           </div>
         `
-            : ""
-        }
+      : ""
+    }
         
         <!-- Footer -->
         <div class="footer">
-          <div style="margin: 1mm 0; font-size: 14px;">Thank you!</div>
-          <div style="margin: 1mm 0; opacity: 0.7;">IMAS POS System Receipt</div>
+          <div style="margin: 1mm 0; font-size: 11px;font-weight: bold;"> ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</div>
+          <div style="margin: 1mm 0; opacity: 0.7;">ဝယ်ပီးပစ္စည်းပြန်မလဲပေးပါ</div>
         </div>
       </div>
     </body>
