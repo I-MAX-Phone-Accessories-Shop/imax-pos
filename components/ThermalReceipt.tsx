@@ -699,7 +699,7 @@ export const printThermalReceipt = (
         
         ${receiptData.note
       ? `
-          <div style="margin-bottom: 2mm; font-size: 12px; font-style: italic,font-weight: bold;">
+          <div style="margin-bottom: 2mm; font-size: 14px; font-style: italic,font-weight: bold;">
             Note: ${receiptData.note}
           </div>
         `
@@ -708,8 +708,8 @@ export const printThermalReceipt = (
         
         <!-- Footer -->
         <div class="footer">
-          <div style="margin: 1mm 0; font-size: 11px;font-weight: bold;"> ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</div>
-          <div style="margin: 1mm 0; opacity: 0.7;">ဝယ်ပီးပစ္စည်းပြန်မလဲပေးပါ</div>
+          <div style="margin: 1mm 0; font-size: 14px;font-weight: bold;"> ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</div>
+          <div style="margin: 1mm 0; opacity: 1; font-weight: bold; font-size: 14px;">ဝယ်ပီးပစ္စည်းပြန်မလဲပေးပါ</div>
         </div>
       </div>
     </body>
