@@ -461,16 +461,16 @@ export const printThermalReceipt = (
   // Adjust font sizes based on paper width
   const isWide = paperSize.includes("80");
   const fonts = {
-    title: isWide ? "24px" : "18px",
-    header: isWide ? "16px" : "14px",
-    subHeader: isWide ? "14px" : "12px",
-    address: isWide ? "12px" : "11px",
-    item: isWide ? "14px" : "12px",
-    summary: isWide ? "14px" : "12px",
-    total: isWide ? "16px" : "14px",
-    footer: isWide ? "14px" : "12px",
-    orderInfo: isWide ? "12px" : "10px",
-    thankYou: isWide ? "18px" : "16px",
+    title: isWide ? "30px" : "22px",
+    header: isWide ? "18px" : "14px",
+    subHeader: isWide ? "16px" : "12px",
+    address: isWide ? "14px" : "11px",
+    item: isWide ? "16px" : "12px",
+    summary: isWide ? "16px" : "12px",
+    total: isWide ? "18px" : "14px",
+    footer: isWide ? "16px" : "12px",
+    orderInfo: isWide ? "14px" : "10px",
+    thankYou: isWide ? "22px" : "16px",
   };
 
   const formatDateShort = (dateString: string) => {

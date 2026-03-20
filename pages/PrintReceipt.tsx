@@ -152,7 +152,6 @@ const PrintReceipt: React.FC = () => {
           @page {
             size: 80mm auto;
             margin: 0;
-            padding: 0;
           }
           * {
             margin: 0;
@@ -160,27 +159,30 @@ const PrintReceipt: React.FC = () => {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
           }
           html, body {
             margin: 0 !important;
             padding: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
-            width: 80mm !important;
-          }
-          body {
-            font-family: 'Inter', 'Pyidaungsu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            width: 100% !important;
             background: white !important;
+            overflow: visible !important;
           }
           .no-print {
             display: none !important;
           }
           .thermal-receipt-container {
-            width: 80mm !important;
+            width: 100% !important;
             margin: 0 !important;
-            padding: 4mm 2mm !important;
+            padding: 2mm !important;
+            display: block !important;
+          }
+          .thermal-receipt-page {
+            width: 100% !important;
+            min-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
           }
         }
         @media screen {
@@ -190,29 +192,26 @@ const PrintReceipt: React.FC = () => {
           .thermal-receipt-container {
             display: flex;
             justify-content: center;
-            padding: 20px 10px;
+            padding: 20px 0;
+            overflow-x: auto;
           }
           .thermal-receipt-page {
             border: none;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             background: white;
             width: 80mm;
-            max-width: 100%;
-            padding: 20px 15px;
+            min-width: 80mm;
+            padding: 24px 18px;
             border-radius: 8px;
+            margin: 0 auto;
           }
         }
         
         @media screen and (max-width: 480px) {
           .thermal-receipt-page {
-            width: 100%;
-            border-radius: 0;
-            box-shadow: none;
-            padding: 15px 10px;
-          }
-          .thermal-receipt-container {
-            padding: 0;
-            background: white;
+            width: 80mm;
+            border-radius: 4px;
+            padding: 20px 12px;
           }
         }
 
@@ -224,55 +223,55 @@ const PrintReceipt: React.FC = () => {
         }
         .header {
           text-align: center;
-          margin-bottom: 4mm;
+          margin-bottom: 5mm;
         }
         .store-name {
-          font-size: 26px;
+          font-size: 30px;
           font-weight: 900;
           margin-bottom: 2mm;
           color: #1a1a1a;
         }
         .store-tagline {
-          font-size: 16px;
-          margin-bottom: 1.5mm;
+          font-size: 18px;
+          margin-bottom: 2mm;
           color: #333;
         }
         .store-address {
-          font-size: 13px;
+          font-size: 14px;
           margin-bottom: 1mm;
           color: #444;
         }
         .store-phone {
-          font-size: 13px;
+          font-size: 14px;
           margin-bottom: 0.5mm;
           color: #444;
         }
         .date-row {
           text-align: left;
-          font-size: 13px;
-          margin-bottom: 3mm;
+          font-size: 14px;
+          margin-bottom: 4mm;
           color: #333;
         }
         .divider {
-          border-top: 1.5px dashed #ccc;
-          margin: 3mm 0;
+          border-top: 2px dashed #bbb;
+          margin: 4mm 0;
         }
         .items-header {
           display: flex;
           justify-content: space-between;
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 900;
-          padding-bottom: 1.5mm;
+          padding-bottom: 2mm;
           color: #1a1a1a;
         }
         .item-main {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          font-size: 14px;
-          margin-bottom: 2.5mm;
+          font-size: 16px;
+          margin-bottom: 3mm;
         }
-        .col-name { flex: 2; text-align: left; word-break: break-word; }
+        .col-name { flex: 2.2; text-align: left; word-break: break-word; }
         .col-qty { flex: 0.8; text-align: center; }
         .col-price { flex: 1.5; text-align: right; }
         .col-total { flex: 1.5; text-align: right; }
@@ -280,13 +279,13 @@ const PrintReceipt: React.FC = () => {
         .summary-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 2mm;
-          font-size: 14px;
+          margin-bottom: 2.5mm;
+          font-size: 16px;
         }
         .thank-you {
-          font-size: 18px;
+          font-size: 22px;
           font-weight: 900;
-          margin: 5mm 0 2mm;
+          margin: 6mm 0 2mm;
           text-align: center;
           color: #1a1a1a;
         }
