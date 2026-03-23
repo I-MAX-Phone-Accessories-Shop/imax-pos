@@ -63,7 +63,7 @@ const AppLayout: React.FC = () => {
             className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
           /> */}
                 <h1 className="text-lg font-bold text-primary tracking-wide">
-                  OTAS POS
+                  Auto Shop
                 </h1>
               </div>
               <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ const AppLayout: React.FC = () => {
                 >
                   <HelpCircle className="w-5 h-5" />
                   <span className="text-xs font-medium hidden sm:inline">
-                    Tour
+                    ဆော့ဝဲ လမ်းညွှန်
                   </span>
                 </button>
                 <LanguageSwitcher />

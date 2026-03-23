@@ -14,7 +14,7 @@ export const LanguageSwitcher: React.FC = () => {
       >
         <Globe className="w-4 h-4" />
         <span className="text-sm font-medium">
-          {language === "en" ? "EN" : "MY"}
+          {language === "en" ? "English" : "မြန်မာ"}
         </span>
       </button>
     </div>

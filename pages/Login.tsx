@@ -72,7 +72,7 @@ export const Login: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl mb-4 shadow-lg">
             <Shield className="w-10 h-10 text-dark" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">OTAS POS</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Auto Shop</h1>
           <p className="text-dark-400">{t("login.title")}</p>
         </div>
 

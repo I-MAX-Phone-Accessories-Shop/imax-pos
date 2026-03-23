@@ -124,7 +124,7 @@ export const AIChat: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
+    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
@@ -153,8 +153,8 @@ export const AIChat: React.FC = () => {
 
         {/* Chat Container */}
         <div
-          className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
-          style={{ height: "600px" }}
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[calc(100vh-240px)]"
+
         >
           {/* Messages */}
           <div className="h-full flex flex-col">
@@ -165,11 +165,10 @@ export const AIChat: React.FC = () => {
                     <Bot className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                    Hello! I'm your AI Assistant
+                    မင်္ဂလာပါ ကျွန်တော်က Bossရဲ့ AI လက်ထောက် မန်နေဂျာပါ။
                   </h3>
                   <p className="text-sm text-slate-500 max-w-md mx-auto">
-                    I can help you with business insights, inventory management,
-                    sales analysis, and much more. How can I assist you today?
+                    Boss အနေနဲ့ လုပ်ငန်းနဲ့ပတ်သက်ပြီး ဘာအချက်အလက်လေးတွေ သိလိုပါသလဲ ခင်ဗျာ
                   </p>
                 </div>
               )}
@@ -180,11 +179,10 @@ export const AIChat: React.FC = () => {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 flex flex-col ${
-                      msg.role === "user"
-                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-                        : "bg-white text-slate-800 border border-slate-200 shadow-sm"
-                    }`}
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 flex flex-col ${msg.role === "user"
+                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+                      : "bg-white text-slate-800 border border-slate-200 shadow-sm"
+                      }`}
                   >
                     <div className="flex items-start gap-2 mb-1">
                       {msg.role === "ai" && (
@@ -247,7 +245,7 @@ export const AIChat: React.FC = () => {
         </div>
 
         {/* Tips */}
-        <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
+        {/* <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
           <h4 className="font-semibold text-slate-700 mb-2">💡 Pro Tips:</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-slate-600">
             <div>• Ask about sales trends</div>
@@ -257,7 +255,7 @@ export const AIChat: React.FC = () => {
             <div>• Product recommendations</div>
             <div>• Financial advice</div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -68,7 +68,7 @@ export const my = {
     checkCredentials:
       "ဝင်ရောက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ သင့်အထောက်အထားများကို စစ်ဆေးပါ။",
     welcomeBack: "{name} ကို ပြန်လည်ကြိုဆိုပါသည်!",
-    copyright: "© 2024 IMAS POS System. မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
+    copyright: "© 2024 OTAS Tech Solutions.Co.,Ltd မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
   },
   sidebar: {
     checkout: "ဘောင်ချာထုတ်",
@@ -78,7 +78,7 @@ export const my = {
     suppliers: "ပစ္စည်း သွင်းသူများ",
     purchasing: "ပစ္စည်းဝယ်ယူမှု",
     orders: "အော်ဒါများ",
-    creditOrder: "အကြွေး ဝယ်ယူမှုများ",
+    creditOrder: "အကြွေး အော်ဒါများ",
     creditSales: "အကြွေး ရောင်းချမှုများ",
     expenses: "အထွေထွေ အသုံးစရိတ်",
     reports: "အစီရင်ခံစာများ",
@@ -158,9 +158,9 @@ export const my = {
     addNewProduct: "ကုန်ပစ္စည်းအသစ် ထည့်မည်",
     editProduct: "ကုန်ပစ္စည်း ပြင်ဆင်မည်",
     refresh: "Refresh လုပ်မယ်",
-    transferWarehouse: "ကုန်လှောင်ရုံကို ပို့မယ်",
+    transferWarehouse: "ဂိုဒေါင်ကို ပို့မယ်",
     transferStoreFront: "အရောင်းဆိုင်ကို ပို့မယ်",
-    confirmWarehouse: "ကုန်လှောင်ရုံသို့ ပို့မယ်",
+    confirmWarehouse: "ဂိုဒေါင်သို့ ပို့မယ်",
     confirmStoreFront: "အရောင်းဆိုင်သို့ ပို့မယ်",
     cancelSelection: "ရွေးချယ်မှု ပယ်ဖျက်မယ်",
     filterByCategory: "အမျိုးအစားဖြင့် စစ်ထုတ်မည်",
@@ -327,7 +327,7 @@ export const my = {
     noItemsInOrder: "ဤအော်ဒါတွင် ပစ္စည်းများ မရှိပါ",
   },
   creditOrders: {
-    title: "အကြွေးဝယ်ယူမှုများ",
+    title: "အကြွေး အော်ဒါများ",
     subtitle: "အကြွေးရောင်းချမှုများနှင့် ဖောက်သည်လက်ကျန်များကို စီမံခန့်ခွဲပါ",
     search: "အော်ဒါနံပါတ် သို့မဟုတ် ဆိုင်ခွဲဖြင့် ရှာဖွေမယ်",
     allstorefront: "ဆိုင်ခွဲအားလုံး",

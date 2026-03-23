@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/credits", label: t("sidebar.creditSales"), icon: CreditCard },
     { path: "/expenses", label: t("sidebar.expenses"), icon: PieChart },
     { path: "/reports", label: t("sidebar.reports"), icon: LayoutDashboard },
-    { path: "/ai-chat", label: "AI Assistant", icon: MessageSquare },
+    { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
     { path: "/accounts", label: t("sidebar.accountManagement"), icon: Shield },
   ];
 
@@ -77,17 +77,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop Overlay */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       {/* Sidebar */}
       <div
-        className={`sidebar w-72 bg-gradient-to-b from-dark-900 via-dark-900 to-dark-950 text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`sidebar w-72 bg-gradient-to-b from-dark-900 via-dark-900 to-dark-950 text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="px-4 py-4 flex items-center justify-between border-b border-primary/20">
@@ -99,9 +97,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             /> */}
             <div>
               <h1 className="text-xl font-bold text-primary tracking-tight">
-                OTAS POS
+                Auto Shop
               </h1>
-              <p className="text-dark-500 text-xs">{t("app.subtitle")}</p>
+              {/* <p className="text-dark-500 text-xs">{t("app.subtitle")}</p> */}
             </div>
           </div>
           <button
@@ -151,10 +149,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 to={item.path}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
-                    isActive
-                      ? "bg-primary text-dark shadow-lg shadow-primary/25"
-                      : "text-dark-400 hover:bg-primary/10 hover:text-primary"
+                  `w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${isActive
+                    ? "bg-primary text-dark shadow-lg shadow-primary/25"
+                    : "text-dark-400 hover:bg-primary/10 hover:text-primary"
                   }`
                 }
                 style={{
@@ -190,10 +187,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             id="profile-tab"
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${
-                isActive
-                  ? "bg-primary text-dark"
-                  : "text-dark-400 hover:text-primary hover:bg-primary/10"
+              `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${isActive
+                ? "bg-primary text-dark"
+                : "text-dark-400 hover:text-primary hover:bg-primary/10"
               }`
             }
           >
