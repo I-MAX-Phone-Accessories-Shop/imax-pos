@@ -41,10 +41,12 @@ const AppLayout: React.FC = () => {
     return "pos";
   };
 
+  const isPosPage = location.pathname === "/pos";
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Only show header and sidebar if authenticated */}
-      {token && (
+      {/* Only show header and sidebar if authenticated and not on POS page */}
+      {token && !isPosPage && (
         <>
           {/* Header */}
           <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
@@ -57,11 +59,6 @@ const AppLayout: React.FC = () => {
                 >
                   <Menu className="w-6 h-6 text-primary" />
                 </button>
-                {/* <img
-            src="/imaslogo.jpg"
-            alt="IMAS Logo"
-            className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
-          /> */}
                 <h1 className="text-lg font-bold text-primary tracking-wide">
                   Auto Shop
                 </h1>
@@ -93,6 +90,11 @@ const AppLayout: React.FC = () => {
         </>
       )}
 
+      {/* For POS page, still register Sidebar but it will be toggled by POS-internal button if we want, or just let POS manage it */}
+      {token && isPosPage && (
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      )}
+
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden">
         <Routes>
@@ -108,7 +110,7 @@ const AppLayout: React.FC = () => {
             path="/pos"
             element={
               <ProtectedRoute>
-                <POS />
+                <POS setSidebarOpen={setSidebarOpen} />
               </ProtectedRoute>
             }
           />
