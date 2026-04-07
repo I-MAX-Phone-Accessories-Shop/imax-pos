@@ -129,11 +129,36 @@ export const Orders: React.FC = () => {
   };
 
   const filteredOrders = orders.filter((order) => {
+    const searchLower = search.toLowerCase();
+
+    // Check if search matches order number
+    const matchesOrderNumber = order.orderNumber
+      ?.toLowerCase()
+      .includes(searchLower);
+
+    // Check if search matches storefront location
+    const matchesStorefront = order.storefrontId?.locationName
+      ?.toLowerCase()
+      .includes(searchLower);
+
+    // Check if search matches any product name in the order
+    const matchesProductName = order.ordersProducts?.some((product) =>
+      product.inventoryId?.productName?.toLowerCase().includes(searchLower),
+    );
+
+    // Check if search matches any product code in the order
+    const matchesProductCode = order.ordersProducts?.some(
+      (product) =>
+        product.inventoryId?.productCode?.toLowerCase().includes(searchLower) ||
+        product.inventoryId?.SKU?.toLowerCase().includes(searchLower),
+    );
+
     const matchesSearch =
-      order.orderNumber?.toLowerCase().includes(search.toLowerCase()) ||
-      order.storefrontId?.locationName
-        ?.toLowerCase()
-        .includes(search.toLowerCase());
+      matchesOrderNumber ||
+      matchesStorefront ||
+      matchesProductName ||
+      matchesProductCode;
+
     const matchesPaymentType =
       paymentTypeFilter === "all" ||
       order.paymentType?.toLowerCase() === paymentTypeFilter.toLowerCase();

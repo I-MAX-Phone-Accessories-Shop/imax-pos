@@ -1,8 +1,9 @@
 import React from "react";
 import { ChevronRight, Loader2, Package, TrendingUp, ShoppingCart, User, Phone, Hash, X, ExternalLink } from "lucide-react";
 import { ProductSalesStatisticsResponse, ProductSalesData } from "../../services/Reports/fetchProductSalesStatistics";
-import { fetchProductsByCreditPerson, CreditPersonSales } from "../../services/Reports/fetchProductsByCreditPerson";
+import { fetchOrders, Order } from "../../services/Order/fetchOrders";
 import { Modal } from "../Modal";
+import { OrderDetailModal } from "../Orders/OrderDetailModal";
 
 interface SaleStatisticsTabProps {
   productSalesStatistics: ProductSalesStatisticsResponse | null;
@@ -21,8 +22,10 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
 }) => {
   const [selectedProduct, setSelectedProduct] = React.useState<ProductSalesData | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [creditDetails, setCreditDetails] = React.useState<Record<string, CreditPersonSales[]>>({});
-  const [loadingCredit, setLoadingCredit] = React.useState<Record<string, boolean>>({});
+  const [productOrders, setProductOrders] = React.useState<Record<string, Order[]>>({});
+  const [loadingOrders, setLoadingOrders] = React.useState<Record<string, boolean>>({});
+  const [selectedViewOrder, setSelectedViewOrder] = React.useState<Order | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = React.useState(false);
 
   const formatDateForAPI = (date: Date | null): string | null => {
     if (!date) return null;
@@ -32,32 +35,37 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
     return `${year}-${month}-${day}`;
   };
 
-  const handleOpenCreditModal = async (product: ProductSalesData) => {
+  const handleOpenOrdersModal = async (product: ProductSalesData) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
     const inventoryId = product.inventoryId;
 
-    if (!creditDetails[inventoryId]) {
-      setLoadingCredit(prev => ({ ...prev, [inventoryId]: true }));
+    if (!productOrders[inventoryId]) {
+      setLoadingOrders(prev => ({ ...prev, [inventoryId]: true }));
       try {
         const startDateStr = formatDateForAPI(startDate);
         const endDateStr = formatDateForAPI(endDate);
-        const response = await fetchProductsByCreditPerson(
-          inventoryId,
+
+        const response = await fetchOrders(
           startDateStr,
-          endDateStr,
-          selectedStorefront
+          endDateStr
         );
-        if (response.success && response.data.products.length > 0) {
-          setCreditDetails(prev => ({
+
+        if (response.success && response.data.length > 0) {
+          // Filter orders that contain the selected product
+          const filteredOrders = response.data.filter(order =>
+            order.ordersProducts.some(p => p.inventoryId.productName === product.productName)
+          );
+
+          setProductOrders(prev => ({
             ...prev,
-            [inventoryId]: response.data.products[0].creditPersons
+            [inventoryId]: filteredOrders
           }));
         }
       } catch (error) {
-        console.error("Error fetching credit details:", error);
+        console.error("Error fetching product orders:", error);
       } finally {
-        setLoadingCredit(prev => ({ ...prev, [inventoryId]: false }));
+        setLoadingOrders(prev => ({ ...prev, [inventoryId]: false }));
       }
     }
   };
@@ -202,7 +210,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
-                        onClick={() => handleOpenCreditModal(product)}
+                        onClick={() => handleOpenOrdersModal(product)}
                         className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-all font-semibold text-xs border border-primary/20 shadow-sm"
                       >
                         Analytics
@@ -221,7 +229,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={`Credit Analytics: ${selectedProduct?.productName || ""}`}
+        title={`Recent Orders: ${selectedProduct?.productName || ""}`}
       >
         <div className="space-y-6">
           {selectedProduct && (
@@ -236,7 +244,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                       {selectedProduct.productName}
                     </h3>
                     <div className="flex items-center gap-3 mt-2">
-                       <span className="px-3 py-1 bg-white/80 rounded-full text-xs font-bold text-slate-500 border border-slate-100 shadow-sm uppercase tracking-widest">
+                      <span className="px-3 py-1 bg-white/80 rounded-full text-xs font-bold text-slate-500 border border-slate-100 shadow-sm uppercase tracking-widest">
                         {selectedProduct.productCode}
                       </span>
                       <span className="px-3 py-1 bg-primary/10 rounded-full text-xs font-bold text-primary border border-primary/20 shadow-sm uppercase tracking-widest">
@@ -254,19 +262,18 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                   </div>
                 </div>
               </div>
-
-              {loadingCredit[selectedProduct.inventoryId] ? (
+              {loadingOrders[selectedProduct.inventoryId] ? (
                 <div className="py-24 text-center">
                   <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-                  <p className="text-slate-600 font-bold text-lg animate-pulse">Gathering Customer Data...</p>
+                  <p className="text-slate-600 font-bold text-lg animate-pulse">Searching Recent Orders...</p>
                 </div>
-              ) : !creditDetails[selectedProduct.inventoryId] || creditDetails[selectedProduct.inventoryId].length === 0 ? (
+              ) : !productOrders[selectedProduct.inventoryId] || productOrders[selectedProduct.inventoryId].length === 0 ? (
                 <div className="py-24 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
                   <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50 border border-slate-100">
                     <X className="w-12 h-12 text-slate-300" />
                   </div>
-                  <h4 className="text-xl font-bold text-slate-700 mb-2">No Credit Activity</h4>
-                  <p className="text-slate-400 max-w-xs mx-auto">This product hasn't been sold on credit during the selected time period.</p>
+                  <h4 className="text-xl font-bold text-slate-700 mb-2">No Recent Orders</h4>
+                  <p className="text-slate-400 max-w-xs mx-auto">No orders found containing this product during the selected period.</p>
                 </div>
               ) : (
                 <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
@@ -274,68 +281,66 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-slate-50/50">
-                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Customer Information</th>
-                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Volume Analytics</th>
-                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Transaction Count</th>
-                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Actions</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Order #</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Customer</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Qty</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Price</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Total</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {creditDetails[selectedProduct.inventoryId].map((cp) => (
-                          <tr key={cp.creditPersonId} className="hover:bg-primary/5 transition-all group">
-                            <td className="px-8 py-6">
-                              <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary/10 to-primary/5 flex items-center justify-center text-primary font-black text-lg shadow-inner group-hover:scale-105 transition-transform duration-300">
-                                  {cp.name.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="space-y-1">
-                                  <p className="font-black text-slate-800 text-lg leading-tight">{cp.name}</p>
-                                  <div className="flex items-center gap-3">
-                                    <span className="flex items-center gap-1.5 text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">
-                                      <Phone className="w-3.5 h-3.5" />
-                                      {cp.phone}
-                                    </span>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
-                                    <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                                      <Hash className="w-3 h-3" />
-                                      Ref: {cp.creditPersonId.slice(-8).toUpperCase()}
-                                    </span>
+                        {productOrders[selectedProduct.inventoryId].map((order) => {
+                          const orderProduct = order.ordersProducts.find(p => p.inventoryId.productName === selectedProduct.productName);
+                          return (
+                            <tr key={order._id} className="hover:bg-primary/5 transition-all group text-sm">
+                              <td className="px-8 py-6">
+                                <p className="font-black text-slate-800 leading-tight">{order.orderNumber}</p>
+                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 uppercase font-bold">{order.paymentMethod}</span>
+                              </td>
+                              <td className="px-8 py-6">
+                                {typeof order.creditPersonId === 'object' && order.creditPersonId ? (
+                                  <div className="flex flex-col">
+                                    <p className="font-bold text-slate-700">{order.creditPersonId.name}</p>
+                                    <p className="text-xs text-slate-400 font-medium">{order.creditPersonId.phone}</p>
                                   </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-8 py-6 text-right">
-                              <div className="inline-flex flex-col items-end">
-                                <p className="text-2xl font-black text-primary">
-                                  {cp.totalQuantity.toLocaleString()}
-                                </p>
-                                <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest mt-0.5">
-                                  {selectedProduct.unitOfMeasure}s Delivered
-                                </p>
-                              </div>
-                            </td>
-                            <td className="px-8 py-6 text-right">
-                              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100/80 rounded-2xl text-slate-700 font-black text-sm border border-slate-200 group-hover:bg-white group-hover:shadow-md transition-all">
-                                {cp.orderCount} <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{cp.orderCount === 1 ? 'Order' : 'Orders'}</span>
-                              </div>
-                            </td>
-                            <td className="px-8 py-6 text-center">
-                              <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-primary hover:text-white rounded-xl transition-all shadow-sm active:scale-95">
-                                <ExternalLink className="w-5 h-5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                                ) : (
+                                  <span className="text-slate-400 italic">Cash Customer</span>
+                                )}
+                              </td>
+                              <td className="px-8 py-6 text-right font-black text-blue-600">
+                                {orderProduct?.quantity || 0}
+                              </td>
+                              <td className="px-8 py-6 text-right text-slate-600">
+                                {orderProduct?.unitPrice.toLocaleString()}
+                              </td>
+                              <td className="px-8 py-6 text-right font-bold text-green-600">
+                                {((orderProduct?.quantity || 0) * (orderProduct?.unitPrice || 0)).toLocaleString()}
+                              </td>
+                              <td className="px-8 py-6 text-center">
+                                <button
+                                  onClick={() => {
+                                    setSelectedViewOrder(order);
+                                    setIsOrderModalOpen(true);
+                                  }}
+                                  className="w-20 h-10 flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-primary hover:text-white rounded-xl transition-all shadow-sm active:scale-95"
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                   <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.1em]">
-                      Aggregation of {creditDetails[selectedProduct.inventoryId].length} Active Credit Accounts
+                      Found {productOrders[selectedProduct.inventoryId].length} transactions
                     </p>
                     <div className="flex items-center gap-2">
-                       <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                       <span className="text-[10px] font-black text-slate-500 uppercase">Live Reports Only</span>
+                      <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                      <span className="text-[10px] font-black text-slate-500 uppercase">Order History</span>
                     </div>
                   </div>
                 </div>
@@ -344,6 +349,13 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
           )}
         </div>
       </Modal>
+
+      <OrderDetailModal
+        isOpen={isOrderModalOpen}
+        order={selectedViewOrder}
+        loading={false}
+        onClose={() => setIsOrderModalOpen(false)}
+      />
     </div>
   );
 };
