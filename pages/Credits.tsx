@@ -184,7 +184,7 @@ export const Credits: React.FC = () => {
           </button>
           <button
             onClick={handleOpenAddModal}
-            className="bg-btn-primary text-dark px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 hover:bg-btn-primary-hover transition-colors font-medium text-sm sm:text-base"
+            className="bg-primary text-white px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors font-medium text-sm sm:text-base"
           >
             <UserPlus className="w-4 h-4" />{" "}
             <span className="hidden sm:inline">{t("credits.addProfile")}</span>
@@ -482,7 +482,7 @@ export const Credits: React.FC = () => {
               <button
                 onClick={handleSubmitProfile}
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-btn-primary text-dark rounded-lg hover:bg-btn-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium order-1 sm:order-2"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium order-1 sm:order-2"
               >
                 {isSubmitting ? (
                   <>

@@ -270,7 +270,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
         </h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-btn-primary text-dark px-4 py-2 rounded-lg hover:bg-btn-primary-hover flex items-center gap-2"
+          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" /> Create New PO
         </button>
@@ -292,7 +292,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
           onClick={() => setPoFilter("arrived")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             poFilter === "arrived"
-              ? "bg-btn-primary text-dark"
+              ? "bg-primary text-white"
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >

@@ -207,7 +207,7 @@ export const Suppliers: React.FC = () => {
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
+          className="bg-primary hover:bg-primary/90 text-white px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
         >
           <Plus className="w-4 h-4" />{" "}
           <span className="hidden sm:inline">{t("suppliers.addSupplier")}</span>
@@ -480,7 +480,7 @@ export const Suppliers: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-btn-primary text-dark rounded-lg hover:bg-btn-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>

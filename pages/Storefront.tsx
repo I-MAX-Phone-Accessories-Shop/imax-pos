@@ -257,7 +257,7 @@ export const Storefront: React.FC = () => {
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-btn-primary hover:bg-btn-primary-hover text-dark px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
+            className="bg-primary hover:bg-primary/90 text-white px-3 py-2 sm:px-4 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base"
           >
             <Plus className="w-4 h-4" />{" "}
             <span className="hidden sm:inline">

@@ -52,7 +52,7 @@ export const en = {
     processing: "Processing...",
   },
   app: {
-    title: "IMAS POS",
+    title: "AutoShop",
     subtitle: "POS System",
   },
   login: {
@@ -67,7 +67,7 @@ export const en = {
     loginFailed: "Login failed",
     checkCredentials: "Login failed. Please check your credentials.",
     welcomeBack: "Welcome back, {name}!",
-    copyright: "© 2024 OTAS Tech Solutions.Co.,Ltd All rights reserved.",
+    copyright: "© 2024 AutoShop All rights reserved.",
   },
   sidebar: {
     checkout: "Checkout (POS)",

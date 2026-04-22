@@ -52,7 +52,7 @@ export const my = {
     processing: "လုပ်ဆောင်နေသည်...",
   },
   app: {
-    title: "IMAS POS",
+    title: "AutoShop",
     subtitle: "POS စနစ်",
   },
   login: {
@@ -68,7 +68,7 @@ export const my = {
     checkCredentials:
       "ဝင်ရောက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ သင့်အထောက်အထားများကို စစ်ဆေးပါ။",
     welcomeBack: "{name} ကို ပြန်လည်ကြိုဆိုပါသည်!",
-    copyright: "© 2024 OTAS Tech Solutions.Co.,Ltd မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
+    copyright: "© 2024 AutoShop မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
   },
   sidebar: {
     checkout: "ဘောင်ချာထုတ်",

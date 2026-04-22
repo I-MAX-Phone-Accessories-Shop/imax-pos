@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Joyride, { Step, CallBackProps, STATUS, EVENTS, ACTIONS } from "react-joyride";
+import { Joyride, Step, EventData, STATUS, EVENTS, ACTIONS } from "react-joyride";
 
 interface TutorialProps {
     run: boolean;
@@ -13,7 +13,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish, tourType }) =
     const posSteps: Step[] = [
         {
             target: "body",
-            content: "မင်္ဂလာပါဗျာ။ ဒီနေ့ ကျွန်တော်တို့ OTAS POS စနစ်ထဲမှာ ဝယ်သူကို ပစ္စည်းရောင်းပြီး ငွေဘယ်လိုရှင်းမလဲဆိုတဲ့ Checkout လုပ်ငန်းစဉ်ကို လက်တွေ့ လေ့ကျင့်ကြည့်ပါမယ်။ အရောင်းဝန်ထမ်းတစ်ယောက်အနေနဲ့ အမှားအယွင်းမရှိအောင် ဒီအဆင့်တွေကို အတူတူ လိုက်လုပ်ကြည့်ရအောင်။",
+            content: "မင်္ဂလာပါဗျာ။ ဒီနေ့ ကျွန်တော်တို့ AutoShop စနစ်ထဲမှာ ဝယ်သူကို ပစ္စည်းရောင်းပြီး ငွေဘယ်လိုရှင်းမလဲဆိုတဲ့ Checkout လုပ်ငန်းစဉ်ကို လက်တွေ့ လေ့ကျင့်ကြည့်ပါမယ်။ အရောင်းဝန်ထမ်းတစ်ယောက်အနေနဲ့ အမှားအယွင်းမရှိအောင် ဒီအဆင့်တွေကို အတူတူ လိုက်လုပ်ကြည့်ရအောင်။",
             placement: "center",
         },
         {
@@ -126,7 +126,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish, tourType }) =
         }
     }, [run, tourType]);
 
-    const handleJoyrideCallback = (data: CallBackProps) => {
+    const handleJoyrideCallback = (data: EventData) => {
         const { action, index, status, type } = data;
 
         if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status as any)) {
@@ -144,10 +144,10 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish, tourType }) =
             continuous
             showProgress
             showSkipButton
-            callback={handleJoyrideCallback}
+            onEvent={handleJoyrideCallback}
             styles={{
                 options: {
-                    primaryColor: "#0ea5e9",
+                    primaryColor: "#2216a8",
                     textColor: "#333",
                     zIndex: 1000,
                 },
@@ -156,7 +156,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ run, onFinish, tourType }) =
                     padding: 20,
                 },
                 buttonNext: {
-                    backgroundColor: "#0ea5e9",
+                    backgroundColor: "#2216a8",
                     color: "#fff",
                     borderRadius: "8px",
                     padding: "8px 16px",

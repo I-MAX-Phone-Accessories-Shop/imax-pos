@@ -383,7 +383,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           <button
             onClick={onSave}
             disabled={isLoading}
-            className="px-4 py-2 bg-btn-primary text-dark rounded hover:bg-btn-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? t("inventory.saving") : t("inventory.save")}
           </button>

@@ -454,7 +454,7 @@ export const AccountManagement: React.FC = () => {
               loadLocations(); // Reload locations when opening modal
               setIsCreateModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-dark px-3 py-2 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-3 py-2 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
           >
             <Plus className="w-4 h-4" />{" "}
             <span className="hidden sm:inline">Create Account</span>
@@ -883,7 +883,7 @@ export const AccountManagement: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-primary text-dark rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -1302,7 +1302,7 @@ export const AccountManagement: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-4 py-2 bg-primary text-dark rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {isCreating ? (
                     <>

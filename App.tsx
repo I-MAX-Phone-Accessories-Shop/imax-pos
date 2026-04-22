@@ -47,36 +47,36 @@ const AppLayout: React.FC = () => {
       {token && (
         <>
           {/* Header */}
-          <header className="bg-dark border-b border-primary/20 sticky top-0 z-30 print:hidden shadow-lg">
+          <header className="bg-primary border-b border-white/10 sticky top-0 z-30 print:hidden shadow-lg">
             <div className="flex items-center justify-between h-14 px-4">
               <div className="flex items-center">
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="p-2 hover:bg-primary/10 rounded-lg transition-colors mr-3"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors mr-3"
                   aria-label="Open menu"
                 >
-                  <Menu className="w-6 h-6 text-primary" />
+                  <Menu className="w-6 h-6 text-white" />
                 </button>
-                {/* <img
-            src="/imaslogo.jpg"
-            alt="IMAS Logo"
-            className="w-10 h-10 object-contain rounded-lg mr-2 shadow-md"
-          /> */}
-                <h1 className="text-lg font-bold text-primary tracking-wide">
-                  Auto Shop
+                <img
+                  src="/autologo.jpg"
+                  alt="AutoShop Logo"
+                  className="w-8 h-8 object-contain rounded-lg mr-2"
+                />
+                <h1 className="text-lg font-bold text-white tracking-wide">
+                  AutoShop
                 </h1>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                {/* <button
                   onClick={() => setRunTutorial(true)}
-                  className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-primary flex items-center gap-2"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white flex items-center gap-2"
                   title="Start Tutorial"
                 >
                   <HelpCircle className="w-5 h-5" />
                   <span className="text-xs font-medium hidden sm:inline">
                     ဆော့ဝဲ လမ်းညွှန်
                   </span>
-                </button>
+                </button> */}
                 <LanguageSwitcher />
               </div>
             </div>

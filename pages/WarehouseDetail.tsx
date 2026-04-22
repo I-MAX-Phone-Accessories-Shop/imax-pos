@@ -448,7 +448,7 @@ export const WarehouseDetail: React.FC = () => {
             <button
               onClick={() => openTransferModal()}
               disabled={stockItems.length === 0}
-              className="flex h-auto sm:h-10 items-center gap-2 px-3 py-2 sm:px-4 bg-btn-primary hover:bg-btn-primary-hover text-dark rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="flex h-auto sm:h-10 items-center gap-2 px-3 py-2 sm:px-4 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               <ArrowRightLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Transfer to Storefront</span>

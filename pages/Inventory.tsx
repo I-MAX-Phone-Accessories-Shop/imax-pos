@@ -678,7 +678,7 @@ export const Inventory: React.FC = () => {
                 resetForm();
                 setIsModalOpen(true);
               }}
-              className="inventory-add-product-btn bg-btn-primary text-dark px-3 py-2 sm:px-4 rounded hover:bg-btn-primary-hover text-sm sm:text-base"
+              className="inventory-add-product-btn bg-primary text-white px-3 py-2 sm:px-4 rounded hover:bg-primary/90 text-sm sm:text-base"
             >
               +{" "}
               <span className="hidden sm:inline">

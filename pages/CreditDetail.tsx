@@ -666,7 +666,7 @@ export const CreditDetail: React.FC = () => {
           <p className="text-slate-500">Failed to load credit details</p>
           <button
             onClick={loadCreditDetail}
-            className="mt-4 px-4 py-2 bg-primary text-dark rounded-lg hover:bg-primary/80 transition-colors font-medium"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors font-medium"
           >
             Try Again
           </button>

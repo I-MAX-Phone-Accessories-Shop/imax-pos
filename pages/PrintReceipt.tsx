@@ -288,7 +288,7 @@ const PrintReceipt: React.FC = () => {
                 letterSpacing: "0",
               }}
             >
-              OTAS SHop
+              AutoShop
             </h2>
             <div
               style={{
@@ -562,7 +562,7 @@ const PrintReceipt: React.FC = () => {
               Thank you!
             </p>
             <p style={{ margin: "1mm 0", opacity: 0.7, fontWeight: "900" }}>
-              IMAS POS System Receipt
+              AutoShop Receipt
             </p>
           </div>
         </div>

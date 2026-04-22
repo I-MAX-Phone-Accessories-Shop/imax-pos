@@ -170,7 +170,7 @@ export const GRNList: React.FC<GRNListProps> = ({
         </h2>
         {/* <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-btn-primary text-dark px-4 py-2 rounded-lg hover:bg-btn-primary-hover flex items-center gap-2"
+          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" /> Create New GRN
         </button> */}
@@ -192,7 +192,7 @@ export const GRNList: React.FC<GRNListProps> = ({
           onClick={() => setGrnFilter("completed")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             grnFilter === "completed"
-              ? "bg-btn-primary text-dark"
+              ? "bg-primary text-white"
               : "bg-white text-slate-600 hover:bg-slate-50 border"
           }`}
         >

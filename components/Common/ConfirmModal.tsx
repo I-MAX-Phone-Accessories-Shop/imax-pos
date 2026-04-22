@@ -38,7 +38,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       case "green":
         return "bg-green-600 hover:bg-green-700 text-white";
       case "primary":
-        return "bg-btn-primary hover:bg-btn-primary-hover text-dark";
+        return "bg-primary hover:bg-primary/90 text-white";
       default:
         return "bg-red-600 hover:bg-red-700 text-white";
     }

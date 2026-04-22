@@ -58,8 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/inventory", label: t("sidebar.inventory"), icon: Package },
     { path: "/warehouse", label: t("sidebar.warehouse"), icon: Truck },
     { path: "/storefront", label: t("sidebar.storefront"), icon: Store },
-    { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
-    { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
+    // { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
+    // { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
     { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
     {
       path: "/credit-orders",
@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/credits", label: t("sidebar.creditSales"), icon: CreditCard },
     { path: "/expenses", label: t("sidebar.expenses"), icon: PieChart },
     { path: "/reports", label: t("sidebar.reports"), icon: LayoutDashboard },
-    { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
+    // { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
     { path: "/accounts", label: t("sidebar.accountManagement"), icon: Shield },
   ];
 
@@ -84,29 +84,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <div
-        className={`sidebar w-72 bg-gradient-to-b from-dark-900 via-dark-900 to-dark-950 text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`sidebar w-72 bg-primary text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Header */}
-        <div className="px-4 py-4 flex items-center justify-between border-b border-primary/20">
+        <div className="px-4 py-4 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
-            {/* <img
-              src="/imaslogo.jpg"
-              alt="IMAS Logo"
-              className="w-12 h-12 object-contain rounded-lg"
-            /> */}
+            <img
+              src="/autologo.jpg"
+              alt="AutoShop Logo"
+              className="w-10 h-10 object-contain rounded-lg"
+            />
             <div>
-              <h1 className="text-xl font-bold text-primary tracking-tight">
-                Auto Shop
+              <h1 className="text-xl font-bold text-white tracking-tight">
+                AutoShop
               </h1>
-              {/* <p className="text-dark-500 text-xs">{t("app.subtitle")}</p> */}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-primary" />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
@@ -150,8 +149,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onClick={onClose}
                 className={({ isActive }) =>
                   `w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${isActive
-                    ? "bg-primary text-dark shadow-lg shadow-primary/25"
-                    : "text-dark-400 hover:bg-primary/10 hover:text-primary"
+                    ? "bg-white text-primary shadow-lg shadow-black/10"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
                   }`
                 }
                 style={{
@@ -168,16 +167,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-primary/20 bg-dark-950/50">
+        <div className="p-4 border-t border-white/10 bg-white/5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-dark font-bold text-sm">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary font-bold text-sm">
               {(adminData?.name || currentUser.name).charAt(0).toUpperCase()}
             </div>
             <div>
               <p className="text-sm font-medium text-white">
                 {adminData?.name || currentUser.name}
               </p>
-              <p className="text-xs text-dark-500">
+              <p className="text-xs text-white/60">
                 {adminData?.role || currentUser.role}
               </p>
             </div>
@@ -188,8 +187,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${isActive
-                ? "bg-primary text-dark"
-                : "text-dark-400 hover:text-primary hover:bg-primary/10"
+                ? "bg-white text-primary"
+                : "text-white/70 hover:text-white hover:bg-white/10"
               }`
             }
           >
@@ -197,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </NavLink>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10"
+            className="w-full flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors text-white/80 hover:text-white hover:bg-red-500/20"
           >
             <LogOut className="w-4 h-4" /> {t("sidebar.logout")}
           </button>
