@@ -347,13 +347,13 @@ export const CreditDetail: React.FC = () => {
         </button>
         {personaDetail && (
           <div className="flex gap-2">
-            <button
+            {/* <button
               onClick={handleOpenAddCredit}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm transition-all active:scale-95"
             >
               <Box className="w-4 h-4" />
               Add Credit
-            </button>
+            </button> */}
             {personaDetail.orders.length > 0 && (
               <button
                 onClick={handleOpenAddPayment}
