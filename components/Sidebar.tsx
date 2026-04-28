@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/credits", label: t("sidebar.creditSales"), icon: CreditCard },
     { path: "/expenses", label: t("sidebar.expenses"), icon: PieChart },
     { path: "/reports", label: t("sidebar.reports"), icon: LayoutDashboard },
-    // { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
+    { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
     { path: "/accounts", label: t("sidebar.accountManagement"), icon: Shield },
   ];
 

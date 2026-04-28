@@ -11,16 +11,18 @@ interface Message {
 
 const CHAT_STORAGE_KEY = "ai_chat_history";
 
+const dummyMessages: Message[] = [
+
+  {
+    id: "dummy-2",
+    role: "ai",
+    content: "ဟုတ်ကဲ့ Boss၊ ဒီနေ့အတွက် အရောင်းစာရင်း အကျဉ်းချုပ်ကတော့ အောက်ပါအတိုင်း ဖြစ်ပါတယ်။\n\n• စုစုပေါင်း ရောင်းရငွေ - ၄၅၀,၀၀၀ ကျပ်\n• အော်ဒါ အရေအတွက် - ၁၅ ခု\n• အရောင်းရဆုံး ပစ္စည်း - Engine Oil (5L)\n\nဒီထက် အသေးစိတ် သိချင်တာများ ရှိဦးမလား ခင်ဗျာ။",
+  },
+
+];
+
 export const AIChat: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = sessionStorage.getItem(CHAT_STORAGE_KEY);
-    try {
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Error loading chat history:", e);
-      return [];
-    }
-  });
+  const [messages, setMessages] = useState(dummyMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,9 +43,9 @@ export const AIChat: React.FC = () => {
   }, []);
 
   // Sync messages to sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+  // useEffect(() => {
+  //   sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  // }, [messages]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -118,7 +120,7 @@ export const AIChat: React.FC = () => {
   };
 
   const clearChat = () => {
-    setMessages([]);
+    setMessages(dummyMessages);
     sessionStorage.removeItem(CHAT_STORAGE_KEY);
     toast.success("Chat cleared");
   };
@@ -158,6 +160,7 @@ export const AIChat: React.FC = () => {
         >
           {/* Messages */}
           <div className="h-full flex flex-col">
+
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-slate-50 to-white">
               {messages.length === 0 && (
                 <div className="text-center text-slate-500 mt-20">
