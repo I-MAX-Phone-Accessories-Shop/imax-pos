@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MessageSquare, Send, Bot, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import axios from "../services/axios";
 
 interface Message {
   id: string;
@@ -11,41 +11,27 @@ interface Message {
 
 const CHAT_STORAGE_KEY = "ai_chat_history";
 
-const dummyMessages: Message[] = [
-
-  {
-    id: "dummy-2",
-    role: "ai",
-    content: "ဟုတ်ကဲ့ Boss၊ ဒီနေ့အတွက် အရောင်းစာရင်း အကျဉ်းချုပ်ကတော့ အောက်ပါအတိုင်း ဖြစ်ပါတယ်။\n\n• စုစုပေါင်း ရောင်းရငွေ - ၄၅၀,၀၀၀ ကျပ်\n• အော်ဒါ အရေအတွက် - ၁၅ ခု\n• အရောင်းရဆုံး ပစ္စည်း - Engine Oil (5L)\n\nဒီထက် အသေးစိတ် သိချင်တာများ ရှိဦးမလား ခင်ဗျာ။",
-  },
-
-];
-
 export const AIChat: React.FC = () => {
-  const [messages, setMessages] = useState(dummyMessages);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = sessionStorage.getItem(CHAT_STORAGE_KEY);
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Error loading chat history:", e);
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [adminData, setAdminData] = useState<any>(null);
 
-  useEffect(() => {
-    // Get admin data from localStorage
-    const storedAdmin = localStorage.getItem("adminData");
-    if (storedAdmin) {
-      try {
-        setAdminData(JSON.parse(storedAdmin));
-      } catch (error) {
-        console.error("Error parsing admin data:", error);
-      }
-    }
-  }, []);
 
   // Sync messages to sessionStorage
-  // useEffect(() => {
-  //   sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-  // }, [messages]);
+  useEffect(() => {
+    sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -75,19 +61,11 @@ export const AIChat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("authToken");
       const response = await axios.post(
-        "https://salebot-api.vercel.app/api/chat",
+        "/sale-report/ask-ai",
         {
-          userId: adminData?.name || "test-user-01",
-          message: userMessage.content,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
+          question: userMessage.content,
+        }
       );
 
       const data = response.data;
@@ -98,7 +76,7 @@ export const AIChat: React.FC = () => {
           {
             id: (Date.now() + 1).toString(),
             role: "ai",
-            content: data.reply,
+            content: data.data.answer,
           },
         ]);
       } else {
@@ -120,7 +98,7 @@ export const AIChat: React.FC = () => {
   };
 
   const clearChat = () => {
-    setMessages(dummyMessages);
+    setMessages([]);
     sessionStorage.removeItem(CHAT_STORAGE_KEY);
     toast.success("Chat cleared");
   };
@@ -160,7 +138,6 @@ export const AIChat: React.FC = () => {
         >
           {/* Messages */}
           <div className="h-full flex flex-col">
-
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-slate-50 to-white">
               {messages.length === 0 && (
                 <div className="text-center text-slate-500 mt-20">
