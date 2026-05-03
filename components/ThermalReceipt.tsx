@@ -466,8 +466,8 @@ export const printThermalReceipt = (
       <title>Receipt - ${receiptData.invoiceNumber}</title>
       <style>
         @page {
-          size: ${paperSize} auto;
-          margin: 0;
+          size: ${paperSize};
+          margin: ${paperSize === "A4" ? "15mm" : "0"};
           padding: 0;
         }
         * {
@@ -476,105 +476,76 @@ export const printThermalReceipt = (
           box-sizing: border-box;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
-          filter: contrast(200%) !important;
-          page-break-inside: avoid !important;
-          break-inside: avoid !important;
         }
         html {
           margin: 0;
           padding: 0;
         }
         body {
-          font-family: 'Courier New', monospace;
-          font-size: 14px;
-          width: ${paperSize};
-          max-width: ${paperSize};
+          font-family: ${paperSize === "A4" ? "'Inter', sans-serif" : "'Courier New', monospace"};
+          font-size: ${paperSize === "A4" ? "12pt" : "14px"};
+          width: ${paperSize === "A4" ? "100%" : paperSize};
+          max-width: ${paperSize === "A4" ? "100%" : paperSize};
           margin: 0 auto;
-          padding: 1mm 0.5mm;
+          padding: ${paperSize === "A4" ? "0" : "1mm 0.5mm"};
           line-height: 1.3;
-          text-align: center;
+          text-align: ${paperSize === "A4" ? "left" : "center"};
           color: #000000 !important;
-          font-weight: bold;
+          font-weight: ${paperSize === "A4" ? "normal" : "bold"};
           background: white !important;
           height: auto;
           overflow: visible;
         }
-        .thermal-receipt-page {
-          width: ${paperSize} !important;
-          max-width: ${paperSize} !important;
-          background: white !important;
-          color: #000000 !important;
-          font-weight: bold !important;
-          filter: contrast(200%) !important;
+        .receipt-container {
+          width: 100%;
+          padding: ${paperSize === "A4" ? "0" : "0"};
         }
         .header {
           text-align: center;
-          margin-bottom: 1mm;
+          margin-bottom: 5mm;
+          ${paperSize === "A4" ? "border-bottom: 2px solid #001144; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; text-align: left;" : ""}
         }
         .store-name {
-          font-size: 20px;
+          font-size: ${paperSize === "A4" ? "28pt" : "20px"};
           font-weight: 900;
           margin-bottom: 1mm;
           text-transform: uppercase;
-          letter-spacing: 0;
+          color: #001144 !important;
         }
         .store-address {
-          font-size: 14px;
-          font-weight: 800;
+          font-size: ${paperSize === "A4" ? "10pt" : "14px"};
+          font-weight: ${paperSize === "A4" ? "normal" : "800"};
           margin-bottom: 1mm;
-          text-transform: uppercase;
-          letter-spacing: 0;
-        }
-        .system-name {
-          font-size: 12px;
-          margin-bottom: 1mm;
-          font-weight: 900;
+          color: #666;
         }
         .order-info {
-          border-top: 1px dashed #000;
-          border-bottom: 1px dashed #000;
-          padding: 0.5mm 0;
-          margin: 1mm 0;
+          ${paperSize === "A4" ? "text-align: right;" : "border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 0.5mm 0; margin: 1mm 0;"}
         }
         .order-row {
           margin: 1px 0;
           font-size: 12px;
           font-weight: 900;
         }
-        .items-header {
-          border-bottom: 1px dashed #000;
-          padding-bottom: 1mm;
-          margin-bottom: 2mm;
-          display: flex;
-          justify-content: space-between;
-          font-size: 14px;
-          font-weight: 900;
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+          display: ${paperSize === "A4" ? "table" : "none"};
         }
-        .item-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 1mm;
-        }
-        .item-name {
-          flex: 1;
-          font-size: 14px;
-          word-break: break-word;
-          padding-right: 1mm;
+        th, td {
+          border: 1px solid #ddd;
+          padding: 12px;
           text-align: left;
-          font-weight: 900;
         }
-        .item-price {
-          width: 55px;
-          text-align: right;
-          font-size: 14px;
-          font-weight: 900;
+        th {
+          background-color: #f8f9fa !important;
+          font-weight: bold;
+        }
+        .items-thermal {
+          display: ${paperSize === "A4" ? "none" : "block"};
         }
         .summary-section {
-          border-top: 1px dashed #000;
-          border-bottom: 1px dashed #000;
-          padding: 2mm 0;
-          margin-bottom: 2mm;
+          ${paperSize === "A4" ? "float: right; width: 300px; margin-top: 20px;" : "border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 2mm 0; margin-bottom: 2mm;"}
         }
         .summary-row {
           display: flex;
@@ -582,6 +553,7 @@ export const printThermalReceipt = (
           margin-bottom: 1mm;
           font-size: 13px;
           font-weight: 900;
+          ${paperSize === "A4" ? "padding: 8px 0; border-bottom: 1px solid #eee;" : ""}
         }
         .total-row {
           display: flex;
@@ -591,6 +563,7 @@ export const printThermalReceipt = (
           border-top: 1px solid #000;
           font-size: 16px;
           font-weight: 900;
+          ${paperSize === "A4" ? "border-top: 2px solid #001144; font-size: 14pt;" : ""}
         }
         .footer {
           text-align: center;
@@ -599,60 +572,78 @@ export const printThermalReceipt = (
           border-top: 1px dashed #000;
           font-size: 12px;
           font-weight: 900;
-        }
-        @media print {
-          body {
-            margin: 0 !important;
-            padding: 1mm 0.5mm !important;
-            width: ${paperSize} !important;
-            height: auto !important;
-            overflow: visible !important;
-          }
-          .thermal-receipt-page {
-            box-shadow: none !important;
-            border: none !important;
-          }
+          ${paperSize === "A4" ? "clear: both; margin-top: 50px; border-top: 1px solid #eee; color: #666; font-size: 9pt; font-weight: normal;" : ""}
         }
       </style>
     </head>
     <body>
-      <div class="thermal-receipt-page">
+      <div class="receipt-container">
         <!-- Header -->
         <div class="header">
-          <div class="store-name">IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)</div>
-          <div class="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ </br>&nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ</div>
-          <div class="store-address">ဖုန်း-09780511511(Viber)</div>
-          <div class="store-address">ဖုန်း-09440064007(Viber)</div>
+          <div class="company-info">
+            <div class="store-name">shwepyi-pos</div>
+            <div class="store-address">ရွှေပြည် ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်</div>
+            <div class="store-address">လိပ်စာ - အမှတ်(၃၀)၊ ပထမထပ်၊ ယုဇနပလာဇာ၊ ရန်ကုန်။</div>
+            <div class="store-address">ဖုန်း - 09 780511511, 09 440064007</div>
+          </div>
+          ${paperSize === "A4" ? `
+          <div class="order-info">
+            <h2 style="font-size: 24pt; color: #c5a021; margin-bottom: 10px;">VOUCHER</h2>
+            <div class="order-row">Invoice #: ${receiptData.invoiceNumber}</div>
+            <div class="order-row">Date: ${new Date(receiptData.date).toLocaleDateString()}</div>
+          </div>
+          ` : ""}
         </div>
         
-        <!-- Order Info -->
+        ${paperSize === "A4" ? "" : `
+        <!-- Order Info (Thermal Only) -->
         <div class="order-info">
           <div class="order-row">Order: ${receiptData.invoiceNumber}</div>
-          <div class="order-row">${new Date(
-    receiptData.date,
-  ).toLocaleString()}</div>
+          <div class="order-row">${new Date(receiptData.date).toLocaleString()}</div>
         </div>
+        `}
         
-        <!-- Items Header -->
-        <div class="items-header">
-          <span style="flex: 1; text-align: left;">Item</span>
-          <span style="width: 55px; text-align: right;">Amt</span>
-        </div>
-        
-        <!-- Items -->
-        ${receiptData.items
-      .map(
-        (item: any) => `
-          <div class="item-row">
-            <span class="item-name">${item.name.substring(0, 25)}${item.name.length > 25 ? "..." : ""
-          } x${item.qty}</span>
-            <span class="item-price">${(
-            item.price * item.qty
-          ).toLocaleString()}</span>
+        <!-- Items Table (A4) -->
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Description</th>
+              <th style="text-align: right;">Qty</th>
+              <th style="text-align: right;">Price</th>
+              <th style="text-align: right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${receiptData.items.map((item, index) => `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td style="text-align: right;">${item.qty}</td>
+                <td style="text-align: right;">${item.price.toLocaleString()}</td>
+                <td style="text-align: right;">(${(item.price * item.qty).toLocaleString()}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+
+        <!-- Items (Thermal Only) -->
+        <div class="items-thermal">
+          <div style="border-bottom: 1px dashed #000; padding-bottom: 1mm; margin-bottom: 2mm; display: flex; justify-content: space-between; font-size: 14px; font-weight: 900;">
+            <span style="flex: 1; text-align: left;">Item</span>
+            <span style="width: 55px; text-align: right;">Amt</span>
           </div>
-        `,
-      )
-      .join("")}
+          ${receiptData.items.map(item => `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1mm;">
+              <span style="flex: 1; font-size: 14px; word-break: break-word; padding-right: 1mm; text-align: left; font-weight: 900;">
+                ${item.name.substring(0, 25)}${item.name.length > 25 ? "..." : ""} x${item.qty}
+              </span>
+              <span style="width: 55px; text-align: right; font-size: 14px; font-weight: 900;">
+                ${(item.price * item.qty).toLocaleString()}
+              </span>
+            </div>
+          `).join("")}
+        </div>
         
         <!-- Summary -->
         <div class="summary-section">

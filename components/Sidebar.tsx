@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             /> */}
             <div>
               <h1 className="text-xl font-bold text-primary tracking-tight">
-                OTAS POS
+                shwepyi-pos
               </h1>
               <p className="text-dark-500 text-xs">{t("app.subtitle")}</p>
             </div>

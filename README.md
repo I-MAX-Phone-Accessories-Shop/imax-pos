@@ -1,4 +1,4 @@
-# OTAS POS
+# shwepyi-pos
 
 A lightweight, offline-capable Point of Sale system tailored for mobile accessory shops with dual-location inventory management.
 
@@ -13,7 +13,7 @@ A lightweight, offline-capable Point of Sale system tailored for mobile accessor
 - **Reporting**: Comprehensive sales and inventory reports
 - **Multi-language Support**: English and Myanmar language support
 - **Offline Capability**: Works without internet connection
-- **Modern UI**: Clean, responsive interface with light blue theme
+- **Modern UI**: Clean, responsive interface with Navy Blue and Gold theme
 
 ## Technology Stack
 
@@ -75,4 +75,4 @@ All data is stored locally in the browser's localStorage:
 
 ## License
 
-This project is proprietary software for OTAS POS system.
+This project is proprietary software for shwepyi-pos system.

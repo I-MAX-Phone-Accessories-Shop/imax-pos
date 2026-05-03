@@ -135,9 +135,8 @@ const PrintReceipt: React.FC = () => {
       <style>{`
         @media print {
           @page {
-            size: 58mm auto;
-            margin: 0;
-            padding: 0;
+            size: A4;
+            margin: 15mm;
           }
           * {
             margin: 0;
@@ -145,104 +144,103 @@ const PrintReceipt: React.FC = () => {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            filter: contrast(200%) !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-            overflow: visible !important;
-          }
-          html {
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
           }
           body {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            width: 58mm;
-            max-width: 58mm;
-            margin: 0 auto !important;
-            padding: 1mm 0.5mm !important;
-            line-height: 1.3;
-            text-align: center;
-            color: #000000 !important;
+            font-family: 'Inter', sans-serif;
+            font-size: 12pt;
+            width: 100%;
+            background: white !important;
+            color: black !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .receipt-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+          }
+          th {
+            background-color: #f8f9fa !important;
             font-weight: bold;
-            background: white !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
           }
-          .thermal-receipt-container {
-            display: block !important;
-            background: white !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
+          .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #001144;
+            padding-bottom: 20px;
           }
-          .no-print {
-            display: none !important;
+          .company-info h1 {
+            color: #001144 !important;
+            font-size: 28pt;
+            margin-bottom: 5px;
           }
-          .thermal-receipt-page {
-            width: 58mm !important;
-            max-width: 58mm !important;
-            background: white !important;
-            color: #000000 !important;
-            font-weight: bold !important;
-            filter: contrast(200%) !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
+          .company-info p {
+            color: #666;
+            font-size: 10pt;
           }
-          .no-print {
-            display: none !important;
+          .invoice-details {
+            text-align: right;
           }
-          .print-receipt {
-            margin: 0 !important;
-            padding: 1mm 0.5mm !important;
-            background: white !important;
-            min-height: auto !important;
-            height: auto !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
+          .invoice-details h2 {
+            font-size: 24pt;
+            color: #c5a021 !important;
+            margin-bottom: 10px;
           }
-          .print-receipt * {
-            font-family: 'Courier New', monospace;
-            font-weight: bold !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
+          .summary-section {
+            margin-top: 30px;
+            float: right;
+            width: 300px;
+          }
+          .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+          }
+          .summary-row.total {
+            border-bottom: none;
+            border-top: 2px solid #001144;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 14pt;
+          }
+          .footer-section {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            clear: both;
           }
         }
         @media screen {
           body {
-            background: #f5f5f5;
-            padding: 20px;
+            background: #f0f2f5;
+            padding: 40px 20px;
           }
-          .thermal-receipt-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            background: #f5f5f5;
-          }
-          .thermal-receipt-page {
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          .receipt-container {
             background: white;
-            width: 58mm;
-            max-width: 58mm;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
           }
         }
       `}</style>
@@ -270,301 +268,92 @@ const PrintReceipt: React.FC = () => {
         </div>
       </div>
 
-      {/* Thermal Receipt Content */}
-      <div className="thermal-receipt-container">
-        <div className="thermal-receipt-page print-receipt">
-          {/* Header */}
-          <div
-            className="header"
-            style={{ textAlign: "center", marginBottom: "1mm" }}
-          >
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: "900",
-                marginBottom: "1mm",
-                marginTop: "0",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              IMAS ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်ကြီး(၁)
-            </h2>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              လိပ်စာ - A(30)၊ပထမထပ်၊
-              <br />
-              &nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09780511511(Viber)
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09440064007(Viber)
-            </div>
+      {/* Voucher Content */}
+      <div className="receipt-container">
+        <div className="header-section">
+          <div className="company-info">
+            <h1>shwepyi-pos</h1>
+            <p>ရွှေပြည် ဖုန်းအပိုပစ္စည်း လက်ကားဒိုင်</p>
+            <p>လိပ်စာ - အမှတ်(၃၀)၊ ပထမထပ်၊ ယုဇနပလာဇာ၊ ရန်ကုန်။</p>
+            <p>ဖုန်း - 09 780511511, 09 440064007</p>
           </div>
-
-          {/* Order Info */}
-          <div
-            className="order-info"
-            style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "0.5mm 0",
-              margin: "1mm 0",
-            }}
-          >
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Order: {receiptData.invoiceNumber}
-            </p>
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "12px",
-                fontWeight: "900",
-              }}
-            >
-              {formatDate(receiptData.date)} {formatTime(receiptData.date)}
-            </p>
+          <div className="invoice-details">
+            <h2>VOUCHER</h2>
+            <p><strong>Invoice #:</strong> {receiptData.invoiceNumber}</p>
+            <p><strong>Date:</strong> {formatDate(receiptData.date)}</p>
+            <p><strong>Time:</strong> {formatTime(receiptData.date)}</p>
           </div>
+        </div>
 
-          {/* Items */}
-          <div style={{ marginBottom: "2mm" }}>
-            <div
-              className="items-header"
-              style={{
-                borderBottom: "1px dashed #000",
-                paddingBottom: "1mm",
-                marginBottom: "2mm",
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              <span style={{ flex: "1", textAlign: "left" }}>Item</span>
-              <span style={{ width: "55px", textAlign: "right" }}>Amt</span>
-            </div>
+        <table>
+          <thead>
+            <tr>
+              <th style={{ width: "50px" }}>#</th>
+              <th>Description</th>
+              <th style={{ width: "100px", textAlign: "right" }}>Qty</th>
+              <th style={{ width: "150px", textAlign: "right" }}>Price</th>
+              <th style={{ width: "150px", textAlign: "right" }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {receiptData.items.map((item, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>
+                  <div className="font-medium">{item.name}</div>
+                  {item.code && <div className="text-xs text-gray-500">{item.code}</div>}
+                </td>
+                <td style={{ textAlign: "right" }}>{item.qty}</td>
+                <td style={{ textAlign: "right" }}>{item.price.toLocaleString()}</td>
+                <td style={{ textAlign: "right" }}>{(item.price * item.qty).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-            {receiptData.items.length > 0 ? (
-              receiptData.items.map((item, index) => (
-                <div
-                  key={`${item.code || item.name}-${index}`}
-                  style={{
-                    marginBottom: "1mm",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <span
-                      style={{
-                        flex: "1",
-                        fontSize: "14px",
-                        wordBreak: "break-word",
-                        paddingRight: "1mm",
-                        textAlign: "left",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {item.name.substring(0, 25)}
-                      {item.name.length > 25 ? "..." : ""} x{item.qty}
-                    </span>
-                    <span
-                      style={{
-                        width: "55px",
-                        textAlign: "right",
-                        fontSize: "14px",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {(item.price * item.qty).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: "14px",
-                  fontWeight: "900",
-                }}
-              >
-                No items
-              </p>
-            )}
+        <div className="summary-section">
+          <div className="summary-row">
+            <span>Subtotal:</span>
+            <span>{receiptData.subtotal.toLocaleString()} MMK</span>
           </div>
-
-          {/* Summary */}
-          <div
-            className="summary-section"
-            style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "2mm 0",
-              marginBottom: "2mm",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Subtotal</span>
-              <span>{receiptData.subtotal.toLocaleString()}</span>
-            </div>
-
-            {receiptData.discountPercent > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Discount</span>
-                <span style={{ fontWeight: "900" }}>
-                  {receiptData.discountPercent}%
-                </span>
-              </div>
-            )}
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: "2mm",
-                paddingTop: "2mm",
-                borderTop: "1px solid #000",
-                fontSize: "16px",
-                fontWeight: "900",
-              }}
-            >
-              <span>TOTAL</span>
-              <span>{receiptData.total.toLocaleString()}</span>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Payment</span>
-              <span>{receiptData.paymentMethod}</span>
-            </div>
-
-            {receiptData.paidAmount && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Paid</span>
-                <span>{receiptData.paidAmount.toLocaleString()}</span>
-              </div>
-            )}
-
-            {receiptData.change && receiptData.change > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Change</span>
-                <span>{receiptData.change.toLocaleString()}</span>
-              </div>
-            )}
-          </div>
-
-          {receiptData.note && (
-            <div
-              style={{
-                marginBottom: "2mm",
-                fontSize: "11px",
-                fontStyle: "italic",
-                fontWeight: "900",
-              }}
-            >
-              Note: {receiptData.note}
+          {receiptData.discountPercent > 0 && (
+            <div className="summary-row">
+              <span>Discount ({receiptData.discountPercent}%):</span>
+              <span>-{(receiptData.subtotal * receiptData.discountPercent / 100).toLocaleString()} MMK</span>
             </div>
           )}
-
-          {/* Footer */}
-          <div
-            className="footer"
-            style={{
-              textAlign: "center",
-              marginTop: "2mm",
-              paddingTop: "2mm",
-              borderTop: "1px dashed #000",
-              fontSize: "12px",
-            }}
-          >
-            <p
-              style={{
-                margin: "1mm 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Thank you!
-            </p>
-            <p style={{ margin: "1mm 0", opacity: 0.7, fontWeight: "900" }}>
-              IMAS POS System Receipt
-            </p>
+          <div className="summary-row total">
+            <span>TOTAL:</span>
+            <span>{receiptData.total.toLocaleString()} MMK</span>
           </div>
+          <div className="summary-row mt-4">
+            <span>Payment Method:</span>
+            <span>{receiptData.paymentMethod}</span>
+          </div>
+          {receiptData.paidAmount && (
+            <div className="summary-row">
+              <span>Paid Amount:</span>
+              <span>{receiptData.paidAmount.toLocaleString()} MMK</span>
+            </div>
+          )}
+          {receiptData.change && receiptData.change > 0 && (
+            <div className="summary-row">
+              <span>Change:</span>
+              <span>{receiptData.change.toLocaleString()} MMK</span>
+            </div>
+          )}
+        </div>
+
+        {receiptData.note && (
+          <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 clear-both">
+            <p className="text-sm"><strong>Note:</strong> {receiptData.note}</p>
+          </div>
+        )}
+
+        <div className="footer-section">
+          <p>ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</p>
+          <p>ဝယ်ပြီးပစ္စည်း ပြန်မလဲပေးပါ။</p>
+          <p className="mt-2 text-gray-400">© {new Date().getFullYear()} shwepyi-pos System</p>
         </div>
       </div>
     </div>

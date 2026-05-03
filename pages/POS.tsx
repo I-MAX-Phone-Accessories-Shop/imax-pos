@@ -429,7 +429,7 @@ export const POS: React.FC = () => {
           navigate(`/print-receipt/${receiptData.invoiceNumber}`);
         } else {
           // For desktop/Windows, use thermal receipt function
-          printThermalReceipt(receiptData, "58mm");
+          printThermalReceipt(receiptData, "A4");
         }
         setCart([]);
         setDiscount(0);
