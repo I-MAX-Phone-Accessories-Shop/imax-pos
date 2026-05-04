@@ -24,6 +24,7 @@ import { detectDevice } from "../utils/deviceDetect";
 import {
   fetchStorefrontStock,
   StorefrontStockItem,
+  WholesaleUnit,
 } from "../services/Storefront/fetchStorefrontStock";
 import {
   fetchStorefrontProfiles,
@@ -35,6 +36,7 @@ import {
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
 import { deviceDetect } from "react-device-detect";
+import { WholesaleUnitSelector } from "../components/POS/WholesaleUnitSelector";
 
 // Payment methods
 enum PaymentMethod {
@@ -52,6 +54,8 @@ enum PaymentMethod {
 interface CartItem {
   stockItem: StorefrontStockItem;
   qty: number;
+  selectedWholesaleUnit?: WholesaleUnit;
+  isWholesaleMode?: boolean;
 }
 
 export const POS: React.FC = () => {
@@ -87,6 +91,9 @@ export const POS: React.FC = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
+  const [showWholesaleSelector, setShowWholesaleSelector] = useState(false);
+  const [pendingProduct, setPendingProduct] =
+    useState<StorefrontStockItem | null>(null);
   const devices = detectDevice();
 
   // Load storefronts and stock on mount
@@ -160,7 +167,7 @@ export const POS: React.FC = () => {
 
   // Filter products by selected storefront and search
   const filteredProducts = allStockItems.filter((item) => {
-    const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3"
+    const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
     // const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
     const matchesSearch = item.inventoryId?.productName
       ?.toLowerCase()
@@ -188,31 +195,100 @@ export const POS: React.FC = () => {
       return;
     }
 
+    // Check if product has wholesale units
+    const wholesaleUnits = stockItem.inventoryId?.wholesaleUnits || [];
+    const isWholesaleProduct =
+      stockItem.inventoryId?.isWholesale && wholesaleUnits.length > 0;
+
+    if (isWholesaleProduct) {
+      // Show wholesale unit selector
+      setPendingProduct(stockItem);
+      setShowWholesaleSelector(true);
+      return;
+    }
+
+    // Add as regular product
+    addProductToCart(stockItem, null, false);
+  };
+
+  const addProductToCart = (
+    stockItem: StorefrontStockItem,
+    selectedUnit: WholesaleUnit | null,
+    isWholesaleMode: boolean,
+  ) => {
     setCart((prev) => {
       const existing = prev.find(
-        (item) => item.stockItem._id === stockItem._id,
+        (item) =>
+          item.stockItem._id === stockItem._id &&
+          item.selectedWholesaleUnit?.unitName === selectedUnit?.unitName &&
+          item.isWholesaleMode === isWholesaleMode,
       );
       if (existing) {
-        if (existing.qty + 1 > stockItem.availableQuantity) {
+        // Check stock based on unit type
+        const maxQty =
+          isWholesaleMode && selectedUnit
+            ? Math.floor(
+                stockItem.availableQuantity / selectedUnit.conversionRate,
+              )
+            : stockItem.availableQuantity;
+
+        if (existing.qty + 1 > maxQty) {
           toast.error(t("pos.cannotExceedStock"));
           return prev;
         }
         return prev.map((item) =>
-          item.stockItem._id === stockItem._id
+          item.stockItem._id === stockItem._id &&
+          item.selectedWholesaleUnit?.unitName === selectedUnit?.unitName &&
+          item.isWholesaleMode === isWholesaleMode
             ? { ...item, qty: item.qty + 1 }
             : item,
         );
       }
-      return [...prev, { stockItem, qty: 1 }];
+      return [
+        ...prev,
+        {
+          stockItem,
+          qty: 1,
+          selectedWholesaleUnit: selectedUnit,
+          isWholesaleMode,
+        },
+      ];
     });
   };
 
-  const updateQty = (id: string, delta: number) => {
+  const handleWholesaleUnitSelect = (unit: WholesaleUnit | null) => {
+    if (pendingProduct) {
+      addProductToCart(pendingProduct, unit, !!unit);
+      setShowWholesaleSelector(false);
+      setPendingProduct(null);
+    }
+  };
+
+  const updateQty = (
+    id: string,
+    delta: number,
+    selectedUnit?: WholesaleUnit,
+    isWholesaleMode?: boolean,
+  ) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.stockItem._id === id) {
+        if (
+          item.stockItem._id === id &&
+          item.selectedWholesaleUnit?.unitName === selectedUnit?.unitName &&
+          item.isWholesaleMode === isWholesaleMode
+        ) {
           const newQty = item.qty + delta;
-          if (newQty > item.stockItem.availableQuantity) {
+
+          // Check stock based on unit type
+          const maxQty =
+            isWholesaleMode && selectedUnit
+              ? Math.floor(
+                  item.stockItem.availableQuantity /
+                    selectedUnit.conversionRate,
+                )
+              : item.stockItem.availableQuantity;
+
+          if (newQty > maxQty) {
             toast.error(t("pos.cannotExceedStock"));
             return item;
           }
@@ -224,17 +300,36 @@ export const POS: React.FC = () => {
     );
   };
 
-  const setQty = (id: string, newQty: number) => {
+  const setQty = (
+    id: string,
+    newQty: number,
+    selectedUnit?: WholesaleUnit,
+    isWholesaleMode?: boolean,
+  ) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.stockItem._id === id) {
+        if (
+          item.stockItem._id === id &&
+          item.selectedWholesaleUnit?.unitName === selectedUnit?.unitName &&
+          item.isWholesaleMode === isWholesaleMode
+        ) {
           // Validate quantity
           if (newQty < 1) {
             return { ...item, qty: 1 };
           }
-          if (newQty > item.stockItem.availableQuantity) {
+
+          // Check stock based on unit type
+          const maxQty =
+            isWholesaleMode && selectedUnit
+              ? Math.floor(
+                  item.stockItem.availableQuantity /
+                    selectedUnit.conversionRate,
+                )
+              : item.stockItem.availableQuantity;
+
+          if (newQty > maxQty) {
             toast.error(t("pos.cannotExceedStock"));
-            return { ...item, qty: item.stockItem.availableQuantity };
+            return { ...item, qty: maxQty };
           }
           return { ...item, qty: newQty };
         }
@@ -243,8 +338,21 @@ export const POS: React.FC = () => {
     );
   };
 
-  const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.stockItem._id !== id));
+  const removeFromCart = (
+    id: string,
+    selectedUnit?: WholesaleUnit,
+    isWholesaleMode?: boolean,
+  ) => {
+    setCart((prev) =>
+      prev.filter(
+        (item) =>
+          !(
+            item.stockItem._id === id &&
+            item.selectedWholesaleUnit?.unitName === selectedUnit?.unitName &&
+            item.isWholesaleMode === isWholesaleMode
+          ),
+      ),
+    );
   };
 
   // Handle barcode scanning from search input
@@ -288,7 +396,8 @@ export const POS: React.FC = () => {
 
       // Show success feedback
       toast.success(
-        `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
+        `${matchingProduct.inventoryId.productName} ${
+          t("pos.addedToCart") || "added to cart"
         }`,
         {
           duration: 1500,
@@ -304,13 +413,20 @@ export const POS: React.FC = () => {
   };
 
   // Calculate totals
-  const getItemPrice = (item: StorefrontStockItem) => {
-    // Use sellingPrice from inventory if available, otherwise use placeholder
-    return item.inventoryId.sellingPrice; // Default to 10000 MMK if not available
+  const getItemPrice = (
+    item: StorefrontStockItem,
+    selectedUnit?: WholesaleUnit,
+  ) => {
+    // Use wholesale unit price if selected, otherwise use regular selling price
+    if (selectedUnit) {
+      return selectedUnit.sellingPrice;
+    }
+    return item.inventoryId.sellingPrice || 0; // Default to 0 if not available
   };
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
+    (sum, item) =>
+      sum + getItemPrice(item.stockItem, item.selectedWholesaleUnit) * item.qty,
     0,
   );
 
@@ -402,10 +518,18 @@ export const POS: React.FC = () => {
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
           storefrontName: selectedStorefront?.locationName || "Store",
           items: cart.map((i) => ({
-            name: i.stockItem.inventoryId.productName,
+            name:
+              i.stockItem.inventoryId.productName +
+              (i.isWholesaleMode && i.selectedWholesaleUnit
+                ? ` (${i.selectedWholesaleUnit.unitName})`
+                : ""),
             code: i.stockItem.inventoryId.productCode,
             qty: i.qty,
-            price: getItemPrice(i.stockItem),
+            price: getItemPrice(i.stockItem, i.selectedWholesaleUnit),
+            unit:
+              i.isWholesaleMode && i.selectedWholesaleUnit
+                ? i.selectedWholesaleUnit.unitName
+                : "pieces",
           })),
           subtotal,
           discountPercent: discount,
@@ -543,8 +667,9 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
-                    }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
+                    showStorefrontMenu ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -571,16 +696,18 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
-                            ? "bg-primary/20 border-l-4 border-primary"
-                            : ""
-                            }`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
+                            sf._id === selectedStorefrontId
+                              ? "bg-primary/20 border-l-4 border-primary"
+                              : ""
+                          }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
-                              ? "bg-primary text-dark"
-                              : "bg-dark-100 text-dark-500"
-                              }`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              sf._id === selectedStorefrontId
+                                ? "bg-primary text-dark"
+                                : "bg-dark-100 text-dark-500"
+                            }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -641,15 +768,23 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
-                  ? "opacity-50 grayscale pointer-events-none"
-                  : ""
-                  }`}
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
+                  stockItem.availableQuantity === 0
+                    ? "opacity-50 grayscale pointer-events-none"
+                    : ""
+                }`}
               >
                 <div className="">
-                  <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
-                    {stockItem.inventoryId.productName}
-                  </h3>
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-medium text-gray-800 text-sm line-clamp-2 flex-1">
+                      {stockItem.inventoryId.productName}
+                    </h3>
+                    {stockItem.inventoryId?.isWholesale && (
+                      <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium ml-2">
+                        Wholesale
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mt-1 font-mono">
                     {stockItem.inventoryId.productCode}
                   </p>
@@ -688,60 +823,121 @@ export const POS: React.FC = () => {
               {t("pos.emptyCart")}
             </div>
           ) : (
-            cart.map((item) => (
-              <div
-                key={item.stockItem._id}
-                className="flex justify-between items-start border-b border-gray-200 pb-4"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">
-                    {item.stockItem.inventoryId.productName}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {(getItemPrice(item.stockItem) * item.qty).toLocaleString()}{" "}
-                    MMK
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 ml-2">
-                  <button
-                    onClick={() => updateQty(item.stockItem._id, -1)}
-                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <input
-                    type="number"
-                    min="1"
-                    max={item.stockItem.availableQuantity}
-                    value={item.qty}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setQty(item.stockItem._id, value);
-                    }}
-                    onBlur={(e) => {
-                      // Ensure quantity is at least 1 when input loses focus
-                      const value = parseInt(e.target.value) || 1;
-                      if (value < 1) {
-                        setQty(item.stockItem._id, 1);
+            cart.map((item, index) => {
+              const maxQty =
+                item.isWholesaleMode && item.selectedWholesaleUnit
+                  ? Math.floor(
+                      item.stockItem.availableQuantity /
+                        item.selectedWholesaleUnit.conversionRate,
+                    )
+                  : item.stockItem.availableQuantity;
+
+              return (
+                <div
+                  key={`${item.stockItem._id}-${item.selectedWholesaleUnit?.unitName || "individual"}-${index}`}
+                  className="flex justify-between items-start border-b border-gray-200 pb-4"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">
+                      {item.stockItem.inventoryId.productName}
+                    </p>
+                    {item.isWholesaleMode && item.selectedWholesaleUnit && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                          {item.selectedWholesaleUnit.unitName}
+                        </span>
+                        <span className="text-xs text-purple-600">
+                          (1 {item.selectedWholesaleUnit.unitName} ={" "}
+                          {item.selectedWholesaleUnit.conversionRate} pieces)
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      {getItemPrice(
+                        item.stockItem,
+                        item.selectedWholesaleUnit,
+                      ).toLocaleString()}{" "}
+                      MMK × {item.qty} ={" "}
+                      {(
+                        getItemPrice(
+                          item.stockItem,
+                          item.selectedWholesaleUnit,
+                        ) * item.qty
+                      ).toLocaleString()}{" "}
+                      MMK
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    <button
+                      onClick={() =>
+                        updateQty(
+                          item.stockItem._id,
+                          -1,
+                          item.selectedWholesaleUnit,
+                          item.isWholesaleMode,
+                        )
                       }
-                    }}
-                    className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <button
-                    onClick={() => updateQty(item.stockItem._id, 1)}
-                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => removeFromCart(item.stockItem._id)}
-                    className="p-1 text-red-500 hover:bg-red-50 rounded ml-2 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                      className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max={maxQty}
+                      value={item.qty}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        setQty(
+                          item.stockItem._id,
+                          value,
+                          item.selectedWholesaleUnit,
+                          item.isWholesaleMode,
+                        );
+                      }}
+                      onBlur={(e) => {
+                        // Ensure quantity is at least 1 when input loses focus
+                        const value = parseInt(e.target.value) || 1;
+                        if (value < 1) {
+                          setQty(
+                            item.stockItem._id,
+                            1,
+                            item.selectedWholesaleUnit,
+                            item.isWholesaleMode,
+                          );
+                        }
+                      }}
+                      className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button
+                      onClick={() =>
+                        updateQty(
+                          item.stockItem._id,
+                          1,
+                          item.selectedWholesaleUnit,
+                          item.isWholesaleMode,
+                        )
+                      }
+                      className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        removeFromCart(
+                          item.stockItem._id,
+                          item.selectedWholesaleUnit,
+                          item.isWholesaleMode,
+                        )
+                      }
+                      className="p-1 text-red-500 hover:bg-red-50 rounded ml-2 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -1003,15 +1199,15 @@ export const POS: React.FC = () => {
                   type="number"
                   min="0"
                   disabled={paymentMethod === PaymentMethod.FOC}
-                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : ""
-                    }`}
-                  value={
-                    paymentMethod === PaymentMethod.FOC ? 0 : paidAmount
-                  }
+                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
+                    paymentMethod === PaymentMethod.FOC
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : ""
+                  }`}
+                  value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
                   onChange={(e) => {
-                    const value = e.target.value === "" ? 0 : Number(e.target.value);
+                    const value =
+                      e.target.value === "" ? 0 : Number(e.target.value);
                     // Use Math.ceil to ensure paid amount is always an integer
                     setPaidAmount(Math.ceil(value));
                   }}
@@ -1316,6 +1512,17 @@ export const POS: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Wholesale Unit Selector Modal */}
+      <WholesaleUnitSelector
+        isOpen={showWholesaleSelector}
+        wholesaleUnits={pendingProduct?.inventoryId?.wholesaleUnits || []}
+        onClose={() => {
+          setShowWholesaleSelector(false);
+          setPendingProduct(null);
+        }}
+        onSelectUnit={handleWholesaleUnitSelect}
+      />
     </div>
   );
 };

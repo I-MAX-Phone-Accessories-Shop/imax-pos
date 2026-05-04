@@ -1,5 +1,13 @@
 import axios from "../axios";
 
+export interface WholesaleUnit {
+  unitName: string;
+  conversionRate: number;
+  buyingPrice: number;
+  sellingPrice: number;
+  isActive: boolean;
+}
+
 export interface StorefrontStockInventory {
   _id: string;
   productName: string;
@@ -9,6 +17,8 @@ export interface StorefrontStockInventory {
   profitMargin: number | null;
   profitAmount: number | null;
   sellingPrice?: number;
+  isWholesale?: boolean;
+  wholesaleUnits?: WholesaleUnit[];
 }
 
 export interface StorefrontStockStorefront {
@@ -45,7 +55,7 @@ interface FetchStorefrontStockResponse {
 }
 
 export const fetchStorefrontStock = async (
-  storefrontId?: string
+  storefrontId?: string,
 ): Promise<FetchStorefrontStockResponse> => {
   try {
     const url = storefrontId
@@ -57,7 +67,8 @@ export const fetchStorefrontStock = async (
     console.error("Error fetching storefront stock:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch storefront stock",
+      message:
+        error.response?.data?.message || "Failed to fetch storefront stock",
       data: [],
     };
   }

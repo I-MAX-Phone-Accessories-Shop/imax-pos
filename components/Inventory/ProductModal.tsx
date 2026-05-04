@@ -17,6 +17,14 @@ import { useLanguage } from "../../context/LanguageContext";
 //   "pair",
 // ];
 
+export interface WholesaleUnit {
+  unitName: string;
+  conversionRate: number;
+  buyingPrice: number;
+  sellingPrice: number;
+  isActive: boolean;
+}
+
 export interface ProductFormData {
   productName: string;
   productCode: string;
@@ -35,6 +43,8 @@ export interface ProductFormData {
   taxRate?: number;
   status?: string;
   tags?: string[];
+  isWholesale?: boolean;
+  wholesaleUnits?: WholesaleUnit[];
 }
 
 export interface ApiProduct {
@@ -59,6 +69,8 @@ export interface ApiProduct {
   tags?: string[];
   stockWarehouse?: number;
   stockShop?: number;
+  isWholesale?: boolean;
+  wholesaleUnits?: WholesaleUnit[];
 }
 
 interface ProductModalProps {
@@ -371,6 +383,195 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 updateFormData({ sellingPrice, buyingPrice });
               }}
             />
+          </div>
+
+          {/* Wholesale Section */}
+          <div className="col-span-2 border-t pt-4">
+            <div className="flex items-center gap-2 mb-4">
+              <input
+                type="checkbox"
+                id="isWholesale"
+                checked={formData.isWholesale || false}
+                onChange={(e) => {
+                  const isWholesale = e.target.checked;
+                  updateFormData({
+                    isWholesale,
+                    wholesaleUnits: isWholesale
+                      ? [
+                          {
+                            unitName: "",
+                            conversionRate: 1,
+                            buyingPrice: 0,
+                            sellingPrice: 0,
+                            isActive: true,
+                          },
+                        ]
+                      : [],
+                  });
+                }}
+                className="rounded"
+              />
+              <label
+                htmlFor="isWholesale"
+                className="text-sm font-medium text-slate-700"
+              >
+                Enable Wholesale Units
+              </label>
+            </div>
+
+            {formData.isWholesale && (
+              <div className="space-y-3">
+                <div className="text-sm font-medium text-slate-700">
+                  Wholesale Units
+                </div>
+                {formData.wholesaleUnits?.map((unit, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-3 bg-slate-50"
+                  >
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          Unit Name
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border rounded p-2 text-sm"
+                          value={unit.unitName}
+                          onChange={(e) => {
+                            const newUnits = [
+                              ...(formData.wholesaleUnits || []),
+                            ];
+                            newUnits[index] = {
+                              ...unit,
+                              unitName: e.target.value,
+                            };
+                            updateFormData({ wholesaleUnits: newUnits });
+                          }}
+                          placeholder="e.g., မူး, 1ကျင်း"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          Conversion Rate
+                        </label>
+                        <input
+                          type="number"
+                          className="w-full border rounded p-2 text-sm"
+                          value={unit.conversionRate}
+                          onChange={(e) => {
+                            const newUnits = [
+                              ...(formData.wholesaleUnits || []),
+                            ];
+                            newUnits[index] = {
+                              ...unit,
+                              conversionRate: Number(e.target.value),
+                            };
+                            updateFormData({ wholesaleUnits: newUnits });
+                          }}
+                          placeholder="e.g., 1000"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          Buying Price
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className="w-full border rounded p-2 text-sm"
+                          value={unit.buyingPrice}
+                          onChange={(e) => {
+                            const newUnits = [
+                              ...(formData.wholesaleUnits || []),
+                            ];
+                            newUnits[index] = {
+                              ...unit,
+                              buyingPrice: Number(e.target.value),
+                            };
+                            updateFormData({ wholesaleUnits: newUnits });
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          Selling Price
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className="w-full border rounded p-2 text-sm"
+                          value={unit.sellingPrice}
+                          onChange={(e) => {
+                            const newUnits = [
+                              ...(formData.wholesaleUnits || []),
+                            ];
+                            newUnits[index] = {
+                              ...unit,
+                              sellingPrice: Number(e.target.value),
+                            };
+                            updateFormData({ wholesaleUnits: newUnits });
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={unit.isActive}
+                          onChange={(e) => {
+                            const newUnits = [
+                              ...(formData.wholesaleUnits || []),
+                            ];
+                            newUnits[index] = {
+                              ...unit,
+                              isActive: e.target.checked,
+                            };
+                            updateFormData({ wholesaleUnits: newUnits });
+                          }}
+                          className="rounded text-sm"
+                        />
+                        <label className="text-xs text-slate-600">Active</label>
+                      </div>
+                      {formData.wholesaleUnits &&
+                        formData.wholesaleUnits.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newUnits = [
+                                ...(formData.wholesaleUnits || []),
+                              ];
+                              newUnits.splice(index, 1);
+                              updateFormData({ wholesaleUnits: newUnits });
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Remove
+                          </button>
+                        )}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newUnits = [...(formData.wholesaleUnits || [])];
+                    newUnits.push({
+                      unitName: "",
+                      conversionRate: 1,
+                      buyingPrice: 0,
+                      sellingPrice: 0,
+                      isActive: true,
+                    });
+                    updateFormData({ wholesaleUnits: newUnits });
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  + Add Wholesale Unit
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex justify-end gap-2">

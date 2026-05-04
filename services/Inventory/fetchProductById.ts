@@ -1,5 +1,13 @@
 import axios from "../axios";
 
+export interface WholesaleUnit {
+  unitName: string;
+  conversionRate: number;
+  buyingPrice: number;
+  sellingPrice: number;
+  isActive: boolean;
+}
+
 export interface ProductLocation {
   locationId: string;
   locationName: string;
@@ -37,6 +45,8 @@ export interface ProductDetail {
   buyingPrice: number;
   sellingPrice: number;
   unitOfMeasure: string;
+  isWholesale: boolean;
+  wholesaleUnits: WholesaleUnit[];
   reorderPoint: number;
   reorderQuantity: number;
   taxRate: number;
@@ -57,7 +67,7 @@ interface FetchProductByIdResponse {
 }
 
 export const fetchProductById = async (
-  productId: string
+  productId: string,
 ): Promise<FetchProductByIdResponse> => {
   try {
     const response = await axios.get(`/inventory/${productId}`);
@@ -71,4 +81,3 @@ export const fetchProductById = async (
     };
   }
 };
-

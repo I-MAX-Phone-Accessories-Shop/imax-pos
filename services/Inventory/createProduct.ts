@@ -1,5 +1,13 @@
 import axios from "../axios";
 
+export interface WholesaleUnit {
+  unitName: string;
+  conversionRate: number;
+  buyingPrice: number;
+  sellingPrice: number;
+  isActive: boolean;
+}
+
 export interface CreateProductPayload {
   productName: string;
   productCode: string;
@@ -7,6 +15,9 @@ export interface CreateProductPayload {
   category?: string;
   buyingPrice: number;
   sellingPrice: number;
+  unitOfMeasure?: string;
+  isWholesale?: boolean;
+  wholesaleUnits?: WholesaleUnit[];
   quantity?: number;
   description?: string;
 }
@@ -23,7 +34,7 @@ interface CreateProductResponse {
  * @returns {Promise<CreateProductResponse>} Response from API
  */
 export const createProduct = async (
-  productData: CreateProductPayload
+  productData: CreateProductPayload,
 ): Promise<CreateProductResponse> => {
   try {
     const response = await axios.post("/inventory", productData);
@@ -39,7 +50,7 @@ export const createProduct = async (
         error.response.headers["content-type"].includes("text/html")
       ) {
         throw new Error(
-          `API endpoint not found. Please check if the API is running and the endpoint "${error.config?.url}" is correct.`
+          `API endpoint not found. Please check if the API is running and the endpoint "${error.config?.url}" is correct.`,
         );
       }
 
@@ -53,7 +64,7 @@ export const createProduct = async (
 
       if (error.request) {
         throw new Error(
-          "Network error: Unable to reach the API. Please check if the API server is running."
+          "Network error: Unable to reach the API. Please check if the API server is running.",
         );
       }
     }

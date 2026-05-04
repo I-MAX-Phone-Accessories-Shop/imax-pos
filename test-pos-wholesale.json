@@ -1,0 +1,67 @@
+{
+  "description": "Test data for POS wholesale functionality",
+  "wholesaleProduct": {
+    "_id": "test-wholesale-001",
+    "storefrontId": {
+      "_id": "storefront-001",
+      "locationCode": "SF001",
+      "locationName": "Main Store"
+    },
+    "inventoryId": {
+      "_id": "inventory-001",
+      "productName": "ကျောက်",
+      "productCode": "STONE-001",
+      "SKU": "SKU-STONE-001",
+      "category": "Construction Materials",
+      "sellingPrice": 150,
+      "isWholesale": true,
+      "wholesaleUnits": [
+        {
+          "unitName": "မူး",
+          "conversionRate": 1000,
+          "buyingPrice": 95000,
+          "sellingPrice": 140000,
+          "isActive": true
+        },
+        {
+          "unitName": "1ကျင်း",
+          "conversionRate": 100,
+          "buyingPrice": 9800,
+          "sellingPrice": 14500,
+          "isActive": true
+        },
+        {
+          "unitName": "3ကျင်း",
+          "conversionRate": 300,
+          "buyingPrice": 29000,
+          "sellingPrice": 43000,
+          "isActive": true
+        }
+      ]
+    },
+    "quantity": 5000,
+    "availableQuantity": 5000,
+    "isLowStock": false
+  },
+  "regularProduct": {
+    "_id": "test-regular-001",
+    "storefrontId": {
+      "_id": "storefront-001",
+      "locationCode": "SF001",
+      "locationName": "Main Store"
+    },
+    "inventoryId": {
+      "_id": "inventory-002",
+      "productName": "Phone Cover",
+      "productCode": "COVER-001",
+      "SKU": "SKU-COVER-001",
+      "category": "Phone Cover",
+      "sellingPrice": 5000,
+      "isWholesale": false,
+      "wholesaleUnits": []
+    },
+    "quantity": 100,
+    "availableQuantity": 100,
+    "isLowStock": false
+  }
+}

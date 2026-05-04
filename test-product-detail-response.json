@@ -1,0 +1,63 @@
+{
+    "success": true,
+    "message": "Inventory item retrieved successfully",
+    "data": {
+        "_id": "69f789d57d11a3f94fd40872",
+        "productName": "ကျောက်",
+        "productCode": "STONE-001",
+        "category": "Construction Materials",
+        "subCategory": "Unknown",
+        "brand": "Unknown",
+        "description": "No description available",
+        "buyingPrice": 100,
+        "sellingPrice": 150,
+        "unitOfMeasure": "piece",
+        "isWholesale": true,
+        "wholesaleUnits": [
+            {
+                "unitName": "မူး",
+                "conversionRate": 1000,
+                "buyingPrice": 95000,
+                "sellingPrice": 140000,
+                "isActive": true
+            },
+            {
+                "unitName": "1ကျင်း",
+                "conversionRate": 100,
+                "buyingPrice": 9800,
+                "sellingPrice": 14500,
+                "isActive": true
+            },
+            {
+                "unitName": "3ကျင်း",
+                "conversionRate": 300,
+                "buyingPrice": 29000,
+                "sellingPrice": 43000,
+                "isActive": true
+            }
+        ],
+        "reorderPoint": 0,
+        "reorderQuantity": 0,
+        "taxRate": 0,
+        "status": "active",
+        "tags": [],
+        "createdAt": "2026-05-04T00:15:57+06:30",
+        "updatedAt": "2026-05-04T00:15:57+06:30",
+        "__v": 0,
+        "profitMargin": 50,
+        "profitAmount": 50,
+        "stockAvailability": {
+            "warehouses": {
+                "count": 0,
+                "locations": [],
+                "totalQuantity": 0
+            },
+            "storefronts": {
+                "count": 0,
+                "locations": [],
+                "totalQuantity": 0
+            },
+            "totalQuantity": 0
+        }
+    }
+}

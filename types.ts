@@ -24,6 +24,14 @@ export enum ProductCategory {
   OTHER = "Other",
 }
 
+export interface WholesaleUnit {
+  unitName: string;
+  conversionRate: number;
+  buyingPrice: number;
+  sellingPrice: number;
+  isActive: boolean;
+}
+
 export interface Product {
   id: string;
   _id?: string;
@@ -36,6 +44,8 @@ export interface Product {
   costPrice: number;
   sellingPrice: number;
   lowStockThreshold: number;
+  isWholesale?: boolean;
+  wholesaleUnits?: WholesaleUnit[];
 }
 
 export interface CartItem extends Product {

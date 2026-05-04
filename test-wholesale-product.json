@@ -1,0 +1,32 @@
+{
+  "productName": "ကျောက်",
+  "productCode": "STONE-001",
+  "category": "Construction Materials",
+  "unitOfMeasure": "piece",
+  "buyingPrice": 100,
+  "sellingPrice": 150,
+  "isWholesale": true,
+  "wholesaleUnits": [
+    {
+      "unitName": "မူး",
+      "conversionRate": 1000,
+      "buyingPrice": 95000,
+      "sellingPrice": 140000,
+      "isActive": true
+    },
+    {
+      "unitName": "1ကျင်း",
+      "conversionRate": 100,
+      "buyingPrice": 9800,
+      "sellingPrice": 14500,
+      "isActive": true
+    },
+    {
+      "unitName": "3ကျင်း",
+      "conversionRate": 300,
+      "buyingPrice": 29000,
+      "sellingPrice": 43000,
+      "isActive": true
+    }
+  ]
+}

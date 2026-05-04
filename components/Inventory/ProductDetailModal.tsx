@@ -26,7 +26,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"about" | "quantity">("about");
   const [stockTab, setStockTab] = useState<"warehouse" | "storefront">(
-    "storefront"
+    "storefront",
   );
 
   if (!isOpen) return null;
@@ -105,6 +105,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <p className="font-bold text-blue-800">
                         {product.productName}
                       </p>
+                      {product.isWholesale && (
+                        <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                          Wholesale
+                        </span>
+                      )}
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                       <p className="text-xs text-green-600 font-medium mb-1">
@@ -230,6 +235,79 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     </div> */}
                   </div>
 
+                  {/* Wholesale Units Section */}
+                  {product.isWholesale &&
+                    product.wholesaleUnits &&
+                    product.wholesaleUnits.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <Package className="w-4 h-4 text-purple-600" />
+                          <p className="text-sm font-medium text-purple-600">
+                            Wholesale Units
+                          </p>
+                        </div>
+                        <div className="space-y-3">
+                          {product.wholesaleUnits
+                            .filter((unit) => unit.isActive)
+                            .map((unit, index) => (
+                              <div
+                                key={index}
+                                className="bg-purple-50 p-4 rounded-lg border border-purple-200"
+                              >
+                                <div className="grid grid-cols-4 gap-4">
+                                  <div>
+                                    <p className="text-xs text-purple-600 font-medium mb-1">
+                                      Unit Name
+                                    </p>
+                                    <p className="font-bold text-purple-800">
+                                      {unit.unitName}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-purple-600 font-medium mb-1">
+                                      Conversion Rate
+                                    </p>
+                                    <p className="font-bold text-purple-800">
+                                      {unit.unitName} = {unit.conversionRate}{" "}
+                                      pieces
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-purple-600 font-medium mb-1">
+                                      Buying Price
+                                    </p>
+                                    <p className="font-bold text-purple-800">
+                                      {unit.buyingPrice.toLocaleString()} MMK
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-purple-600 font-medium mb-1">
+                                      Selling Price
+                                    </p>
+                                    <p className="font-bold text-purple-800">
+                                      {unit.sellingPrice.toLocaleString()} MMK
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-purple-200">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs text-purple-600">
+                                      Profit per {unit.unitName}
+                                    </span>
+                                    <span className="text-sm font-bold text-green-600">
+                                      {(
+                                        unit.sellingPrice - unit.buyingPrice
+                                      ).toLocaleString()}{" "}
+                                      MMK
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
                   {/* Description */}
                   {/* {product.description && (
                     <div>
@@ -345,7 +423,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>
@@ -396,7 +474,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>

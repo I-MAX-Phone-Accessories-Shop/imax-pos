@@ -18,6 +18,7 @@ import {
   ProductModal,
   ProductFormData,
   ApiProduct,
+  WholesaleUnit,
 } from "../components/Inventory/ProductModal";
 import { ProductDetailModal } from "../components/Inventory/ProductDetailModal";
 import {
@@ -85,6 +86,8 @@ export const Inventory: React.FC = () => {
     taxRate: 0,
     status: "active",
     tags: [],
+    isWholesale: false,
+    wholesaleUnits: [],
   });
 
   // Map API product to local Product type
@@ -202,6 +205,8 @@ export const Inventory: React.FC = () => {
       taxRate: 0,
       status: "active",
       tags: [],
+      isWholesale: false,
+      wholesaleUnits: [],
     });
     setError(null);
   };
@@ -262,6 +267,14 @@ export const Inventory: React.FC = () => {
         if (formData.status) apiPayload.status = formData.status;
         if (formData.tags && formData.tags.length > 0)
           apiPayload.tags = formData.tags;
+
+        // Add wholesale fields if enabled
+        if (formData.isWholesale) {
+          apiPayload.isWholesale = true;
+          if (formData.wholesaleUnits && formData.wholesaleUnits.length > 0) {
+            apiPayload.wholesaleUnits = formData.wholesaleUnits;
+          }
+        }
 
         await updateProduct(editingId, apiPayload);
 
@@ -328,6 +341,14 @@ export const Inventory: React.FC = () => {
       if (formData.tags && formData.tags.length > 0)
         apiPayload.tags = formData.tags;
 
+      // Add wholesale fields if enabled
+      if (formData.isWholesale) {
+        apiPayload.isWholesale = true;
+        if (formData.wholesaleUnits && formData.wholesaleUnits.length > 0) {
+          apiPayload.wholesaleUnits = formData.wholesaleUnits;
+        }
+      }
+
       await createProduct(apiPayload);
 
       setIsModalOpen(false);
@@ -368,6 +389,8 @@ export const Inventory: React.FC = () => {
       taxRate: apiProduct?.taxRate || 0,
       status: apiProduct?.status || "active",
       tags: apiProduct?.tags || [],
+      isWholesale: apiProduct?.isWholesale || false,
+      wholesaleUnits: apiProduct?.wholesaleUnits || [],
     });
 
     setIsModalOpen(true);
