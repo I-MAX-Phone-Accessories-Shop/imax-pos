@@ -12,6 +12,7 @@ import { WarehouseDetail } from "./pages/WarehouseDetail";
 import { Storefront } from "./pages/Storefront";
 import { StorefrontDetail } from "./pages/StorefrontDetail";
 import { OnlineStorefront } from "./pages/OnlineStorefront";
+import { OnlineOrders } from "./pages/OnlineOrders";
 import { Reports } from "./pages/Reports";
 import { Settings } from "./pages/Settings";
 import { Inventory } from "./pages/Inventory";
@@ -158,6 +159,14 @@ const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <OnlineStorefront />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/online-orders"
+            element={
+              <ProtectedRoute>
+                <OnlineOrders />
               </ProtectedRoute>
             }
           />

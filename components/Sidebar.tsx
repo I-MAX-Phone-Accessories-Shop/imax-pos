@@ -64,6 +64,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       label: t("sidebar.onlineStorefront"),
       icon: Globe,
     },
+    {
+      path: "/online-orders",
+      label: t("sidebar.onlineOrders"),
+      icon: ShoppingBag,
+    },
     // { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
     // { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
     { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
@@ -150,7 +155,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )
               return null;
             if (
-              item.path === "/online-storefront" &&
+              (item.path === "/online-storefront" ||
+                item.path === "/online-orders") &&
               userRole !== "owner" &&
               userRole !== "admin" &&
               userRole !== "cashier"
