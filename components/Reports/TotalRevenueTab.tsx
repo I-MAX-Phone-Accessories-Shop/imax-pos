@@ -10,12 +10,14 @@ import {
   Check,
 } from "lucide-react";
 import { StorefrontStockItem } from "../../services/Storefront/fetchStorefrontStock";
+import { OnlineStorefrontStockItem } from "../../services/OnlineStorefront/fetchOnlineStorefrontInventory";
 import { CreditOrdersReportResponse } from "../../services/Reports/fetchCreditOrdersReport";
 import { PaidOrdersReportResponse } from "../../services/Reports/fetchPaidOrdersReport";
 
 interface TotalRevenueTabProps {
   storefrontStock: StorefrontStockItem[];
   allStorefrontsStock: StorefrontStockItem[];
+  onlineInventory?: OnlineStorefrontStockItem[];
   selectedStorefront: string;
   loading: boolean;
   creditOrdersReport: CreditOrdersReportResponse | null;
@@ -29,6 +31,7 @@ interface TotalRevenueTabProps {
 export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
   storefrontStock,
   allStorefrontsStock,
+  onlineInventory = [],
   selectedStorefront,
   loading,
   creditOrdersReport,
@@ -47,17 +50,31 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Calculate total inventory amount
-  const calculateInventoryAmount = (stock: StorefrontStockItem[]) => {
+  const calculateInventoryAmount = (
+    stock: (StorefrontStockItem | OnlineStorefrontStockItem)[],
+  ) => {
     return stock.reduce((total, item) => {
       const price = item.inventoryId.sellingPrice || 0;
-      const quantity = item.availableQuantity || 0;
+      // OnlineStorefrontStockItem uses 'quantity', StorefrontStockItem uses 'availableQuantity'
+      const quantity =
+        (item as StorefrontStockItem).availableQuantity !== undefined
+          ? (item as StorefrontStockItem).availableQuantity
+          : (item as OnlineStorefrontStockItem).quantity || 0;
       return total + price * quantity;
     }, 0);
   };
 
   // Get the appropriate stock data based on selection
-  const currentStock =
-    selectedStorefront === "all" ? allStorefrontsStock : storefrontStock;
+  let currentStock: (StorefrontStockItem | OnlineStorefrontStockItem)[] = [];
+  if (selectedStorefront === "all") {
+    currentStock = [...allStorefrontsStock, ...onlineInventory];
+  } else {
+    // If selectedStorefront is online storefront ID, use onlineInventory
+    const isOnlineSelection = onlineInventory.some(
+      (item) => item.onlineStorefrontId._id === selectedStorefront,
+    );
+    currentStock = isOnlineSelection ? onlineInventory : storefrontStock;
+  }
 
   // Get the appropriate credit orders data based on selection
   const currentCreditOrders =

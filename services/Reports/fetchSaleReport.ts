@@ -21,6 +21,28 @@ export interface SaleReportData {
   orderCount: number;
   creditOrderCount: number;
   paidOrderCount: number;
+  posStats?: {
+    totalFinalAmount: number;
+    totalPaidAmount: number;
+    totalSubTotal: number;
+    totalTax: number;
+    totalDiscount: number;
+    totalExtraChange: number;
+    orderCount: number;
+    creditOrderCount: number;
+    paidOrderCount: number;
+  };
+  onlineStats?: {
+    totalFinalAmount: number;
+    totalPaidAmount: number;
+    totalSubTotal: number;
+    totalTax: number;
+    totalDiscount: number;
+    totalExtraChange: number;
+    orderCount: number;
+    creditOrderCount: number;
+    paidOrderCount: number;
+  };
 }
 
 export interface SaleReportResponse {
@@ -43,7 +65,7 @@ export interface SaleReportResponse {
 export const fetchSaleReport = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<SaleReportResponse> => {
   try {
     let url = `/sale-report?storefrontId=${storefrontId}`;
@@ -101,7 +123,7 @@ export const fetchSaleReport = async (
  */
 export const fetchAllStorefrontsSaleReport = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<SaleReportResponse> => {
   try {
     let url = `/sale-report`;

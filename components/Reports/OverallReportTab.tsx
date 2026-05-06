@@ -1,5 +1,12 @@
 import React from "react";
-import { Store } from "lucide-react";
+import {
+  Store,
+  TrendingUp,
+  CreditCard,
+  ShoppingBag,
+  Percent,
+  Receipt,
+} from "lucide-react";
 import { SaleReportResponse } from "../../services/Reports/fetchSaleReport";
 
 interface OverallReportTabProps {
@@ -12,6 +19,18 @@ interface OverallReportTabProps {
     orderCount: number;
     creditOrderCount: number;
     paidOrderCount: number;
+    posStats?: {
+      totalFinalAmount: number;
+      totalPaidAmount: number;
+      orderCount: number;
+      paidOrderCount: number;
+      creditOrderCount: number;
+    };
+    onlineStats?: {
+      totalFinalAmount: number;
+      totalPaidAmount: number;
+      orderCount: number;
+    };
   };
   saleReports: SaleReportResponse[];
   allStorefrontsReport: SaleReportResponse | null;
@@ -24,89 +43,155 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   allStorefrontsReport,
   selectedStorefront,
 }) => {
-  // console.log(saleReports);
-  // console.log(allStorefrontsReport);
-
   // Determine which reports to show in the breakdown table
   const reportsToShow =
     selectedStorefront === "all"
       ? saleReports.filter((report) => report.success)
       : saleReports.filter(
-        (report) =>
-          report.success && report.data.storefront._id === selectedStorefront,
-      );
+          (report) =>
+            report.success && report.data.storefront._id === selectedStorefront,
+        );
+
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Primary Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-primary/20">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Total Sales
-          </p>
+          <div className="flex items-center gap-2 text-slate-500 mb-1">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <p className="text-[10px] uppercase font-bold tracking-wider">
+              Total Sales
+            </p>
+          </div>
           <p className="text-lg sm:text-2xl font-bold text-slate-900">
             {displayReport.finalAmount.toLocaleString()}{" "}
-            <span className="hidden sm:inline">MMK</span>
+            <span className="text-xs font-normal text-slate-400">MMK</span>
           </p>
+          {displayReport.posStats && displayReport.onlineStats && (
+            <div className="mt-2 pt-2 border-t flex justify-between text-[10px] font-medium">
+              <span className="text-blue-600">
+                POS: {displayReport.posStats.totalFinalAmount.toLocaleString()}
+              </span>
+              <span className="text-indigo-600">
+                Online:{" "}
+                {displayReport.onlineStats.totalFinalAmount.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
+
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-green-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Paid Amount
-          </p>
+          <div className="flex items-center gap-2 text-green-600 mb-1">
+            <CreditCard className="w-3.5 h-3.5" />
+            <p className="text-[10px] uppercase font-bold tracking-wider">
+              Paid Amount
+            </p>
+          </div>
           <p className="text-lg sm:text-2xl font-bold text-green-600">
-            {displayReport.finalAmount.toLocaleString()}{" "}
-            <span className="hidden sm:inline">MMK</span>
+            {displayReport.paidAmount.toLocaleString()}{" "}
+            <span className="text-xs font-normal text-slate-400">MMK</span>
           </p>
+          {displayReport.posStats && displayReport.onlineStats && (
+            <div className="mt-2 pt-2 border-t flex justify-between text-[10px] font-medium">
+              <span className="text-green-700">
+                POS: {displayReport.posStats.totalPaidAmount.toLocaleString()}
+              </span>
+              <span className="text-indigo-600">
+                Online:{" "}
+                {displayReport.onlineStats.totalPaidAmount.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
+
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-purple-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Credit Amount
-          </p>
+          <div className="flex items-center gap-2 text-purple-600 mb-1">
+            <Percent className="w-3.5 h-3.5" />
+            <p className="text-[10px] uppercase font-bold tracking-wider">
+              Credit Amount
+            </p>
+          </div>
           <p className="text-lg sm:text-2xl font-bold text-purple-600">
             {(
               displayReport.finalAmount - displayReport.paidAmount
             ).toLocaleString()}{" "}
-            <span className="hidden sm:inline">MMK</span>
+            <span className="text-xs font-normal text-slate-400">MMK</span>
+          </p>
+          <p className="mt-2 text-[10px] text-slate-400 font-medium italic">
+            * POS credit only
           </p>
         </div>
+
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-blue-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Total Orders
-          </p>
+          <div className="flex items-center gap-2 text-blue-600 mb-1">
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <p className="text-[10px] uppercase font-bold tracking-wider">
+              Total Orders
+            </p>
+          </div>
           <p className="text-lg sm:text-2xl font-bold text-blue-600">
             {displayReport.orderCount}
           </p>
+          {displayReport.posStats && displayReport.onlineStats && (
+            <div className="mt-2 pt-2 border-t flex justify-between text-[10px] font-medium">
+              <span className="text-blue-700">
+                POS: {displayReport.posStats.orderCount}
+              </span>
+              <span className="text-indigo-600">
+                Online: {displayReport.onlineStats.orderCount}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow border border-amber-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">Discount</p>
-          <p className="text-2xl font-bold text-amber-600">
-            {displayReport.discount.toLocaleString()} MMK
-          </p>
+      {/* Secondary Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-xl shadow border border-amber-100 flex items-center justify-between">
+          <div>
+            <p className="text-slate-500 text-xs uppercase font-bold">
+              Discount
+            </p>
+            <p className="text-xl font-bold text-amber-600">
+              {displayReport.discount.toLocaleString()}{" "}
+              <span className="text-[10px] font-normal">MMK</span>
+            </p>
+          </div>
+          <Percent className="w-8 h-8 text-amber-100" />
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-red-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Credit Orders
-          </p>
-          <p className="text-2xl font-bold text-red-500">
-            {displayReport.creditOrderCount}
-          </p>
+        <div className="bg-white p-4 rounded-xl shadow border border-red-100 flex items-center justify-between">
+          <div>
+            <p className="text-slate-500 text-xs uppercase font-bold">
+              Credit Orders (POS)
+            </p>
+            <p className="text-xl font-bold text-red-500">
+              {displayReport.creditOrderCount}
+            </p>
+          </div>
+          <CreditCard className="w-8 h-8 text-red-100" />
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-green-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Paid Orders
-          </p>
-          <p className="text-2xl font-bold text-green-600">
-            {displayReport.paidOrderCount}
-          </p>
+        <div className="bg-white p-4 rounded-xl shadow border border-green-100 flex items-center justify-between">
+          <div>
+            <p className="text-slate-500 text-xs uppercase font-bold">
+              Paid Orders (POS)
+            </p>
+            <p className="text-xl font-bold text-green-600">
+              {displayReport.paidOrderCount}
+            </p>
+          </div>
+          <TrendingUp className="w-8 h-8 text-green-100" />
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-slate-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">Tax</p>
-          <p className="text-2xl font-bold text-slate-600">
-            {displayReport.tax.toLocaleString()} MMK
-          </p>
+        <div className="bg-white p-4 rounded-xl shadow border border-slate-100 flex items-center justify-between">
+          <div>
+            <p className="text-slate-500 text-xs uppercase font-bold">Tax</p>
+            <p className="text-xl font-bold text-slate-600">
+              {displayReport.tax.toLocaleString()}{" "}
+              <span className="text-[10px] font-normal">MMK</span>
+            </p>
+          </div>
+          <Receipt className="w-8 h-8 text-slate-100" />
         </div>
-      </div> */}
+      </div>
 
       {/* Storefront Breakdown Table */}
       {reportsToShow.length > 0 && (

@@ -30,6 +30,7 @@ export const getPaymentMethodLabel = (paymentMethod: string) => {
     ayapay: "AYA Pay",
     uabpay: "UAB Pay",
     bank_transfer: "Bank Transfer",
+    cash_on_delivery: "Cash On Delivery",
   };
   return labels[paymentMethod?.toLowerCase()] || paymentMethod;
 };
@@ -54,4 +55,3 @@ export const formatDate = (dateString: string) => {
     minute: "2-digit",
   });
 };
-
