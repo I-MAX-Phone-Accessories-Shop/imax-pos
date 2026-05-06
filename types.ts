@@ -33,6 +33,7 @@ export interface Product {
   category: ProductCategory;
   stockWarehouse: number;
   stockShop: number;
+  stockOnline: number;
   costPrice: number;
   sellingPrice: number;
   lowStockThreshold: number;

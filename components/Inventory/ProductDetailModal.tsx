@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   X,
   Package,
@@ -6,15 +6,24 @@ import {
   TrendingUp,
   Store,
   Warehouse,
+  ImageOff,
+  Trash2,
+  Plus,
+  Globe,
 } from "lucide-react";
 import { ProductDetail } from "../../services/Inventory/fetchProductById";
+import { deleteProductImage } from "../../services/Inventory/deleteProductImage";
+import { uploadProductImage } from "../../services/Inventory/uploadProductImage";
 import { useLanguage } from "../../context/LanguageContext";
+import { toast } from "sonner";
 
 interface ProductDetailModalProps {
   isOpen: boolean;
   loading: boolean;
   product: ProductDetail | null;
   onClose: () => void;
+  onImageDeleted?: () => void;
+  onImageUploaded?: () => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -22,14 +31,73 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   loading,
   product,
   onClose,
+  onImageDeleted,
+  onImageUploaded,
 }) => {
   const { t } = useLanguage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"about" | "quantity">("about");
-  const [stockTab, setStockTab] = useState<"warehouse" | "storefront">(
-    "storefront"
-  );
+  const [stockTab, setStockTab] = useState<
+    "warehouse" | "storefront" | "online"
+  >("storefront");
+  const [deletingImage, setDeletingImage] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleDeleteImage = async (imageKey: string) => {
+    if (!product) return;
+    setPendingDeleteKey(imageKey);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteImage = async () => {
+    if (!product || !pendingDeleteKey) return;
+    setShowDeleteConfirm(false);
+    setDeletingImage(true);
+    try {
+      const response = await deleteProductImage(product._id, pendingDeleteKey);
+      if (response.success) {
+        toast.success("Image deleted successfully");
+        onImageDeleted?.();
+      } else {
+        toast.error(response.message || "Failed to delete image");
+      }
+    } catch {
+      toast.error("Failed to delete image");
+    } finally {
+      setDeletingImage(false);
+      setPendingDeleteKey(null);
+    }
+  };
+
+  const cancelDeleteImage = () => {
+    setShowDeleteConfirm(false);
+    setPendingDeleteKey(null);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !product) return;
+
+    setUploadingImage(true);
+    try {
+      const response = await uploadProductImage(product._id, file);
+      if (response.success) {
+        toast.success("Image uploaded successfully");
+        onImageUploaded?.();
+      } else {
+        toast.error(response.message || "Failed to upload image");
+      }
+    } catch {
+      toast.error("Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -83,6 +151,35 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           </button>
         </div>
 
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6">
+              <h4 className="text-lg font-bold text-slate-800 mb-2">
+                Delete Image?
+              </h4>
+              <p className="text-sm text-slate-600 mb-6">
+                Are you sure you want to delete this image? This action cannot
+                be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={cancelDeleteImage}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteImage}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto min-h-[calc(60vh)]">
           {loading ? (
@@ -96,6 +193,83 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <>
               {activeTab === "about" ? (
                 <div className="space-y-6">
+                  {/* Product Image */}
+                  <div className="flex justify-center">
+                    {product.images && product.images.length > 0 ? (
+                      <div className="relative">
+                        <img
+                          src={
+                            product.images.find((img) => img.isPrimary)?.url ||
+                            product.images[0].url
+                          }
+                          alt={product.productName}
+                          className="h-48 w-auto object-contain rounded-lg border border-slate-200"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
+                        <button
+                          onClick={() =>
+                            handleDeleteImage(
+                              product.images.find((img) => img.isPrimary)
+                                ?.key || product.images[0].key,
+                            )
+                          }
+                          disabled={deletingImage || uploadingImage}
+                          className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-md disabled:opacity-50"
+                          title="Delete image"
+                        >
+                          {deletingImage ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingImage}
+                          className="absolute bottom-2 right-2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50"
+                          title="Add image"
+                        >
+                          {uploadingImage ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Plus className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="h-48 w-48 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50">
+                          <ImageOff className="w-10 h-10 text-slate-400 mb-2" />
+                          <span className="text-sm text-slate-500">
+                            No Image
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingImage}
+                          className="absolute bottom-2 right-2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50"
+                          title="Add image"
+                        >
+                          {uploadingImage ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Plus className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </div>
+
                   {/* Product Basic Info */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -115,6 +289,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       </p>
                     </div>
                   </div>
+
+                  {/* Sale Code */}
+                  {product.saleCode && (
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <p className="text-xs text-purple-600 font-medium mb-1">
+                        Sale Code
+                      </p>
+                      <p className="font-bold text-purple-800">
+                        {product.saleCode}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Pricing & Profit */}
                   <div className="grid grid-cols-1 gap-4">
@@ -298,6 +484,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     >
                       {t("inventory.storefronts")}
                     </button>
+                    <button
+                      onClick={() => setStockTab("online")}
+                      className={`px-4 py-2 text-sm font-medium transition-colors ${
+                        stockTab === "online"
+                          ? "bg-[#FEFEB0] text-slate-800 rounded-2xl"
+                          : "text-slate-600 hover:text-slate-800"
+                      }`}
+                    >
+                      Online
+                    </button>
                   </div>
 
                   {/* Warehouse Summary Cards */}
@@ -345,7 +541,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>
@@ -396,7 +592,63 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                  {/* Online Storefront Summary Cards */}
+                  {stockTab === "online" &&
+                    product.stockAvailability.online.count > 0 && (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <p className="text-xs text-slate-600 font-medium mb-1">
+                              Online Storefront
+                            </p>
+                            <p className="text-lg font-bold text-slate-800">
+                              Available Online
+                            </p>
+                          </div>
+                          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <p className="text-xs text-slate-600 font-medium mb-1">
+                              Total Online QTY
+                            </p>
+                            <p className="text-lg font-bold text-slate-800">
+                              {product.stockAvailability.online.totalQuantity.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Online Location Cards */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {product.stockAvailability.online.locations.map(
+                            (location) => (
+                              <div
+                                key={location.locationId}
+                                className="bg-slate-100 p-4 rounded-lg border border-slate-300"
+                              >
+                                <h4 className="font-semibold text-slate-800 mb-1">
+                                  {location.locationName}
+                                </h4>
+                                <div className="flex justify-between items-center">
+                                  <span
+                                    className={`text-xs px-2 py-0.5 rounded-full ${
+                                      location.status === "active"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-red-100 text-red-700"
+                                    }`}
+                                  >
+                                    {location.status}
+                                  </span>
+                                  <span className="text-sm font-bold text-slate-800">
+                                    Quantity{" "}
+                                    {location.quantity.toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            ),
                           )}
                         </div>
                       </>
@@ -416,6 +668,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <div className="text-center py-8 text-slate-500">
                         <Store className="w-12 h-12 mx-auto mb-2 text-slate-300" />
                         <p>No storefronts found</p>
+                      </div>
+                    )}
+
+                  {stockTab === "online" &&
+                    product.stockAvailability.online.count === 0 && (
+                      <div className="text-center py-8 text-slate-500">
+                        <Globe className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                        <p>Not added to online storefront</p>
                       </div>
                     )}
                 </div>

@@ -73,6 +73,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               <th className="px-2 sm:px-4 py-3">Category</th>
               <th className="px-2 sm:px-4 py-3 text-right">Cost</th>
               <th className="px-2 sm:px-4 py-3 text-right">Price</th>
+              <th className="px-2 sm:px-4 py-3 text-right">Online</th>
               <th className="px-2 sm:px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -115,6 +116,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   </td>
                   <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
                     {p.sellingPrice.toLocaleString()} MMK
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-right text-indigo-600 font-semibold text-xs sm:text-sm">
+                    {p.stockOnline?.toLocaleString() || 0}
                   </td>
                   <td className="px-2 sm:px-4 py-3">
                     <div className="flex items-center justify-center gap-1 sm:gap-2">

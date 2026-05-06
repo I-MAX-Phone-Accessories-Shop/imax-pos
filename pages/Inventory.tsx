@@ -6,6 +6,7 @@ import { updateProduct } from "../services/Inventory/updateProduct";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
 import { transferInventoryToWarehouse } from "../services/Inventory/transferInventoryToWarehouse";
 import { transferInventoryToStorefront } from "../services/Inventory/transferInventoryToStorefront";
+import { addProductsToOnlineStorefront } from "../services/OnlineStorefront/addProductsToOnlineStorefront";
 import { fetchWarehouseProfiles } from "../services/Warehouse/fetchWarehouseProfiles";
 import {
   fetchStorefrontProfiles,
@@ -25,7 +26,7 @@ import {
   ProductDetail,
 } from "../services/Inventory/fetchProductById";
 import { WarehouseProfile } from "../types";
-import { Building2, X, Loader2, Store } from "lucide-react";
+import { Building2, X, Loader2, Store, Globe } from "lucide-react";
 import { SearchInput } from "../components/Inventory/SearchInput";
 
 export const Inventory: React.FC = () => {
@@ -37,6 +38,7 @@ export const Inventory: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [isAddingToOnline, setIsAddingToOnline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedProductDetail, setSelectedProductDetail] =
@@ -52,7 +54,7 @@ export const Inventory: React.FC = () => {
   const [isTransferring, setIsTransferring] = useState(false);
   const [showSelectBoxes, setShowSelectBoxes] = useState(false);
   const [transferMode, setTransferMode] = useState<
-    "warehouse" | "storefront" | null
+    "warehouse" | "storefront" | "online" | null
   >(null);
 
   // Transfer to Storefront State
@@ -97,6 +99,7 @@ export const Inventory: React.FC = () => {
         (apiProduct.category as ProductCategory) || ProductCategory.OTHER,
       stockWarehouse: apiProduct.stockWarehouse || 0,
       stockShop: apiProduct.stockShop || 0,
+      stockOnline: apiProduct.stockOnline || 0,
       costPrice: apiProduct.buyingPrice,
       sellingPrice: apiProduct.sellingPrice,
       lowStockThreshold: apiProduct.reorderPoint || 0,
@@ -552,7 +555,7 @@ export const Inventory: React.FC = () => {
       if (response.success) {
         toast.success(
           response.message ||
-          "Inventory transferred to storefront successfully",
+            "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
         handleCloseTransferStorefrontModal();
@@ -565,6 +568,53 @@ export const Inventory: React.FC = () => {
       toast.error(error.message || "Failed to transfer inventory");
     } finally {
       setIsTransferringToStorefront(false);
+    }
+  };
+
+  const handleAddToOnlineStorefront = async () => {
+    if (selectedProductIds.length === 0) {
+      toast.error("Please select at least one product to add");
+      return;
+    }
+
+    setIsAddingToOnline(true);
+    try {
+      // Get the actual inventory IDs from apiProducts
+      const inventoryIds = selectedProductIds
+        .map((productId) => {
+          const apiProduct = apiProducts.find(
+            (ap) => (ap.id || ap._id) === productId,
+          );
+          return apiProduct?._id || apiProduct?.id;
+        })
+        .filter((id): id is string => !!id);
+
+      if (inventoryIds.length === 0) {
+        toast.error("No valid inventory items selected");
+        return;
+      }
+
+      const response = await addProductsToOnlineStorefront({
+        inventoryIds,
+      });
+
+      if (response.success) {
+        toast.success(
+          response.message ||
+            "Products added to online storefront successfully",
+        );
+        setSelectedProductIds([]);
+        setShowSelectBoxes(false);
+        setTransferMode(null);
+        await loadProducts();
+      } else {
+        toast.error(response.message || "Failed to add products");
+      }
+    } catch (error: any) {
+      console.error("Error adding to online storefront:", error);
+      toast.error(error.message || "Failed to add products");
+    } finally {
+      setIsAddingToOnline(false);
     }
   };
 
@@ -617,6 +667,17 @@ export const Inventory: React.FC = () => {
                     {t("inventory.transferStoreFront")}
                   </span>
                 </button>
+                <button
+                  onClick={() => {
+                    setShowSelectBoxes(true);
+                    setTransferMode("online");
+                  }}
+                  className="bg-indigo-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm sm:text-base"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add to Online</span>
+                  <span className="sm:hidden">Online</span>
+                </button>
               </>
             )}
 
@@ -651,6 +712,25 @@ export const Inventory: React.FC = () => {
                     <span className="sm:hidden">
                       {t("inventory.confirmStoreFront")} (
                       {selectedProductIds.length})
+                    </span>
+                  </button>
+                )}
+                {transferMode === "online" && (
+                  <button
+                    onClick={handleAddToOnlineStorefront}
+                    disabled={isAddingToOnline}
+                    className="bg-indigo-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm sm:text-base disabled:opacity-50"
+                  >
+                    {isAddingToOnline ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Globe className="w-4 h-4" />
+                    )}
+                    <span className="hidden sm:inline">
+                      Confirm Online ({selectedProductIds.length})
+                    </span>
+                    <span className="sm:hidden">
+                      Confirm ({selectedProductIds.length})
                     </span>
                   </button>
                 )}
@@ -727,9 +807,9 @@ export const Inventory: React.FC = () => {
             {products.length === 0
               ? t("inventory.noProductsFound")
               : t("inventory.noProductsInCategory").replace(
-                "{category}",
-                selectedCategory,
-              )}
+                  "{category}",
+                  selectedCategory,
+                )}
           </p>
         </div>
       ) : (
@@ -773,6 +853,16 @@ export const Inventory: React.FC = () => {
           setIsDetailModalOpen(false);
           setSelectedProductDetail(null);
           setLoadingDetail(false);
+        }}
+        onImageDeleted={() => {
+          if (selectedProductDetail) {
+            handleViewDetails(selectedProductDetail._id);
+          }
+        }}
+        onImageUploaded={() => {
+          if (selectedProductDetail) {
+            handleViewDetails(selectedProductDetail._id);
+          }
         }}
       />
 

@@ -75,6 +75,7 @@ export const my = {
     inventory: "ကုန်ပစ္စည်းစာရင်း",
     warehouse: "ကုန်လှောင်ရုံ",
     storefront: "ဆိုင်ခန်း",
+    onlineStorefront: "အွန်လိုင်းဆိုင်ခန်း",
     suppliers: "ပစ္စည်း သွင်းသူများ",
     purchasing: "ပစ္စည်းဝယ်ယူမှု",
     orders: "အော်ဒါများ",

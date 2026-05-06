@@ -59,6 +59,7 @@ export interface ApiProduct {
   tags?: string[];
   stockWarehouse?: number;
   stockShop?: number;
+  stockOnline?: number;
 }
 
 interface ProductModalProps {

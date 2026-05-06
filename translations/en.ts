@@ -74,6 +74,7 @@ export const en = {
     inventory: "Inventory",
     warehouse: "Warehouse",
     storefront: "Storefront",
+    onlineStorefront: "Online Storefront",
     suppliers: "Suppliers",
     purchasing: "Purchasing",
     orders: "Orders",
