@@ -58,8 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/inventory", label: t("sidebar.inventory"), icon: Package },
     { path: "/warehouse", label: t("sidebar.warehouse"), icon: Truck },
     { path: "/storefront", label: t("sidebar.storefront"), icon: Store },
-    // { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
-    // { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
+    { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
+    { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
     { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
     {
       path: "/credit-orders",
@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: "/credits", label: t("sidebar.creditSales"), icon: CreditCard },
     { path: "/expenses", label: t("sidebar.expenses"), icon: PieChart },
     { path: "/reports", label: t("sidebar.reports"), icon: LayoutDashboard },
-    { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
+    // { path: "/ai-chat", label: "AI လက်ထောက်", icon: MessageSquare },
     { path: "/accounts", label: t("sidebar.accountManagement"), icon: Shield },
   ];
 

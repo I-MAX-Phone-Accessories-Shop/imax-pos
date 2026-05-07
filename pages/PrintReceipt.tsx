@@ -67,14 +67,20 @@ const PrintReceipt: React.FC = () => {
     localStorage.removeItem(`receipt_${orderId}`);
   };
 
-  // Auto show print dialog when page loads
+  // Auto show print dialog when page loads and navigate back after print
   useEffect(() => {
     if (receiptData) {
+      // Immediately trigger print dialog
       setTimeout(() => {
         window.print();
-      }, 500);
+        // Navigate back after print dialog is closed
+        setTimeout(() => {
+          navigate(-1);
+          localStorage.removeItem(`receipt_${orderId}`);
+        }, 100);
+      }, 100);
     }
-  }, [receiptData]);
+  }, [receiptData, navigate, orderId]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -130,440 +136,378 @@ const PrintReceipt: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-white print:bg-white print-page-wrapper">
       {/* Print Styles */}
       <style>{`
         @media print {
           @page {
-            size: 58mm auto;
-            margin: 0;
-            padding: 0;
+            size: A4;
+            margin: 10mm;
           }
           * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            filter: contrast(200%) !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-            overflow: visible !important;
-          }
-          html {
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
+            visibility: visible !important;
           }
           body {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            width: 58mm;
-            max-width: 58mm;
-            margin: 0 auto !important;
-            padding: 1mm 0.5mm !important;
-            line-height: 1.3;
-            text-align: center;
-            color: #000000 !important;
-            font-weight: bold;
             background: white !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
-          }
-          .thermal-receipt-container {
-            display: block !important;
-            background: white !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
+            margin: 0;
+            padding: 0;
           }
           .no-print {
             display: none !important;
           }
-          .thermal-receipt-page {
-            width: 58mm !important;
-            max-width: 58mm !important;
-            background: white !important;
-            color: #000000 !important;
-            font-weight: bold !important;
-            filter: contrast(200%) !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .print-receipt {
+          .voucher-container {
+            width: 100% !important;
+            max-width: 100% !important;
             margin: 0 !important;
-            padding: 1mm 0.5mm !important;
+            padding: 5mm !important;
             background: white !important;
-            min-height: auto !important;
-            height: auto !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
           }
-          .print-receipt * {
-            font-family: 'Courier New', monospace;
-            font-weight: bold !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
+          .print-page-wrapper {
+            visibility: visible !important;
           }
         }
         @media screen {
           body {
-            background: #f5f5f5;
-            padding: 20px;
-          }
-          .thermal-receipt-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            background: #f5f5f5;
-          }
-          .thermal-receipt-page {
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             background: white;
-            width: 58mm;
-            max-width: 58mm;
           }
+          .voucher-container {
+            max-width: 210mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            min-height: 297mm;
+            padding: 20mm;
+            border-radius: 8px;
+          }
+          .print-page-wrapper {
+            visibility: hidden !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+          }
+        }
+        .text-primary-blue { color: #2216a8; }
+        .bg-primary-blue { background-color: #2216a8; }
+        .border-primary-blue { border-color: #2216a8; }
+        
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 25px 0;
+        }
+        th {
+          background-color: #2216a8;
+          color: white;
+          text-align: left;
+          padding: 14px;
+          font-weight: 600;
+          text-transform: uppercase;
+          font-size: 13px;
+          letter-spacing: 0.05em;
+        }
+        td {
+          padding: 14px;
+          border-bottom: 1px solid #e2e8f0;
+          color: #1e293b;
+          font-size: 14px;
+        }
+        tr:nth-child(even) {
+          background-color: #f8fafc;
+        }
+        .summary-box {
+          background-color: #f8fafc;
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid #e2e8f0;
+        }
+        .summary-row {
+          display: flex;
+          justify-content: flex-end;
+          gap: 40px;
+          padding: 6px 0;
+        }
+        .summary-label {
+          font-weight: 600;
+          color: #64748b;
+          width: 140px;
+        }
+        .summary-value {
+          font-weight: 700;
+          color: #1e293b;
+          text-align: right;
+          width: 140px;
         }
       `}</style>
 
       {/* Header - Hidden during print */}
-      <div className="no-print bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-800">
-            Receipt #{receiptData.invoiceNumber}
-          </h1>
+      <div className="no-print bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 mb-6">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary-blue rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">A</span>
+            </div>
+            <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">
+              Print Preview
+            </h1>
+          </div>
           <div className="flex gap-3">
             <button
               onClick={handlePrint}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="bg-primary-blue text-white px-8 py-2.5 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2 font-bold"
             >
-              🖨️ Print Receipt
+              🖨️ Print Now
             </button>
             <button
               onClick={handleBack}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              className="bg-slate-100 text-slate-600 px-6 py-2.5 rounded-xl hover:bg-slate-200 transition-all font-bold"
             >
-              ← Back
+              Close
             </button>
           </div>
         </div>
       </div>
 
-      {/* Thermal Receipt Content */}
-      <div className="thermal-receipt-container">
-        <div className="thermal-receipt-page print-receipt">
-          {/* Header */}
-          <div
-            className="header"
-            style={{ textAlign: "center", marginBottom: "1mm" }}
-          >
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: "900",
-                marginBottom: "1mm",
-                marginTop: "0",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              AutoShop
-            </h2>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              လိပ်စာ - A(30)၊ပထမထပ်၊
-              <br />
-              &nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09670577147(Viber)
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09440064007(Viber)
-            </div>
-          </div>
-
-          {/* Order Info */}
-          <div
-            className="order-info"
-            style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "0.5mm 0",
-              margin: "1mm 0",
-            }}
-          >
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Order: {receiptData.invoiceNumber}
-            </p>
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "12px",
-                fontWeight: "900",
-              }}
-            >
-              {formatDate(receiptData.date)} {formatTime(receiptData.date)}
-            </p>
-          </div>
-
-          {/* Items */}
-          <div style={{ marginBottom: "2mm" }}>
-            <div
-              className="items-header"
-              style={{
-                borderBottom: "1px dashed #000",
-                paddingBottom: "1mm",
-                marginBottom: "2mm",
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              <span style={{ flex: "1", textAlign: "left" }}>Item</span>
-              <span style={{ width: "55px", textAlign: "right" }}>Amt</span>
-            </div>
-
-            {receiptData.items.length > 0 ? (
-              receiptData.items.map((item, index) => (
-                <div
-                  key={`${item.code || item.name}-${index}`}
-                  style={{
-                    marginBottom: "1mm",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <span
-                      style={{
-                        flex: "1",
-                        fontSize: "14px",
-                        wordBreak: "break-word",
-                        paddingRight: "1mm",
-                        textAlign: "left",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {item.name.substring(0, 25)}
-                      {item.name.length > 25 ? "..." : ""} x{item.qty}
-                    </span>
-                    <span
-                      style={{
-                        width: "55px",
-                        textAlign: "right",
-                        fontSize: "14px",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {(item.price * item.qty).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: "14px",
-                  fontWeight: "900",
-                }}
-              >
-                No items
+      <div className="voucher-container">
+        {/* Company Header */}
+        <div className="flex justify-between items-start mb-10 pb-10 border-b-2 border-slate-100">
+          <div className="flex items-center gap-8">
+            <img
+              src="/topnotch.png"
+              alt="TopNotch Logo"
+              className="w-28 h-28 object-contain rounded-2xl shadow-xl border-4 border-white"
+            />
+            <div>
+              <h1 className="text-4xl font-black text-primary-blue tracking-tighter mb-1">
+                TopNotch Gadgets & IT
+              </h1>
+              <p className="text-slate-500 font-bold text-lg tracking-wide">
+                Technology & Accessories
               </p>
+              <div className="mt-4 space-y-1 text-slate-500 font-semibold text-sm">
+                <p className="flex items-center gap-2">
+                  📍 No.9 Second Floor, 54th Street
+                </p>
+                <p className="flex items-center gap-2 ml-5">
+                  Upper Block, Pazundaung 11171
+                </p>
+                <p className="flex items-center gap-2 ml-5">Myanmar (Burma)</p>
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="inline-block px-4 py-1 bg-primary-blue text-white font-black text-sm rounded-md mb-4 uppercase tracking-widest">
+              Tax Invoice
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-slate-400 text-xs font-bold uppercase">
+                Invoice Number
+              </p>
+              <p className="text-slate-800 font-black text-xl">
+                #{receiptData.invoiceNumber}
+              </p>
+              <div className="pt-2">
+                <p className="text-slate-400 text-xs font-bold uppercase">
+                  Date & Time
+                </p>
+                <p className="text-slate-600 font-bold">
+                  {formatDate(receiptData.date)} •{" "}
+                  {formatTime(receiptData.date)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Customer/Storefront Info */}
+        <div className="grid grid-cols-2 gap-10 mb-10">
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+              Bill To / Storefront
+            </h3>
+            <p className="text-lg font-black text-slate-800">
+              {receiptData.storefrontName}
+            </p>
+            <p className="text-sm text-slate-500 mt-1 font-medium">
+              Standard Store Location
+            </p>
+          </div>
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+              Payment Status
+            </h3>
+            <div className="flex items-center gap-3">
+              <span
+                className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                  receiptData.paymentMethod === "Cash"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {receiptData.paymentMethod}
+              </span>
+              <span className="text-slate-800 font-bold">Processed</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Items Table */}
+        <div className="mb-10">
+          <table className="overflow-hidden rounded-xl">
+            <thead>
+              <tr>
+                <th className="w-16 text-center">#</th>
+                <th>Item Description</th>
+                <th className="text-center">Qty</th>
+                <th className="text-right">Unit Price</th>
+                <th className="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {receiptData.items.map((item, index) => (
+                <tr key={index}>
+                  <td className="text-center font-bold text-slate-400">
+                    {index + 1}
+                  </td>
+                  <td>
+                    <div className="font-extrabold text-slate-800">
+                      {item.name}
+                    </div>
+                    {item.code && (
+                      <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                        Code: {item.code}
+                      </div>
+                    )}
+                  </td>
+                  <td className="text-center font-black text-slate-700">
+                    {item.qty}
+                  </td>
+                  <td className="text-right font-semibold text-slate-600">
+                    {item.price.toLocaleString()}
+                  </td>
+                  <td className="text-right font-black text-slate-900">
+                    {(item.price * item.qty).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Summary and Notes */}
+        <div className="grid grid-cols-2 gap-10">
+          <div>
+            {receiptData.note && (
+              <div className="bg-amber-50/50 p-6 rounded-2xl border border-dashed border-amber-200">
+                <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2">
+                  Special Notes
+                </h4>
+                <p className="text-slate-700 font-medium text-sm leading-relaxed">
+                  {receiptData.note}
+                </p>
+              </div>
             )}
+            <div className="mt-10 p-6 border-l-4 border-slate-200">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                Terms & Conditions
+              </p>
+              <ul className="text-[11px] text-slate-500 space-y-1.5 font-bold">
+                <li>• No refund for sold items.</li>
+                <li>• Exchange within 3 days with receipt.</li>
+                <li>• Warranty covers manufacturing defects only.</li>
+              </ul>
+            </div>
           </div>
 
-          {/* Summary */}
-          <div
-            className="summary-section"
-            style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "2mm 0",
-              marginBottom: "2mm",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Subtotal</span>
-              <span>{receiptData.subtotal.toLocaleString()}</span>
+          <div className="summary-box">
+            <div className="summary-row">
+              <span className="summary-label">Subtotal</span>
+              <span className="summary-value">
+                {receiptData.subtotal.toLocaleString()} MMK
+              </span>
             </div>
 
             {receiptData.discountPercent > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Discount</span>
-                <span style={{ fontWeight: "900" }}>
-                  {receiptData.discountPercent}%
+              <div className="summary-row">
+                <span className="summary-label text-red-500">
+                  Discount ({receiptData.discountPercent}%)
+                </span>
+                <span className="summary-value text-red-500">
+                  -{" "}
+                  {(
+                    (receiptData.subtotal * receiptData.discountPercent) /
+                    100
+                  ).toLocaleString()}{" "}
+                  MMK
                 </span>
               </div>
             )}
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: "2mm",
-                paddingTop: "2mm",
-                borderTop: "1px solid #000",
-                fontSize: "16px",
-                fontWeight: "900",
-              }}
-            >
-              <span>TOTAL</span>
-              <span>{receiptData.total.toLocaleString()}</span>
+            <div className="summary-row py-4 my-2 border-y border-slate-200">
+              <span className="text-lg font-black text-slate-800">TOTAL</span>
+              <span className="text-2xl font-black text-primary-blue">
+                {receiptData.total.toLocaleString()} MMK
+              </span>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Payment</span>
-              <span>{receiptData.paymentMethod}</span>
-            </div>
-
-            {receiptData.paidAmount && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Paid</span>
-                <span>{receiptData.paidAmount.toLocaleString()}</span>
+            {receiptData.paidAmount !== undefined && (
+              <div className="summary-row">
+                <span className="summary-label">Amount Paid</span>
+                <span className="summary-value">
+                  {receiptData.paidAmount.toLocaleString()} MMK
+                </span>
               </div>
             )}
 
-            {receiptData.change && receiptData.change > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                }}
-              >
-                <span>Change</span>
-                <span>{receiptData.change.toLocaleString()}</span>
+            {receiptData.change !== undefined && receiptData.change > 0 && (
+              <div className="summary-row">
+                <span className="summary-label">Change Due</span>
+                <span className="summary-value text-green-600">
+                  {receiptData.change.toLocaleString()} MMK
+                </span>
               </div>
             )}
           </div>
+        </div>
 
-          {receiptData.note && (
-            <div
-              style={{
-                marginBottom: "2mm",
-                fontSize: "11px",
-                fontStyle: "italic",
-                fontWeight: "900",
-              }}
-            >
-              Note: {receiptData.note}
+        {/* Footer Signature Section */}
+        <div className="mt-20 pt-10 border-t border-slate-100">
+          <div className="flex justify-between items-end">
+            <div className="text-center w-56">
+              <div className="h-16 mb-2"></div>
+              <div className="border-t-2 border-slate-200 pt-2">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  Customer Signature
+                </p>
+              </div>
             </div>
-          )}
 
-          {/* Footer */}
-          <div
-            className="footer"
-            style={{
-              textAlign: "center",
-              marginTop: "2mm",
-              paddingTop: "2mm",
-              borderTop: "1px dashed #000",
-              fontSize: "12px",
-            }}
-          >
-            <p
-              style={{
-                margin: "1mm 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Thank you!
-            </p>
-            <p style={{ margin: "1mm 0", opacity: 0.7, fontWeight: "900" }}>
-              AutoShop Receipt
-            </p>
+            <div className="text-center">
+              <p className="text-primary-blue font-black text-lg mb-1">
+                Thank You!
+              </p>
+              <p className="text-slate-400 text-xs font-bold">
+                TopNotch Gadgets & IT
+              </p>
+            </div>
+
+            <div className="text-center w-56">
+              <div className="h-16 mb-2 flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-primary-blue/10 rounded-full flex items-center justify-center opacity-20">
+                  <span className="text-primary-blue font-black text-xs">
+                    STAMP
+                  </span>
+                </div>
+              </div>
+              <div className="border-t-2 border-slate-200 pt-2">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  Authorized Signature
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

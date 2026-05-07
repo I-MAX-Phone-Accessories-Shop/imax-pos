@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Joyride, Step, EventData, STATUS, EVENTS, ACTIONS } from "react-joyride";
+import Joyride, { Step, EventData, STATUS, EVENTS, ACTIONS } from "react-joyride";
 
 interface TutorialProps {
     run: boolean;
