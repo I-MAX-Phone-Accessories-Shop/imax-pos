@@ -49,6 +49,8 @@ export const CreditDetail: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
 
   // Get credit person info from location state if available
   const personInfo = location.state as {
@@ -345,7 +347,7 @@ export const CreditDetail: React.FC = () => {
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           {t("creditDetail.refresh")}
         </button>
-        {personaDetail && (
+        {personaDetail && userRole === "owner" && (
           <div className="flex gap-2">
             <button
               onClick={handleOpenAddCredit}
@@ -354,7 +356,7 @@ export const CreditDetail: React.FC = () => {
               <Box className="w-4 h-4" />
               Add Credit
             </button>
-            {personaDetail.orders.length > 0 && (
+            {personaDetail.orders.length > 0 && userRole === "owner" && (
               <button
                 onClick={handleOpenAddPayment}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm transition-all active:scale-95"
@@ -431,33 +433,39 @@ export const CreditDetail: React.FC = () => {
           <div className="flex gap-2 mb-6 border-b">
             <button
               onClick={() => setActiveTab("orders")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "orders"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === "orders"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
             >
               <Receipt className="w-4 h-4" />
-              {t("creditDetail.associatedOrders")} ({personaDetail.orders.length})
+              {t("creditDetail.associatedOrders")} (
+              {personaDetail.orders.length})
             </button>
             <button
               onClick={() => setActiveTab("products")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "products"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === "products"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
             >
               <Box className="w-4 h-4" />
-              Purchased Products ({productsReport?.data.totals.totalUniqueProducts || 0})
+              Purchased Products (
+              {productsReport?.data.totals.totalUniqueProducts || 0})
             </button>
             <button
               onClick={() => setActiveTab("payments")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "payments"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === "payments"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
             >
               <CreditCard className="w-4 h-4" />
-              {t("creditDetail.paymentRecords")} ({personaDetail.creditRecords.count})
+              {t("creditDetail.paymentRecords")} (
+              {personaDetail.creditRecords.count})
             </button>
           </div>
 
@@ -521,9 +529,12 @@ export const CreditDetail: React.FC = () => {
                   {loadingProducts ? (
                     <div className="p-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-                      <p className="text-slate-400 text-sm">Loading products...</p>
+                      <p className="text-slate-400 text-sm">
+                        Loading products...
+                      </p>
                     </div>
-                  ) : !productsReport || productsReport.data.products.length === 0 ? (
+                  ) : !productsReport ||
+                    productsReport.data.products.length === 0 ? (
                     <div className="p-12 text-center text-slate-400 text-sm">
                       No products found for this credit persona.
                     </div>
@@ -531,7 +542,9 @@ export const CreditDetail: React.FC = () => {
                     <table className="w-full text-sm text-left">
                       <thead className="bg-slate-50 text-slate-600 border-b">
                         <tr>
-                          <th className="px-4 py-3 font-medium">Product Name</th>
+                          <th className="px-4 py-3 font-medium">
+                            Product Name
+                          </th>
                           <th className="px-4 py-3 font-medium">SKU</th>
                           <th className="px-4 py-3 font-medium text-right">
                             Quantity
@@ -640,12 +653,14 @@ export const CreditDetail: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <span
-                              className={`font-medium ${record.orderId.remainingBalance > 0
-                                ? "text-orange-600"
-                                : "text-green-600"
-                                }`}
+                              className={`font-medium ${
+                                record.orderId.remainingBalance > 0
+                                  ? "text-orange-600"
+                                  : "text-green-600"
+                              }`}
                             >
-                              {record.orderId.remainingBalance.toLocaleString()} MMK
+                              {record.orderId.remainingBalance.toLocaleString()}{" "}
+                              MMK
                             </span>
                           </td>
                           <td className="px-4 py-3 text-slate-500 text-xs">

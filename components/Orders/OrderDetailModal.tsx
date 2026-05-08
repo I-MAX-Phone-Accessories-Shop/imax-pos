@@ -43,7 +43,6 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   onClose,
   onOrderUpdate,
 }) => {
-  console.log("orderdetail", order);
   const { t } = useLanguage();
   const navigate = useNavigate();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
