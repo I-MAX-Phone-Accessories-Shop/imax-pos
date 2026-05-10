@@ -503,6 +503,8 @@ export const Inventory: React.FC = () => {
           response.message || "Inventory transferred to warehouse successfully",
         );
         setSelectedProductIds([]);
+        setShowSelectBoxes(false);
+        setTransferMode(null);
         handleCloseTransferModal();
         await loadProducts();
       } else {
@@ -552,9 +554,11 @@ export const Inventory: React.FC = () => {
       if (response.success) {
         toast.success(
           response.message ||
-          "Inventory transferred to storefront successfully",
+            "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
+        setShowSelectBoxes(false);
+        setTransferMode(null);
         handleCloseTransferStorefrontModal();
         await loadProducts();
       } else {
@@ -727,9 +731,9 @@ export const Inventory: React.FC = () => {
             {products.length === 0
               ? t("inventory.noProductsFound")
               : t("inventory.noProductsInCategory").replace(
-                "{category}",
-                selectedCategory,
-              )}
+                  "{category}",
+                  selectedCategory,
+                )}
           </p>
         </div>
       ) : (

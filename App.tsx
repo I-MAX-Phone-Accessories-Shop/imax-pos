@@ -26,20 +26,10 @@ import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import PrintReceipt from "./pages/PrintReceipt";
 import { AIChat } from "./pages/AIChat";
-import { Tutorial } from "./components/Tutorial";
-import { HelpCircle } from "lucide-react";
-import { useLocation } from "react-router-dom";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [runTutorial, setRunTutorial] = useState(false);
   const token = localStorage.getItem("authToken");
-  const location = useLocation();
-
-  const getTourType = (): "pos" | "inventory" => {
-    if (location.pathname.includes("/inventory")) return "inventory";
-    return "pos";
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -81,12 +71,6 @@ const AppLayout: React.FC = () => {
               </div>
             </div>
           </header>
-
-          <Tutorial
-            run={runTutorial}
-            onFinish={() => setRunTutorial(false)}
-            tourType={getTourType()}
-          />
 
           {/* Sidebar */}
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

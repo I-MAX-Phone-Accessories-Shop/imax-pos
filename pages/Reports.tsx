@@ -95,7 +95,7 @@ export const Reports: React.FC = () => {
   const [loadingRevenue, setLoadingRevenue] = useState(false);
   const [loadingFOC, setLoadingFOC] = useState(false);
   const [selectedStorefront, setSelectedStorefront] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<TabType>("revenue");
+  const [activeTab, setActiveTab] = useState<TabType>("overall");
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
@@ -639,7 +639,7 @@ export const Reports: React.FC = () => {
         startDate={startDate}
         endDate={endDate}
         onDateRangeChange={handleDateRangeChange}
-        singleDate={activeTab === "revenue"}
+        singleDate={activeTab === "overall"}
       />
 
       <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
