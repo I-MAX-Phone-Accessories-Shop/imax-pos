@@ -1183,7 +1183,7 @@ export const POS: React.FC = () => {
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
                   placeholder="Enter markup amount..."
                   value={markupAmount}
-                  onChange={(e) => setMarkupAmount(e.target.value)}
+                  onChange={(e) => setMarkupAmount(Number(e.target.value))}
                 />
               </div>
               {/* Calculated Percentage */}
