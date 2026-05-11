@@ -52,7 +52,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Paid Amount
           </p>
           <p className="text-lg sm:text-2xl font-bold text-green-600">
-            {displayReport.finalAmount.toLocaleString()}{" "}
+            {displayReport.paidAmount.toLocaleString()}{" "}
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
