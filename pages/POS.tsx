@@ -17,6 +17,7 @@ import {
   X,
   User,
   Calculator,
+  Calendar,
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { printThermalReceipt } from "../components/ThermalReceipt";
@@ -87,6 +88,9 @@ export const POS: React.FC = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
+  const [createdAt, setCreatedAt] = useState<string>(
+    new Date().toISOString().split("T")[0],
+  );
   const devices = detectDevice();
 
   // Load storefronts and stock on mount
@@ -289,8 +293,7 @@ export const POS: React.FC = () => {
 
       // Show success feedback
       toast.success(
-        `${matchingProduct.inventoryId.productName} ${
-          t("pos.addedToCart") || "added to cart"
+        `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
         }`,
         {
           duration: 1500,
@@ -387,6 +390,7 @@ export const POS: React.FC = () => {
         paidAmount: finalPaidAmount,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
+        orderDate: new Date(createdAt).toISOString(),
         ...(paymentType === "credit" && selectedCreditPersonId
           ? { creditPersonId: selectedCreditPersonId }
           : {}),
@@ -444,6 +448,7 @@ export const POS: React.FC = () => {
         );
         setPaymentType("paid");
         setSelectedCreditPersonId("");
+        setCreatedAt(new Date().toISOString().split("T")[0]);
 
         toast.success(t("pos.saleCompleted"));
 
@@ -559,9 +564,8 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
-                    showStorefrontMenu ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -588,18 +592,16 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
-                            sf._id === selectedStorefrontId
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
                               ? "bg-primary/20 border-l-4 border-primary"
                               : ""
-                          }`}
+                            }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              sf._id === selectedStorefrontId
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
                                 ? "bg-primary text-white"
                                 : "bg-dark-100 text-dark-500"
-                            }`}
+                              }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -660,11 +662,10 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
-                  stockItem.availableQuantity === 0
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
                     ? "opacity-50 grayscale pointer-events-none"
                     : ""
-                }`}
+                  }`}
               >
                 <div className="">
                   <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -853,6 +854,22 @@ export const POS: React.FC = () => {
                 </select>
               </div>
 
+              {/* Order Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("pos.orderDate") || "Order Date"}
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="date"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    value={createdAt}
+                    onChange={(e) => setCreatedAt(e.target.value)}
+                  />
+                </div>
+              </div>
+
               {/* Credit Person Selector - Only show when paymentType is credit */}
               {paymentType === "credit" && (
                 <div>
@@ -1023,11 +1040,10 @@ export const POS: React.FC = () => {
                   type="number"
                   min="0"
                   disabled={paymentMethod === PaymentMethod.FOC}
-                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
-                    paymentMethod === PaymentMethod.FOC
+                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
                       ? "bg-gray-100 cursor-not-allowed"
                       : ""
-                  }`}
+                    }`}
                   value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
                   onChange={(e) => {
                     const value =
