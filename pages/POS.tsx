@@ -1162,7 +1162,7 @@ export const POS: React.FC = () => {
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
                   placeholder="Enter markup amount..."
                   value={markupAmount}
-                  onChange={(e) => setMarkupAmount(e.target.value)}
+                  onChange={(e) => setMarkupAmount(Number(e.target.value))}
                 />
               </div>
               {/* Calculated Percentage */}
@@ -1327,6 +1327,29 @@ export const POS: React.FC = () => {
                   Apply Discount
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Modal */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-sm mx-4">
+            <div className="relative">
+              <Loader2 className="w-16 h-16 text-primary animate-spin" />
+              <div className="absolute inset-0 w-16 h-16 border-4 border-primary/20 rounded-full"></div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-slate-800 mb-2">
+                {t("pos.processing")}
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Please wait while we process your transaction...
+              </p>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-primary h-full rounded-full animate-pulse w-3/4"></div>
             </div>
           </div>
         </div>
