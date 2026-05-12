@@ -528,7 +528,7 @@ export const WarehouseDetail: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-primary/20 rounded-lg">
@@ -565,7 +565,7 @@ export const WarehouseDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+        {/* <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
               <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
@@ -579,9 +579,9 @@ export const WarehouseDetail: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-indigo-100">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-indigo-100 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-indigo-100 rounded-lg">
               <Package className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />

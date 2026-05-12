@@ -80,21 +80,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       note: order.notes,
     };
 
-    // Device detection for print method selection
-    const device = detectDevice();
-
-    // Save receipt data to localStorage for mobile printing
+    // Save receipt data to localStorage for A4 printing
     const receiptId = `receipt_${receiptData.invoiceNumber}`;
     localStorage.setItem(receiptId, JSON.stringify(receiptData));
 
-    // Auto-print receipt based on device
-    if (device.isAndroid || device.isIOS) {
-      // For mobile devices (Android/iOS), navigate to receipt page
-      navigate(`/print-receipt/${receiptData.invoiceNumber}`);
-    } else {
-      // For desktop/Windows, use thermal receipt function
-      printThermalReceipt(receiptData, "58mm");
-    }
+    // Navigate to A4 print page for all devices
+    navigate(`/print-receipt/${receiptData.invoiceNumber}`);
   };
 
   if (!isOpen) return null;

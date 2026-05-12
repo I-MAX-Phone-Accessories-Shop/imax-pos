@@ -463,7 +463,7 @@ export const printThermalReceipt = (
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Receipt - ${receiptData.invoiceNumber}</title>
+      <title>Invoice - ${receiptData.invoiceNumber}</title>
       <style>
         @page {
           size: ${paperSize} auto;
@@ -476,7 +476,6 @@ export const printThermalReceipt = (
           box-sizing: border-box;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
-          filter: contrast(200%) !important;
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
@@ -485,125 +484,144 @@ export const printThermalReceipt = (
           padding: 0;
         }
         body {
-          font-family: 'Courier New', monospace;
-          font-size: 14px;
+          font-family: Arial, sans-serif;
+          font-size: 11px;
           width: ${paperSize};
           max-width: ${paperSize};
           margin: 0 auto;
-          padding: 1mm 0.5mm;
-          line-height: 1.3;
-          text-align: center;
+          padding: 2mm;
+          line-height: 1.4;
           color: #000000 !important;
-          font-weight: bold;
           background: white !important;
           height: auto;
           overflow: visible;
         }
         .thermal-receipt-page {
-          width: ${paperSize} !important;
-          max-width: ${paperSize} !important;
+          width: 100%;
           background: white !important;
           color: #000000 !important;
-          font-weight: bold !important;
-          filter: contrast(200%) !important;
         }
         .header {
           text-align: center;
-          margin-bottom: 1mm;
+          margin-bottom: 3mm;
+          padding-bottom: 2mm;
         }
-        .store-name {
-          font-size: 20px;
+        .logo-text {
+          font-size: 24px;
           font-weight: 900;
+          color: #1E90FF;
           margin-bottom: 1mm;
-          text-transform: uppercase;
-          letter-spacing: 0;
+          letter-spacing: -0.5px;
         }
-        .store-address {
-          font-size: 14px;
-          font-weight: 800;
-          margin-bottom: 1mm;
-          text-transform: uppercase;
-          letter-spacing: 0;
+        .tagline {
+          font-size: 9px;
+          color: #000;
+          margin-bottom: 3mm;
         }
-        .system-name {
-          font-size: 12px;
-          margin-bottom: 1mm;
-          font-weight: 900;
-        }
-        .order-info {
-          border-top: 1px dashed #000;
-          border-bottom: 1px dashed #000;
-          padding: 0.5mm 0;
-          margin: 1mm 0;
-        }
-        .order-row {
-          margin: 1px 0;
-          font-size: 12px;
-          font-weight: 900;
-        }
-        .items-header {
-          border-bottom: 1px dashed #000;
-          padding-bottom: 1mm;
-          margin-bottom: 2mm;
+        .invoice-header {
           display: flex;
           justify-content: space-between;
-          font-size: 14px;
-          font-weight: 900;
+          margin-bottom: 3mm;
+          font-size: 10px;
+          font-weight: bold;
+        }
+        .invoice-to {
+          text-align: left;
+        }
+        .invoice-details {
+          text-align: right;
+        }
+        .table-header {
+          background: #1E90FF !important;
+          color: white !important;
+          padding: 2mm 1mm;
+          display: grid;
+          grid-template-columns: 15% 40% 15% 15% 15%;
+          font-size: 10px;
+          font-weight: bold;
+          margin-bottom: 1mm;
+        }
+        .table-header > div {
+          text-align: center;
+        }
+        .table-header > div:first-child {
+          text-align: left;
+        }
+        .table-header > div:last-child {
+          text-align: right;
         }
         .item-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 1mm;
+          display: grid;
+          grid-template-columns: 15% 40% 15% 15% 15%;
+          padding: 1.5mm 1mm;
+          border-bottom: 1px solid #e0e0e0;
+          font-size: 10px;
         }
-        .item-name {
-          flex: 1;
-          font-size: 14px;
+        .item-row > div {
+          text-align: center;
           word-break: break-word;
-          padding-right: 1mm;
-          text-align: left;
-          font-weight: 900;
         }
-        .item-price {
-          width: 55px;
+        .item-row > div:first-child {
+          text-align: left;
+        }
+        .item-row > div:nth-child(2) {
+          text-align: left;
+        }
+        .item-row > div:last-child {
           text-align: right;
-          font-size: 14px;
-          font-weight: 900;
+          font-weight: bold;
         }
         .summary-section {
-          border-top: 1px dashed #000;
-          border-bottom: 1px dashed #000;
-          padding: 2mm 0;
-          margin-bottom: 2mm;
+          margin-top: 3mm;
+          display: flex;
+          justify-content: space-between;
+        }
+        .payment-info {
+          flex: 1;
+          font-size: 9px;
+        }
+        .totals {
+          width: 45%;
+          font-size: 10px;
         }
         .summary-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 1mm;
-          font-size: 13px;
-          font-weight: 900;
+          padding: 1mm 0;
         }
         .total-row {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 2mm;
-          padding-top: 2mm;
-          border-top: 1px solid #000;
-          font-size: 16px;
-          font-weight: 900;
+          background: #1E90FF !important;
+          color: white !important;
+          padding: 2mm 1mm;
+          font-weight: bold;
+          font-size: 11px;
+          margin-top: 1mm;
         }
         .footer {
-          text-align: center;
-          margin-top: 2mm;
+          margin-top: 4mm;
           padding-top: 2mm;
-          border-top: 1px dashed #000;
-          font-size: 12px;
-          font-weight: 900;
+          border-top: 1px solid #000;
+          text-align: center;
+          font-size: 10px;
+        }
+        .thank-you {
+          font-style: italic;
+          margin-bottom: 2mm;
+          font-weight: bold;
+        }
+        .contact-bar {
+          background: #000 !important;
+          color: white !important;
+          padding: 1.5mm;
+          font-size: 8px;
+          margin-top: 2mm;
+          display: flex;
+          justify-content: space-between;
         }
         @media print {
           body {
             margin: 0 !important;
-            padding: 1mm 0.5mm !important;
+            padding: 2mm !important;
             width: ${paperSize} !important;
             height: auto !important;
             overflow: visible !important;
@@ -617,98 +635,90 @@ export const printThermalReceipt = (
     </head>
     <body>
       <div class="thermal-receipt-page">
-        <!-- Header -->
+        <!-- Header with Logo -->
         <div class="header">
-          <div class="store-name">AutoShop</div>
-          <div class="store-address">လိပ်စာ - A(30)၊ပထမထပ်၊ </br>&nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ</div>
-          <div class="store-address">ဖုန်း-09780511511(Viber)</div>          <div class="store-address">ဖုန်း-09440064007(Viber)</div>
+          <div class="logo-text">I-MAX</div>
+          <div class="tagline">Phone Accessories Shop</div>
         </div>
         
-        <!-- Order Info -->
-        <div class="order-info">
-          <div class="order-row">Order: ${receiptData.invoiceNumber}</div>
-          <div class="order-row">${new Date(
-    receiptData.date,
-  ).toLocaleString()}</div>
+        <!-- Invoice Header -->
+        <div class="invoice-header">
+          <div class="invoice-to">
+            <div style="font-weight: bold;">INVOICE TO:</div>
+          </div>
+          <div class="invoice-details">
+            <div>INVOICE NO: ${receiptData.invoiceNumber}</div>
+            <div>DATE: ${new Date(receiptData.date).toLocaleDateString("en-GB")}</div>
+          </div>
         </div>
         
-        <!-- Items Header -->
-        <div class="items-header">
-          <span style="flex: 1; text-align: left;">Item</span>
-          <span style="width: 55px; text-align: right;">Amt</span>
+        <!-- Table Header -->
+        <div class="table-header">
+          <div>NO</div>
+          <div>ITEM DESCRIPTION</div>
+          <div>PRICE</div>
+          <div>QTY.</div>
+          <div>TOTAL</div>
         </div>
         
         <!-- Items -->
         ${receiptData.items
-      .map(
-        (item: any) => `
+          .map(
+            (item: any, index: number) => `
           <div class="item-row">
-            <span class="item-name">${item.name.substring(0, 25)}${item.name.length > 25 ? "..." : ""
-          } x${item.qty}</span>
-            <span class="item-price">${(
-            item.price * item.qty
-          ).toLocaleString()}</span>
+            <div>${index + 1}</div>
+            <div>${item.name.substring(0, 30)}${item.name.length > 30 ? "..." : ""}</div>
+            <div>${item.price.toLocaleString()}</div>
+            <div>${item.qty}</div>
+            <div>${(item.price * item.qty).toLocaleString()}</div>
           </div>
         `,
-      )
-      .join("")}
+          )
+          .join("")}
         
-        <!-- Summary -->
+        <!-- Summary Section -->
         <div class="summary-section">
-          <div class="summary-row">
-            <span>Subtotal</span>
-            <span>${receiptData.subtotal.toLocaleString()}</span>
+          <div class="payment-info">
+            <div style="font-weight: bold; margin-bottom: 2mm;">Payment Info:</div>
+            <div>Method: ${receiptData.paymentMethod}</div>
+            ${receiptData.paidAmount ? `<div>Paid: ${receiptData.paidAmount.toLocaleString()} MMK</div>` : ""}
+            ${receiptData.change && receiptData.change > 0 ? `<div>Change: ${receiptData.change.toLocaleString()} MMK</div>` : ""}
+            ${receiptData.note ? `<div style="margin-top: 2mm; font-style: italic;">Note: ${receiptData.note}</div>` : ""}
           </div>
-          ${receiptData.discountPercent > 0
-      ? `
+          <div class="totals">
             <div class="summary-row">
-              <span>Discount</span>
-              <span>${receiptData.discountPercent}%</span>
+              <span>SUB TOTAL:</span>
+              <span>${receiptData.subtotal.toLocaleString()}</span>
             </div>
-          `
-      : ""
-    }
-          <div class="total-row">
-            <span>TOTAL</span>
-            <span>${receiptData.total.toLocaleString()}</span>
+            ${
+              receiptData.discountPercent > 0
+                ? `
+              <div class="summary-row">
+                <span>DISCOUNT:</span>
+                <span>-${((receiptData.subtotal * receiptData.discountPercent) / 100).toLocaleString()}</span>
+              </div>
+            `
+                : ""
+            }
+            <div class="summary-row total-row">
+              <span>TOTAL:</span>
+              <span>${receiptData.total.toLocaleString()} MMK</span>
+            </div>
           </div>
-          <div class="summary-row">
-            <span>Payment</span>
-            <span>${receiptData.paymentMethod}</span>
-          </div>
-          ${receiptData.paidAmount
-      ? `
-            <div class="summary-row">
-              <span>Paid</span>
-              <span>${receiptData.paidAmount.toLocaleString()}</span>
-            </div>
-          `
-      : ""
-    }
-          ${receiptData.change && receiptData.change > 0
-      ? `
-            <div class="summary-row">
-              <span>Change</span>
-              <span>${receiptData.change.toLocaleString()}</span>
-            </div>
-          `
-      : ""
-    }
         </div>
-        
-        ${receiptData.note
-      ? `
-          <div style="margin-bottom: 2mm; font-size: 15px; font-style: italic,font-weight: bold;">
-             ${receiptData.note}
-          </div>
-        `
-      : ""
-    }
         
         <!-- Footer -->
         <div class="footer">
-          <div style="font-size: 13px;font-weight: bold;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်။</div>
-          <div style="margin: 1mm; opacity: 1; font-weight: bold; font-size: 13px;">ဝယ်ပီးပစ္စည်းပြန်မလဲပေးပါ။</div>
+          <div class="thank-you">Thank you for your business!</div>
+          <div style="font-size: 9px; margin-bottom: 1mm;">
+            <div>Authorised Sign: _________________</div>
+          </div>
+        </div>
+        
+        <!-- Contact Bar -->
+        <div class="contact-bar">
+          <span>Contact Us: 09960780006</span>
+          <span>I-MAX Shop</span>
         </div>
       </div>
     </body>

@@ -161,7 +161,7 @@ const PrintReceipt: React.FC = () => {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 5mm !important;
+            padding: 15mm !important;
             background: white !important;
           }
           .print-page-wrapper {
@@ -170,16 +170,15 @@ const PrintReceipt: React.FC = () => {
         }
         @media screen {
           body {
-            background: white;
+            background: #f5f5f5;
           }
           .voucher-container {
             max-width: 210mm;
             margin: 20px auto;
             background: white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             min-height: 297mm;
             padding: 20mm;
-            border-radius: 8px;
           }
           .print-page-wrapper {
             visibility: hidden !important;
@@ -190,57 +189,35 @@ const PrintReceipt: React.FC = () => {
             height: 100%;
           }
         }
-        .text-primary-blue { color: #2216a8; }
-        .bg-primary-blue { background-color: #2216a8; }
-        .border-primary-blue { border-color: #2216a8; }
         
         table {
           width: 100%;
           border-collapse: collapse;
-          margin: 25px 0;
+          margin: 20px 0;
         }
         th {
-          background-color: #2216a8;
+          background-color: #1E90FF;
           color: white;
-          text-align: left;
-          padding: 14px;
-          font-weight: 600;
-          text-transform: uppercase;
-          font-size: 13px;
-          letter-spacing: 0.05em;
-        }
-        td {
-          padding: 14px;
-          border-bottom: 1px solid #e2e8f0;
-          color: #1e293b;
-          font-size: 14px;
-        }
-        tr:nth-child(even) {
-          background-color: #f8fafc;
-        }
-        .summary-box {
-          background-color: #f8fafc;
-          border-radius: 12px;
-          padding: 20px;
-          border: 1px solid #e2e8f0;
-        }
-        .summary-row {
-          display: flex;
-          justify-content: flex-end;
-          gap: 40px;
-          padding: 6px 0;
-        }
-        .summary-label {
-          font-weight: 600;
-          color: #64748b;
-          width: 140px;
-        }
-        .summary-value {
+          text-align: center;
+          padding: 12px;
           font-weight: 700;
-          color: #1e293b;
-          text-align: right;
-          width: 140px;
+          text-transform: uppercase;
+          font-size: 12px;
         }
+        th:first-child { text-align: left; }
+        th:last-child { text-align: right; }
+        td {
+          padding: 12px;
+          background-color: #E8E8E8;
+          color: #000;
+          font-size: 13px;
+          border-bottom: 3px solid white;
+        }
+        td:first-child { text-align: left; }
+        td:nth-child(2) { text-align: left; }
+        td:nth-child(3) { text-align: center; }
+        td:nth-child(4) { text-align: center; }
+        td:last-child { text-align: right; font-weight: 600; }
       `}</style>
 
       {/* Header - Hidden during print */}
@@ -273,124 +250,52 @@ const PrintReceipt: React.FC = () => {
 
       <div className="voucher-container">
         {/* Company Header */}
-        <div className="flex justify-between items-start mb-10 pb-10 border-b-2 border-slate-100">
-          <div className="flex items-center gap-8">
+        <div className="text-center mb-8">
+          <div className="inline-block">
             <img
               src="/topnotch.png"
               alt="TopNotch Logo"
-              className="w-28 h-28 object-contain rounded-2xl shadow-xl border-4 border-white"
+              className="mx-auto"
+              style={{ width: "120px", height: "120px", objectFit: "contain" }}
             />
-            <div>
-              <h1 className="text-4xl font-black text-primary-blue tracking-tighter mb-1">
-                TopNotch Gadgets & IT
-              </h1>
-              <p className="text-slate-500 font-bold text-lg tracking-wide">
-                Technology & Accessories
-              </p>
-              <div className="mt-4 space-y-1 text-slate-500 font-semibold text-sm">
-                <p className="flex items-center gap-2">
-                  📍 No.9 Second Floor, 54th Street
-                </p>
-                <p className="flex items-center gap-2 ml-5">
-                  Upper Block, Pazundaung 11171
-                </p>
-                <p className="flex items-center gap-2 ml-5">Myanmar (Burma)</p>
-              </div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="inline-block px-4 py-1 bg-primary-blue text-white font-black text-sm rounded-md mb-4 uppercase tracking-widest">
-              Tax Invoice
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-slate-400 text-xs font-bold uppercase">
-                Invoice Number
-              </p>
-              <p className="text-slate-800 font-black text-xl">
-                #{receiptData.invoiceNumber}
-              </p>
-              <div className="pt-2">
-                <p className="text-slate-400 text-xs font-bold uppercase">
-                  Date & Time
-                </p>
-                <p className="text-slate-600 font-bold">
-                  {formatDate(receiptData.date)} •{" "}
-                  {formatTime(receiptData.date)}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Customer/Storefront Info */}
-        <div className="grid grid-cols-2 gap-10 mb-10">
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-              Bill To / Storefront
-            </h3>
-            <p className="text-lg font-black text-slate-800">
-              {receiptData.storefrontName}
-            </p>
-            <p className="text-sm text-slate-500 mt-1 font-medium">
-              Standard Store Location
-            </p>
+        {/* Invoice Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <p className="text-sm font-bold mb-1">INVOICE TO :</p>
           </div>
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-              Payment Status
-            </h3>
-            <div className="flex items-center gap-3">
-              <span
-                className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${
-                  receiptData.paymentMethod === "Cash"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-blue-100 text-blue-700"
-                }`}
-              >
-                {receiptData.paymentMethod}
-              </span>
-              <span className="text-slate-800 font-bold">Processed</span>
-            </div>
+          <div className="text-right">
+            <p className="text-sm font-bold mb-1">
+              INVOICE NO : {receiptData.invoiceNumber}
+            </p>
+            <p className="text-sm font-bold">
+              DATE: {formatDate(receiptData.date)}
+            </p>
           </div>
         </div>
 
         {/* Items Table */}
-        <div className="mb-10">
-          <table className="overflow-hidden rounded-xl">
+        <div className="mb-8">
+          <table>
             <thead>
               <tr>
-                <th className="w-16 text-center">#</th>
-                <th>Item Description</th>
-                <th className="text-center">Qty</th>
-                <th className="text-right">Unit Price</th>
-                <th className="text-right">Amount</th>
+                <th style={{ width: "10%" }}>NO</th>
+                <th style={{ width: "45%" }}>ITEM DESCRIPTION</th>
+                <th style={{ width: "15%" }}>PRICE</th>
+                <th style={{ width: "15%" }}>QTY.</th>
+                <th style={{ width: "15%" }}>TOTAL</th>
               </tr>
             </thead>
             <tbody>
               {receiptData.items.map((item, index) => (
                 <tr key={index}>
-                  <td className="text-center font-bold text-slate-400">
-                    {index + 1}
-                  </td>
-                  <td>
-                    <div className="font-extrabold text-slate-800">
-                      {item.name}
-                    </div>
-                    {item.code && (
-                      <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
-                        Code: {item.code}
-                      </div>
-                    )}
-                  </td>
-                  <td className="text-center font-black text-slate-700">
-                    {item.qty}
-                  </td>
-                  <td className="text-right font-semibold text-slate-600">
-                    {item.price.toLocaleString()}
-                  </td>
-                  <td className="text-right font-black text-slate-900">
-                    {(item.price * item.qty).toLocaleString()}
-                  </td>
+                  <td>{index + 1}</td>
+                  <td>{item.name}</td>
+                  <td>{item.price.toLocaleString()}</td>
+                  <td>{item.qty}</td>
+                  <td>{(item.price * item.qty).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -398,117 +303,63 @@ const PrintReceipt: React.FC = () => {
         </div>
 
         {/* Summary and Notes */}
-        <div className="grid grid-cols-2 gap-10">
+        <div className="grid grid-cols-2 gap-8">
           <div>
-            {receiptData.note && (
-              <div className="bg-amber-50/50 p-6 rounded-2xl border border-dashed border-amber-200">
-                <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2">
-                  Special Notes
-                </h4>
-                <p className="text-slate-700 font-medium text-sm leading-relaxed">
-                  {receiptData.note}
-                </p>
-              </div>
-            )}
-            <div className="mt-10 p-6 border-l-4 border-slate-200">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
-                Terms & Conditions
-              </p>
-              <ul className="text-[11px] text-slate-500 space-y-1.5 font-bold">
-                <li>• No refund for sold items.</li>
-                <li>• Exchange within 3 days with receipt.</li>
-                <li>• Warranty covers manufacturing defects only.</li>
-              </ul>
+            <div className="mb-6">
+              <p className="text-sm font-bold mb-2">Payment Info:</p>
+              <p className="text-sm">Method: {receiptData.paymentMethod}</p>
+            </div>
+            <div>
+              <p className="text-sm font-bold mb-2">Terms & Conditions</p>
             </div>
           </div>
 
-          <div className="summary-box">
-            <div className="summary-row">
-              <span className="summary-label">Subtotal</span>
-              <span className="summary-value">
-                {receiptData.subtotal.toLocaleString()} MMK
-              </span>
+          <div>
+            <div className="flex justify-between mb-2 text-sm">
+              <span>SUB TOTAL:</span>
+              <span>{receiptData.subtotal.toLocaleString()}</span>
             </div>
-
             {receiptData.discountPercent > 0 && (
-              <div className="summary-row">
-                <span className="summary-label text-red-500">
-                  Discount ({receiptData.discountPercent}%)
-                </span>
-                <span className="summary-value text-red-500">
-                  -{" "}
+              <div className="flex justify-between mb-2 text-sm">
+                <span>DISCOUNT:</span>
+                <span>
+                  -
                   {(
                     (receiptData.subtotal * receiptData.discountPercent) /
                     100
-                  ).toLocaleString()}{" "}
-                  MMK
+                  ).toLocaleString()}
                 </span>
               </div>
             )}
-
-            <div className="summary-row py-4 my-2 border-y border-slate-200">
-              <span className="text-lg font-black text-slate-800">TOTAL</span>
-              <span className="text-2xl font-black text-primary-blue">
-                {receiptData.total.toLocaleString()} MMK
-              </span>
+            <div
+              className="flex justify-between py-3 px-4 font-bold text-base text-white"
+              style={{ backgroundColor: "#1E90FF" }}
+            >
+              <span>TOTAL:</span>
+              <span>{receiptData.total.toLocaleString()} MMK</span>
             </div>
-
-            {receiptData.paidAmount !== undefined && (
-              <div className="summary-row">
-                <span className="summary-label">Amount Paid</span>
-                <span className="summary-value">
-                  {receiptData.paidAmount.toLocaleString()} MMK
-                </span>
-              </div>
-            )}
-
-            {receiptData.change !== undefined && receiptData.change > 0 && (
-              <div className="summary-row">
-                <span className="summary-label">Change Due</span>
-                <span className="summary-value text-green-600">
-                  {receiptData.change.toLocaleString()} MMK
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Footer Signature Section */}
-        <div className="mt-20 pt-10 border-t border-slate-100">
-          <div className="flex justify-between items-end">
-            <div className="text-center w-56">
-              <div className="h-16 mb-2"></div>
-              <div className="border-t-2 border-slate-200 pt-2">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                  Customer Signature
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <p className="text-primary-blue font-black text-lg mb-1">
-                Thank You!
-              </p>
-              <p className="text-slate-400 text-xs font-bold">
-                TopNotch Gadgets & IT
-              </p>
-            </div>
-
-            <div className="text-center w-56">
-              <div className="h-16 mb-2 flex items-center justify-center">
-                <div className="w-16 h-16 border-4 border-primary-blue/10 rounded-full flex items-center justify-center opacity-20">
-                  <span className="text-primary-blue font-black text-xs">
-                    STAMP
-                  </span>
-                </div>
-              </div>
-              <div className="border-t-2 border-slate-200 pt-2">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                  Authorized Signature
-                </p>
-              </div>
-            </div>
+        {/* Footer */}
+        <div className="mt-16 text-center">
+          <p className="text-lg font-bold italic mb-1">
+            Thank you for your business!
+          </p>
+          <div className="border-t border-gray-300 mt-8 pt-4">
+            <p className="text-xs text-right">
+              Authorised Sign: _________________
+            </p>
           </div>
+        </div>
+
+        {/* Contact Bar */}
+        <div
+          className="mt-6 py-3 px-4 flex justify-between text-white text-xs"
+          style={{ backgroundColor: "#000" }}
+        >
+          <span>Contact Us: 09960780006 www.topnotchmm.com</span>
+          <span>TopNotch</span>
         </div>
       </div>
     </div>
