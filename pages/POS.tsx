@@ -75,6 +75,8 @@ export const POS: React.FC = () => {
   const [selectedCreditPersonId, setSelectedCreditPersonId] =
     useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successOrderNumber, setSuccessOrderNumber] = useState("");
   const [discount, setDiscount] = useState(0);
   const [markup, setMarkup] = useState(0);
   const [markupAmount, setMarkupAmount] = useState(0);
@@ -293,7 +295,8 @@ export const POS: React.FC = () => {
 
       // Show success feedback
       toast.success(
-        `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
+        `${matchingProduct.inventoryId.productName} ${
+          t("pos.addedToCart") || "added to cart"
         }`,
         {
           duration: 1500,
@@ -427,7 +430,7 @@ export const POS: React.FC = () => {
 
         // Device detection for print method selection
         const device = detectDevice();
-        console.log("Device:", device);
+        // console.log("Device:", device);
 
         // Auto-print receipt based on device
         if (device.isAndroid || device.isIOS) {
@@ -450,7 +453,9 @@ export const POS: React.FC = () => {
         setSelectedCreditPersonId("");
         setCreatedAt(new Date().toISOString().split("T")[0]);
 
-        toast.success(t("pos.saleCompleted"));
+        // Show success modal instead of toast
+        setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
+        setShowSuccessModal(true);
 
         // Refresh stock after sale
         await loadStockItems();
@@ -564,8 +569,9 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
-                    }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
+                    showStorefrontMenu ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -592,16 +598,18 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
+                            sf._id === selectedStorefrontId
                               ? "bg-primary/20 border-l-4 border-primary"
                               : ""
-                            }`}
+                          }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              sf._id === selectedStorefrontId
                                 ? "bg-primary text-white"
                                 : "bg-dark-100 text-dark-500"
-                              }`}
+                            }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -662,10 +670,11 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
+                  stockItem.availableQuantity === 0
                     ? "opacity-50 grayscale pointer-events-none"
                     : ""
-                  }`}
+                }`}
               >
                 <div className="">
                   <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -800,6 +809,23 @@ export const POS: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Loading Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4">
+            <Loader2 className="w-16 h-16 animate-spin text-primary" />
+            <div className="text-center">
+              <p className="text-xl font-bold text-gray-800 mb-1">
+                {t("pos.processing")}
+              </p>
+              <p className="text-sm text-gray-500">
+                Please wait while we process your order...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Checkout Modal */}
       {showCheckoutModal && (
@@ -1040,10 +1066,11 @@ export const POS: React.FC = () => {
                   type="number"
                   min="0"
                   disabled={paymentMethod === PaymentMethod.FOC}
-                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
+                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
+                    paymentMethod === PaymentMethod.FOC
                       ? "bg-gray-100 cursor-not-allowed"
                       : ""
-                    }`}
+                  }`}
                   value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
                   onChange={(e) => {
                     const value =
@@ -1348,6 +1375,76 @@ export const POS: React.FC = () => {
                   Apply Discount
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            {/* Success Icon and Header */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 text-center">
+              <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-4">
+                <svg
+                  className="w-12 h-12 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {t("pos.saleCompleted")}
+              </h2>
+              <p className="text-green-50 text-sm">
+                Your order has been processed successfully
+              </p>
+            </div>
+
+            {/* Order Details */}
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-sm text-gray-500 mb-1">Order Number</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {successOrderNumber}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                  <p className="text-xs text-blue-600 mb-1">Total Amount</p>
+                  <p className="text-lg font-bold text-blue-800">
+                    {total.toLocaleString()} MMK
+                  </p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                  <p className="text-xs text-purple-600 mb-1">Items</p>
+                  <p className="text-lg font-bold text-purple-800">
+                    {cart.reduce((sum, item) => sum + item.qty, 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="p-6 pt-0">
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSuccessOrderNumber("");
+                }}
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold transition-colors shadow-lg"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
