@@ -1409,33 +1409,8 @@ export const POS: React.FC = () => {
               </p>
             </div>
 
-            {/* Order Details */}
-            <div className="p-6 space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <p className="text-sm text-gray-500 mb-1">Order Number</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {successOrderNumber}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                  <p className="text-xs text-blue-600 mb-1">Total Amount</p>
-                  <p className="text-lg font-bold text-blue-800">
-                    {total.toLocaleString()} MMK
-                  </p>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                  <p className="text-xs text-purple-600 mb-1">Items</p>
-                  <p className="text-lg font-bold text-purple-800">
-                    {cart.reduce((sum, item) => sum + item.qty, 0)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Action Button */}
-            <div className="p-6 pt-0">
+            <div className="p-6 pt-6">
               <button
                 onClick={() => {
                   setShowSuccessModal(false);
