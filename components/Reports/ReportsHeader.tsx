@@ -1,5 +1,4 @@
 import React from "react";
-import { RefreshCw } from "lucide-react";
 import { LocationProfile } from "../../services/Location/fetchLocationProfiles";
 import { DateRangePicker } from "./DateRangePicker";
 
@@ -20,8 +19,6 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   storefronts,
   selectedStorefront,
   onStorefrontChange,
-  onRefresh,
-  loading,
   startDate,
   endDate,
   onDateRangeChange,

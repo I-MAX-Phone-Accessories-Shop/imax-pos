@@ -32,9 +32,9 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
     selectedStorefront === "all"
       ? saleReports.filter((report) => report.success)
       : saleReports.filter(
-        (report) =>
-          report.success && report.data.storefront._id === selectedStorefront,
-      );
+          (report) =>
+            report.success && report.data.storefront._id === selectedStorefront,
+        );
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -52,7 +52,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Paid Amount
           </p>
           <p className="text-lg sm:text-2xl font-bold text-green-600">
-            {displayReport.finalAmount.toLocaleString()}{" "}
+            {displayReport.paidAmount.toLocaleString()}{" "}
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
