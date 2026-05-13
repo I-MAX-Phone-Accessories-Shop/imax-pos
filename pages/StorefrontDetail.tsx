@@ -23,6 +23,7 @@ import {
   updateStorefrontStockQuantity,
   UpdateStorefrontStockQuantityPayload,
 } from "../services/Storefront/updateStorefrontStockQuantity";
+import { fetchCategories } from "../services/Inventory/fetchCategories";
 
 export const StorefrontDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,22 +44,41 @@ export const StorefrontDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState<string[]>([]);
   const [storefrontName, setStorefrontName] = useState(
     storefrontInfo?.storefrontName || "Storefront",
   );
   const [storefrontCode, setStorefrontCode] = useState(
     storefrontInfo?.storefrontCode || "",
   );
+  const [totalProduct, setTotalProduct] = useState(0);
+  const [totalproductQuantity, setTotalproductQuantity] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const itemsPerPage = 100;
 
   useEffect(() => {
     loadStorefrontStock();
-  }, [id, currentPage, itemsPerPage]);
+  }, [id, currentPage, itemsPerPage, selectedCategory, searchTerm]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetchCategories();
+      if (response.success && response.data) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
 
   const loadStorefrontStock = async () => {
     if (!id) {
@@ -73,9 +93,16 @@ export const StorefrontDetail: React.FC = () => {
         id,
         currentPage,
         itemsPerPage,
+        selectedCategory,
+        searchTerm,
       );
       // console.log(response);
-      if (response.success && response.data) {
+      if (response.success) {
+        if (response.summary) {
+          setTotalProduct(response.summary.totalProducts);
+          setTotalproductQuantity(response.summary.totalQuantity);
+          setTotalAmount(response.summary.totalAmount);
+        }
         setStockItems(response.data);
 
         // Update pagination info
@@ -110,34 +137,18 @@ export const StorefrontDetail: React.FC = () => {
     }
   };
 
+  console.log(stockItems);
+
   const totalQuantity = stockItems.reduce(
     (sum, item) => sum + item.quantity,
     0,
   );
   const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
-  // Get unique categories from stock items
-  const categories = Array.from(
-    new Set(stockItems.map((item) => item.inventoryId.category)),
-  ).filter(Boolean);
-
-  // Filter stock items based on search term and category
+  // Filter stock items (search and category filtering handled by API)
   const filteredStockItems = stockItems.filter((item) => {
     const hideProduct = item.inventoryId._id === "69a15d55218ec5ff9a3fe4a3";
-    const matchesSearch =
-      searchTerm === "" ||
-      item.inventoryId.productName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      item.inventoryId.productCode
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-
-    const matchesCategory =
-      selectedCategory === "all" ||
-      item.inventoryId.category === selectedCategory;
-
-    return !hideProduct && matchesSearch && matchesCategory;
+    return !hideProduct;
   });
 
   // Calculate totals based on filtered items
@@ -283,7 +294,10 @@ export const StorefrontDetail: React.FC = () => {
                 type="text"
                 placeholder="Search by product name or code..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
               />
             </div>
@@ -295,7 +309,10 @@ export const StorefrontDetail: React.FC = () => {
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none appearance-none"
               >
                 <option value="all">All Categories</option>
@@ -314,6 +331,7 @@ export const StorefrontDetail: React.FC = () => {
               onClick={() => {
                 setSearchTerm("");
                 setSelectedCategory("all");
+                setCurrentPage(1);
               }}
               className="px-3 py-2 sm:px-4 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
             >
@@ -343,10 +361,13 @@ export const StorefrontDetail: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-500">
                 Total Products
               </p>
-              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
+              {/* <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems.length
                   : stockItems.length}
+              </p> */}
+              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
+                {totalProduct}
               </p>
             </div>
           </div>
@@ -362,9 +383,7 @@ export const StorefrontDetail: React.FC = () => {
                 Total Quantity
               </p>
               <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
-                {searchTerm || selectedCategory !== "all"
-                  ? filteredTotalQuantity
-                  : totalQuantity}
+                {totalproductQuantity}
               </p>
             </div>
           </div>
@@ -394,7 +413,7 @@ export const StorefrontDetail: React.FC = () => {
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-500">Total Amount</p>
               <p className="text-lg sm:text-2xl font-bold text-indigo-600 truncate">
-                {searchTerm || selectedCategory !== "all"
+                {/* {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems
                       .reduce((sum, item) => {
                         const sellingPrice = item.inventoryId.sellingPrice || 0;
@@ -402,7 +421,8 @@ export const StorefrontDetail: React.FC = () => {
                         return sum + itemTotal;
                       }, 0)
                       .toLocaleString()
-                  : totalStorefrontAmount.toLocaleString()}{" "}
+                  : totalStorefrontAmount.toLocaleString()}{" "} */}
+                {totalAmount}
                 <span className="hidden sm:inline">MMK</span>
               </p>
             </div>
@@ -431,6 +451,7 @@ export const StorefrontDetail: React.FC = () => {
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedCategory("all");
+                    setCurrentPage(1);
                   }}
                   className="text-primary hover:text-primary-700 underline"
                 >
@@ -703,7 +724,7 @@ export const StorefrontDetail: React.FC = () => {
             </div>
 
             {/* Items per page selector */}
-            <div className="flex items-center gap-2 text-sm">
+            {/* <div className="flex items-center gap-2 text-sm">
               <label className="text-slate-600">Per page:</label>
               <select
                 value={itemsPerPage}
@@ -718,7 +739,7 @@ export const StorefrontDetail: React.FC = () => {
                 <option value={200}>200</option>
                 <option value={500}>500</option>
               </select>
-            </div>
+            </div> */}
           </div>
         )}
       </div>

@@ -6,9 +6,6 @@ import {
   Plus,
   Minus,
   Trash2,
-  ShoppingCart,
-  CreditCard,
-  DollarSign,
   RefreshCw,
   Store,
   ChevronDown,
@@ -30,6 +27,7 @@ import {
   fetchStorefrontProfiles,
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
+import { fetchCategories } from "../services/Inventory/fetchCategories";
 import { createOrder } from "../services/Order/createOrder";
 import {
   fetchCreditPersonas,
@@ -63,7 +61,14 @@ export const POS: React.FC = () => {
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
   const [selectedStorefrontId, setSelectedStorefrontId] = useState<string>("");
   const [allStockItems, setAllStockItems] = useState<StorefrontStockItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(100); // Default to 100 for POS grid
 
   // Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -117,6 +122,12 @@ export const POS: React.FC = () => {
         }
       }
 
+      // Load categories
+      const catResponse = await fetchCategories();
+      if (catResponse.success && catResponse.data) {
+        setCategories(catResponse.data);
+      }
+
       // Load stock items
       await loadStockItems();
     } catch (error) {
@@ -145,12 +156,26 @@ export const POS: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    loadStockItems();
+  }, [selectedStorefrontId, search, selectedCategory, currentPage]);
+
   const loadStockItems = async () => {
     try {
-      const response = await fetchStorefrontStock(selectedStorefrontId);
+      const response = await fetchStorefrontStock(
+        selectedStorefrontId,
+        currentPage,
+        itemsPerPage,
+        selectedCategory === "All" ? undefined : selectedCategory,
+        search,
+      );
       // console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+          setTotalItems(response.pagination.totalItems);
+        }
       }
     } catch (error) {
       console.error("Error loading stock items:", error);
@@ -165,29 +190,14 @@ export const POS: React.FC = () => {
     toast.success(t("pos.productsRefreshed"));
   };
 
-  // Filter products by selected storefront and search
+  // Filter products by selected storefront (search and category handled by API)
   const filteredProducts = allStockItems.filter((item) => {
     const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
-    // const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-    const matchesSearch = item.inventoryId?.productName
-      ?.toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" ||
-      item.inventoryId?.category === selectedCategory;
-
-    return !hideProduct && matchesSearch && matchesCategory;
+    return !hideProduct;
   });
 
   // Get unique categories from current storefront products
-  const categories = [
-    ...new Set(
-      allStockItems
-        .filter((item) => item.storefrontId?._id === selectedStorefrontId)
-        .map((item) => item.inventoryId?.category)
-        .filter(Boolean),
-    ),
-  ].sort();
+  // (Categories are now fetched from API and stored in categories state)
 
   const addToCart = (stockItem: StorefrontStockItem) => {
     if (stockItem.availableQuantity <= 0) {
@@ -255,60 +265,50 @@ export const POS: React.FC = () => {
   };
 
   // Handle barcode scanning from search input
-  const handleBarcodeScan = (searchValue: string) => {
+  const handleBarcodeScan = async (searchValue: string) => {
     if (!searchValue.trim()) return;
 
-    // Filter products by selected storefront first
-    const storefrontProducts = allStockItems.filter((item) => {
-      const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-      const isHidden = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
-      return matchesStorefront && !isHidden;
-    });
-
-    // Find matching product by barcode, productCode, or SKU (case-insensitive)
-    // Only try exact matches (not partial) for barcode scanning
-    const matchingProduct = storefrontProducts.find((item) => {
-      const barcodeToMatch = searchValue.trim().toLowerCase();
-      const productBarcode =
-        (item.inventoryId as any)?.barcode?.toLowerCase() || "";
-      const productCode = item.inventoryId.productCode?.toLowerCase() || "";
-      const sku = item.inventoryId.SKU?.toLowerCase() || "";
-
-      // Exact match only for barcode scanning
-      return (
-        (productBarcode && productBarcode === barcodeToMatch) ||
-        (productCode && productCode === barcodeToMatch) ||
-        (sku && sku === barcodeToMatch)
+    try {
+      // Use API to find the exact product by barcode/code
+      const response = await fetchStorefrontStock(
+        selectedStorefrontId,
+        1,
+        1, // We only need the first matching item
+        undefined,
+        searchValue.trim(),
       );
-    });
 
-    if (matchingProduct) {
-      // Check if product is in stock
-      if (matchingProduct.availableQuantity <= 0) {
-        toast.error(t("pos.outOfStock"));
-        setSearch(""); // Clear search
-        return;
+      if (response.success && response.data && response.data.length > 0) {
+        const matchingProduct = response.data[0];
+
+        // Check if product is in stock
+        if (matchingProduct.availableQuantity <= 0) {
+          toast.error(t("pos.outOfStock"));
+          setSearch(""); // Clear search
+          return;
+        }
+
+        // Add to cart (will increment if already exists)
+        addToCart(matchingProduct);
+
+        // Show success feedback
+        toast.success(
+          `${matchingProduct.inventoryId.productName} ${
+            t("pos.addedToCart") || "added to cart"
+          }`,
+        );
+
+        // Clear search input after successful scan
+        setSearch("");
+      } else {
+        // If no exact match found via API, we just keep the search term as is
+        // so the user can see if there are partial matches in the grid
+        toast.error(t("pos.productNotFound") || "Product not found");
       }
-
-      // Add to cart (will increment if already exists)
-      addToCart(matchingProduct);
-
-      // Show success feedback
-      toast.success(
-        `${matchingProduct.inventoryId.productName} ${
-          t("pos.addedToCart") || "added to cart"
-        }`,
-        {
-          duration: 1500,
-        },
-      );
-
-      // Clear search after successful barcode scan
-      setSearch("");
-      return true; // Indicate barcode was found and processed
+    } catch (error) {
+      console.error("Error during barcode scan:", error);
+      toast.error(t("pos.failedToSearchProduct") || "Failed to search product");
     }
-
-    return false; // No barcode match found, continue with regular search
   };
 
   // Calculate totals
@@ -521,7 +521,10 @@ export const POS: React.FC = () => {
                 }
                 className="search-input w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 onKeyDown={(e) => {
                   // When Enter is pressed, try to scan barcode first
                   if (e.key === "Enter" && search.trim()) {
@@ -656,6 +659,81 @@ export const POS: React.FC = () => {
             filteredProducts.length.toString(),
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+            <div className="text-sm text-gray-600">
+              {t("pos.showingProducts").replace(
+                "{count}",
+                ((currentPage - 1) * itemsPerPage + 1).toString(),
+              )}{" "}
+              to {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
+              {totalItems}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="First Page"
+              >
+                <ChevronDown className="w-4 h-4 rotate-90" />
+              </button>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {t("common.previous") || "Prev"}
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) pageNum = i + 1;
+                  else if (currentPage <= 3) pageNum = i + 1;
+                  else if (currentPage >= totalPages - 2)
+                    pageNum = totalPages - 4 + i;
+                  else pageNum = currentPage - 2 + i;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${
+                        currentPage === pageNum
+                          ? "bg-primary text-white border-primary"
+                          : "hover:bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {t("common.next") || "Next"}
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Last Page"
+              >
+                <ChevronDown className="w-4 h-4 -rotate-90" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Product Grid */}
         <div className="flex overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 pb-20">
@@ -1145,7 +1223,8 @@ export const POS: React.FC = () => {
                 disabled={
                   cart.length === 0 ||
                   isProcessing ||
-                  (paymentType === "paid" && paidAmount < total)
+                  (paymentType === "paid" && paidAmount < total) ||
+                  (paymentType === "credit" && paidAmount > total)
                 }
                 className="complete-sale-btn w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
