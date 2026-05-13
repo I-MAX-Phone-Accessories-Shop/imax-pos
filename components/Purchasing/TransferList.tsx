@@ -18,9 +18,9 @@ export const TransferList: React.FC<TransferListProps> = ({
   const [transferFilter, setTransferFilter] = useState<"pending" | "completed">(
     "completed",
   );
-  const [sourceTypeFilter, setSourceTypeFilter] = useState<
-    "all" | "GRN" | "WAREHOUSE"
-  >("all");
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<"all" | "WAREHOUSE">(
+    "all",
+  );
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const handleMarkCompleted = async (transfer: TransferData) => {
@@ -95,16 +95,7 @@ export const TransferList: React.FC<TransferListProps> = ({
             >
               All Sources
             </button>
-            <button
-              onClick={() => setSourceTypeFilter("GRN")}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                sourceTypeFilter === "GRN"
-                  ? "bg-white text-slate-800 shadow-sm"
-                  : "text-slate-600 hover:text-slate-800"
-              }`}
-            >
-              GRN
-            </button>
+
             <button
               onClick={() => setSourceTypeFilter("WAREHOUSE")}
               className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
