@@ -6,6 +6,10 @@ interface InventoryTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onViewDetails: (productId: string) => void;
+  onStatusToggle?: (
+    productId: string,
+    currentStatus: "active" | "inactive",
+  ) => void;
   selectedProductIds?: string[];
   onSelectionChange?: (productId: string, selected: boolean) => void;
   onSelectAll?: (selected: boolean) => void;
@@ -16,6 +20,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   products,
   onEdit,
   onViewDetails,
+  onStatusToggle,
   selectedProductIds = [],
   onSelectionChange,
   onSelectAll,
@@ -73,6 +78,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               <th className="px-2 sm:px-4 py-3">Category</th>
               <th className="px-2 sm:px-4 py-3 text-right">Cost</th>
               <th className="px-2 sm:px-4 py-3 text-right">Price</th>
+              <th className="px-2 sm:px-4 py-3 text-center">Status</th>
               <th className="px-2 sm:px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -115,6 +121,32 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   </td>
                   <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
                     {p.sellingPrice.toLocaleString()} MMK
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-center">
+                    {onStatusToggle && userRole === "owner" ? (
+                      <button
+                        onClick={() =>
+                          onStatusToggle(p.id, p.status || "active")
+                        }
+                        className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+                          p.status === "active"
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-red-100 text-red-700 hover:bg-red-200"
+                        }`}
+                      >
+                        {p.status === "active" ? "Active" : "Inactive"}
+                      </button>
+                    ) : (
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          p.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {p.status === "active" ? "Active" : "Inactive"}
+                      </span>
+                    )}
                   </td>
                   <td className="px-2 sm:px-4 py-3">
                     <div className="flex items-center justify-center gap-1 sm:gap-2">

@@ -151,6 +151,7 @@ export const my = {
     searchOrScanBarcode: "ပစ္စည်းရှာဖွေရန် (သို့မဟုတ်) ဘားကုဒ်ဖတ်ရန်...",
     barcodeNotFound: "ဤဘားကုဒ်ဖြင့် ကုန်ပစ္စည်းကို မတွေ့ရှိပါ",
     addedToCart: "ထည့်သွင်းပြီးပါပြီ",
+    orderDate: "ဘောင်ချာ ရက်စွဲ",
   },
   inventory: {
     title: "ကုန်ပစ္စည်းစာရင်း",

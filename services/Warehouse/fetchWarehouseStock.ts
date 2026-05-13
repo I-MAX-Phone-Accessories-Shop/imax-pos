@@ -45,24 +45,43 @@ interface FetchWarehouseStockResponse {
     totalItems: number;
     itemsPerPage: number;
   };
+  summary?: {
+    totalProducts: number;
+    totalQuantity: number;
+    totalAmount: number;
+  };
 }
 
 export const fetchWarehouseStock = async (
-  warehouseId?: string
+  warehouseId?: string,
+  page: number = 1,
+  limit: number = 100,
+  category?: string,
+  search?: string,
 ): Promise<FetchWarehouseStockResponse> => {
   try {
-    const url = warehouseId
-      ? `/warehouse?warehouseId=${warehouseId}`
-      : "/warehouse";
+    const params = new URLSearchParams();
+    if (warehouseId) params.append("warehouseId", warehouseId);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+    if (category && category !== "all") params.append("category", category);
+    if (search && search.trim()) params.append("search", search.trim());
+
+    const url = `/warehouse?${params.toString()}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching warehouse stock:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch warehouse stock",
+      message:
+        error.response?.data?.message || "Failed to fetch warehouse stock",
       data: [],
+      summary: {
+        totalProducts: 0,
+        totalQuantity: 0,
+        totalAmount: 0,
+      },
     };
   }
 };
-

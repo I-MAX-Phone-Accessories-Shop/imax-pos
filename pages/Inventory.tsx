@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Product, ProductCategory } from "../types";
 import { createProduct } from "../services/Inventory/createProduct";
 import { updateProduct } from "../services/Inventory/updateProduct";
+import { updateProductStatus } from "../services/Inventory/updateProductStatus";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
 import { transferInventoryToWarehouse } from "../services/Inventory/transferInventoryToWarehouse";
 import { transferInventoryToStorefront } from "../services/Inventory/transferInventoryToStorefront";
@@ -25,8 +26,14 @@ import {
   ProductDetail,
 } from "../services/Inventory/fetchProductById";
 import { WarehouseProfile } from "../types";
-import { Building2, X, Loader2, Store } from "lucide-react";
+import { Building2, X, Loader2, Store, FileUp } from "lucide-react";
 import { SearchInput } from "../components/Inventory/SearchInput";
+import {
+  importExcel,
+  ImportExcelResponse,
+} from "../services/Inventory/importExcel";
+import { useRef } from "react";
+import { ImportResultModal } from "../components/Inventory/ImportResultModal";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -66,6 +73,14 @@ export const Inventory: React.FC = () => {
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Import Excel State
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportExcelResponse | null>(
+    null,
+  );
+  const [isImportResultModalOpen, setIsImportResultModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Form State - API structure
   const [formData, setFormData] = useState<ProductFormData>({
     productName: "",
@@ -85,6 +100,7 @@ export const Inventory: React.FC = () => {
     taxRate: 0,
     status: "active",
     tags: [],
+    note: "",
   });
 
   // Map API product to local Product type
@@ -100,6 +116,7 @@ export const Inventory: React.FC = () => {
       costPrice: apiProduct.buyingPrice,
       sellingPrice: apiProduct.sellingPrice,
       lowStockThreshold: apiProduct.reorderPoint || 0,
+      status: (apiProduct.status as "active" | "inactive") || "active",
     };
   };
 
@@ -202,8 +219,41 @@ export const Inventory: React.FC = () => {
       taxRate: 0,
       status: "active",
       tags: [],
+      note: "",
     });
     setError(null);
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const response = await importExcel(file);
+      if (response.success) {
+        toast.success(response.message);
+        // Refresh products list
+        await loadProducts();
+
+        // Show detailed result in modal
+        setImportResult(response);
+        setIsImportResultModalOpen(true);
+      } else {
+        toast.error(response.message || "Failed to import excel");
+      }
+    } catch (error: any) {
+      console.error("Error importing excel:", error);
+      toast.error(
+        error.message || "An unexpected error occurred during import",
+      );
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -262,6 +312,7 @@ export const Inventory: React.FC = () => {
         if (formData.status) apiPayload.status = formData.status;
         if (formData.tags && formData.tags.length > 0)
           apiPayload.tags = formData.tags;
+        if (formData.note) apiPayload.note = formData.note;
 
         await updateProduct(editingId, apiPayload);
 
@@ -327,6 +378,7 @@ export const Inventory: React.FC = () => {
       if (formData.status) apiPayload.status = formData.status;
       if (formData.tags && formData.tags.length > 0)
         apiPayload.tags = formData.tags;
+      if (formData.note) apiPayload.note = formData.note;
 
       await createProduct(apiPayload);
 
@@ -368,6 +420,7 @@ export const Inventory: React.FC = () => {
       taxRate: apiProduct?.taxRate || 0,
       status: apiProduct?.status || "active",
       tags: apiProduct?.tags || [],
+      note: apiProduct?.note || "",
     });
 
     setIsModalOpen(true);
@@ -389,6 +442,31 @@ export const Inventory: React.FC = () => {
       toast.error(t("inventory.failedToLoadDetails"));
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  const handleStatusToggle = async (
+    productId: string,
+    currentStatus: "active" | "inactive",
+  ) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+    try {
+      const response = await updateProductStatus(productId, {
+        status: newStatus,
+      });
+
+      if (response.success) {
+        toast.success(
+          `Product ${newStatus === "active" ? "activated" : "deactivated"} successfully`,
+        );
+        await loadProducts();
+      } else {
+        toast.error(response.message || "Failed to update product status");
+      }
+    } catch (error) {
+      console.error("Error updating product status:", error);
+      toast.error("Failed to update product status");
     }
   };
 
@@ -503,6 +581,8 @@ export const Inventory: React.FC = () => {
           response.message || "Inventory transferred to warehouse successfully",
         );
         setSelectedProductIds([]);
+        setShowSelectBoxes(false);
+        setTransferMode(null);
         handleCloseTransferModal();
         setShowSelectBoxes(false);
         setTransferMode(null);
@@ -557,6 +637,8 @@ export const Inventory: React.FC = () => {
             "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
+        setShowSelectBoxes(false);
+        setTransferMode(null);
         handleCloseTransferStorefrontModal();
         setShowSelectBoxes(false);
         setTransferMode(null);
@@ -677,6 +759,26 @@ export const Inventory: React.FC = () => {
                 </span>
               </button>
             )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportExcel}
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting}
+              className="inventory-import-excel-btn bg-emerald-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 text-sm sm:text-base"
+            >
+              {isImporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileUp className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">Import Excel</span>
+              <span className="sm:hidden">Import</span>
+            </button>
             <button
               onClick={() => {
                 resetForm();
@@ -742,6 +844,7 @@ export const Inventory: React.FC = () => {
             products={filteredProducts}
             onEdit={openEdit}
             onViewDetails={handleViewDetails}
+            onStatusToggle={handleStatusToggle}
             selectedProductIds={selectedProductIds}
             onSelectionChange={handleSelectionChange}
             onSelectAll={handleSelectAll}
@@ -778,6 +881,12 @@ export const Inventory: React.FC = () => {
           setSelectedProductDetail(null);
           setLoadingDetail(false);
         }}
+      />
+
+      <ImportResultModal
+        isOpen={isImportResultModalOpen}
+        result={importResult}
+        onClose={() => setIsImportResultModalOpen(false)}
       />
 
       {/* Transfer to Warehouse Modal */}

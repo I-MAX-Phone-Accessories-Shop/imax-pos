@@ -639,7 +639,7 @@ export const Reports: React.FC = () => {
         startDate={startDate}
         endDate={endDate}
         onDateRangeChange={handleDateRangeChange}
-        singleDate={activeTab === "revenue"}
+        singleDate={activeTab === "overall"}
       />
 
       <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />

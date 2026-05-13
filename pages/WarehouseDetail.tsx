@@ -11,6 +11,8 @@ import {
   Plus,
   Trash2,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
   TrendingUp,
   TrendingDown,
   Search,
@@ -21,6 +23,7 @@ import {
   fetchWarehouseStock,
   WarehouseStockItem,
 } from "../services/Warehouse/fetchWarehouseStock";
+import { fetchCategories } from "../services/Inventory/fetchCategories";
 import {
   fetchStorefrontProfiles,
   StorefrontProfile,
@@ -67,6 +70,16 @@ export const WarehouseDetail: React.FC = () => {
   const [warehouseCode, setWarehouseCode] = useState(
     warehouseInfo?.warehouseCode || "",
   );
+  const [categories, setCategories] = useState<string[]>([]);
+  const [totalProduct, setTotalProduct] = useState(0);
+  const [totalproductQuantity, setTotalproductQuantity] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 100;
 
   // Transfer Modal State
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -93,7 +106,22 @@ export const WarehouseDetail: React.FC = () => {
   useEffect(() => {
     loadWarehouseStock();
     loadStorefronts();
-  }, [id]);
+  }, [id, currentPage, itemsPerPage, selectedCategory, searchTerm]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetchCategories();
+      if (response.success && response.data) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
 
   const loadWarehouseStock = async () => {
     if (!id) {
@@ -104,10 +132,28 @@ export const WarehouseDetail: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetchWarehouseStock(id);
+      const response = await fetchWarehouseStock(
+        id,
+        currentPage,
+        itemsPerPage,
+        selectedCategory,
+        searchTerm,
+      );
       // console.log(response);
-      if (response.success && response.data) {
+      if (response.success) {
+        if (response.summary) {
+          setTotalProduct(response.summary.totalProducts);
+          setTotalproductQuantity(response.summary.totalQuantity);
+          setTotalAmount(response.summary.totalAmount);
+        }
         setStockItems(response.data);
+
+        // Update pagination info
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+          setTotalItems(response.pagination.totalItems);
+          setCurrentPage(response.pagination.currentPage);
+        }
 
         // Update warehouse info from first item if not provided via state
         if (response.data.length > 0 && !warehouseInfo) {
@@ -145,46 +191,14 @@ export const WarehouseDetail: React.FC = () => {
     }
   };
 
-  const totalQuantity = stockItems.reduce(
+  // Calculate fallback totals if API doesn't provide summary
+  const fallbackTotalQuantity = stockItems.reduce(
     (sum, item) => sum + item.quantity,
     0,
   );
-  const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
-  // Get unique categories from stock items
-  const categories = Array.from(
-    new Set(stockItems.map((item) => item.inventoryId.category)),
-  ).filter(Boolean);
-
-  // Filter stock items based on search term and category
-  const filteredStockItems = stockItems.filter((item) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      item.inventoryId.productName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      item.inventoryId.productCode
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-
-    const matchesCategory =
-      selectedCategory === "all" ||
-      item.inventoryId.category === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  // Calculate totals based on filtered items
-  const filteredTotalQuantity = filteredStockItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0,
-  );
-  const filteredLowStockCount = filteredStockItems.filter(
-    (item) => item.isLowStock,
-  ).length;
-
-  // Calculate total amount for each item and warehouse total
-  const totalWarehouseAmount = stockItems.reduce((sum, item) => {
+  // Calculate total amount fallback
+  const fallbackTotalAmount = stockItems.reduce((sum, item) => {
     const sellingPrice = item.inventoryId.sellingPrice || 0;
     const itemTotal = item.quantity * sellingPrice;
     return sum + itemTotal;
@@ -522,7 +536,7 @@ export const WarehouseDetail: React.FC = () => {
         {/* Filter Results Summary */}
         {(searchTerm || selectedCategory !== "all") && (
           <div className="mt-3 text-sm text-slate-500">
-            Showing {filteredStockItems.length} of {stockItems.length} items
+            Showing {stockItems.length} of {totalItems} items
           </div>
         )}
       </div>
@@ -539,9 +553,7 @@ export const WarehouseDetail: React.FC = () => {
                 Total Products
               </p>
               <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
-                {searchTerm || selectedCategory !== "all"
-                  ? filteredStockItems.length
-                  : stockItems.length}
+                {totalProduct}
               </p>
             </div>
           </div>
@@ -557,9 +569,7 @@ export const WarehouseDetail: React.FC = () => {
                 Total Quantity
               </p>
               <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
-                {searchTerm || selectedCategory !== "all"
-                  ? filteredTotalQuantity
-                  : totalQuantity}
+                {totalproductQuantity}
               </p>
             </div>
           </div>
@@ -573,9 +583,7 @@ export const WarehouseDetail: React.FC = () => {
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-500">Low Stock</p>
               <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
-                {searchTerm || selectedCategory !== "all"
-                  ? filteredLowStockCount
-                  : lowStockCount}
+                {filteredLowStockCount}
               </p>
             </div>
           </div>
@@ -589,15 +597,7 @@ export const WarehouseDetail: React.FC = () => {
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-500">Total Amount</p>
               <p className="text-lg sm:text-2xl font-bold text-indigo-600 truncate">
-                {searchTerm || selectedCategory !== "all"
-                  ? filteredStockItems
-                      .reduce((sum, item) => {
-                        const sellingPrice = item.inventoryId.sellingPrice || 0;
-                        const itemTotal = item.quantity * sellingPrice;
-                        return sum + itemTotal;
-                      }, 0)
-                      .toLocaleString()
-                  : totalWarehouseAmount.toLocaleString()}{" "}
+                {totalAmount.toLocaleString()}{" "}
                 <span className="hidden sm:inline">MMK</span>
               </p>
             </div>
@@ -615,7 +615,7 @@ export const WarehouseDetail: React.FC = () => {
           <div className="p-8 text-center text-slate-500">
             Loading stock items...
           </div>
-        ) : filteredStockItems.length === 0 ? (
+        ) : stockItems.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             {searchTerm || selectedCategory !== "all" ? (
               <div>
@@ -685,7 +685,7 @@ export const WarehouseDetail: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filteredStockItems.map((item) => (
+                  {stockItems.map((item) => (
                     <tr key={item._id} className="hover:bg-slate-50">
                       <td className="px-2 sm:px-4 py-3 font-medium text-slate-800">
                         <div
@@ -781,6 +781,69 @@ export const WarehouseDetail: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-4 py-4 border-t bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-slate-500 order-2 sm:order-1">
+                  Showing{" "}
+                  <span className="font-medium">{stockItems.length}</span> of{" "}
+                  <span className="font-medium">{totalItems}</span> items
+                </div>
+                <div className="flex items-center gap-2 order-1 sm:order-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="p-2 border rounded-lg bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Previous Page"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`w-10 h-10 flex items-center justify-center rounded-lg border text-sm font-medium transition-all ${
+                            currentPage === pageNum
+                              ? "bg-primary text-white border-primary shadow-sm"
+                              : "bg-white text-slate-600 hover:bg-slate-50 border-slate-200"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="p-2 border rounded-lg bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Next Page"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

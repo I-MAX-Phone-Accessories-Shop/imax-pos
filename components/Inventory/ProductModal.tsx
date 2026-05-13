@@ -35,6 +35,7 @@ export interface ProductFormData {
   taxRate?: number;
   status?: string;
   tags?: string[];
+  note?: string;
 }
 
 export interface ApiProduct {
@@ -57,6 +58,7 @@ export interface ApiProduct {
   taxRate?: number;
   status?: string;
   tags?: string[];
+  note?: string;
   stockWarehouse?: number;
   stockShop?: number;
 }
@@ -370,6 +372,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 const buyingPrice = sellingPrice > 0 ? sellingPrice * 0.9 : 0;
                 updateFormData({ sellingPrice, buyingPrice });
               }}
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-xs font-bold text-slate-500">
+              {t("pos.note") || "Note"}
+            </label>
+            <textarea
+              className="w-full border rounded p-2"
+              rows={2}
+              value={formData.note || ""}
+              onChange={(e) => updateFormData({ note: e.target.value })}
+              placeholder={t("pos.notePlaceholder") || "Enter product note..."}
             />
           </div>
         </div>

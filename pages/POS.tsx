@@ -14,6 +14,7 @@ import {
   X,
   User,
   Calculator,
+  Calendar,
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { printThermalReceipt } from "../components/ThermalReceipt";
@@ -26,6 +27,7 @@ import {
   fetchStorefrontProfiles,
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
+import { fetchCategories } from "../services/Inventory/fetchCategories";
 import { createOrder } from "../services/Order/createOrder";
 import {
   fetchCreditPersonas,
@@ -59,7 +61,14 @@ export const POS: React.FC = () => {
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
   const [selectedStorefrontId, setSelectedStorefrontId] = useState<string>("");
   const [allStockItems, setAllStockItems] = useState<StorefrontStockItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(100); // Default to 100 for POS grid
 
   // Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -71,6 +80,8 @@ export const POS: React.FC = () => {
   const [selectedCreditPersonId, setSelectedCreditPersonId] =
     useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successOrderNumber, setSuccessOrderNumber] = useState("");
   const [discount, setDiscount] = useState(0);
   const [markup, setMarkup] = useState(0);
   const [markupAmount, setMarkupAmount] = useState(0);
@@ -84,6 +95,9 @@ export const POS: React.FC = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
+  const [createdAt, setCreatedAt] = useState<string>(
+    new Date().toISOString().split("T")[0],
+  );
   const devices = detectDevice();
 
   // Load storefronts and stock on mount
@@ -106,6 +120,12 @@ export const POS: React.FC = () => {
         if (activeStorefronts.length > 0) {
           setSelectedStorefrontId(activeStorefronts[0]._id);
         }
+      }
+
+      // Load categories
+      const catResponse = await fetchCategories();
+      if (catResponse.success && catResponse.data) {
+        setCategories(catResponse.data);
       }
 
       // Load stock items
@@ -136,12 +156,26 @@ export const POS: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    loadStockItems();
+  }, [selectedStorefrontId, search, selectedCategory, currentPage]);
+
   const loadStockItems = async () => {
     try {
-      const response = await fetchStorefrontStock(selectedStorefrontId);
+      const response = await fetchStorefrontStock(
+        selectedStorefrontId,
+        currentPage,
+        itemsPerPage,
+        selectedCategory === "All" ? undefined : selectedCategory,
+        search,
+      );
       // console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+          setTotalItems(response.pagination.totalItems);
+        }
       }
     } catch (error) {
       console.error("Error loading stock items:", error);
@@ -156,29 +190,14 @@ export const POS: React.FC = () => {
     toast.success(t("pos.productsRefreshed"));
   };
 
-  // Filter products by selected storefront and search
+  // Filter products by selected storefront (search and category handled by API)
   const filteredProducts = allStockItems.filter((item) => {
     const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
-    // const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-    const matchesSearch = item.inventoryId?.productName
-      ?.toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" ||
-      item.inventoryId?.category === selectedCategory;
-
-    return !hideProduct && matchesSearch && matchesCategory;
+    return !hideProduct;
   });
 
   // Get unique categories from current storefront products
-  const categories = [
-    ...new Set(
-      allStockItems
-        .filter((item) => item.storefrontId?._id === selectedStorefrontId)
-        .map((item) => item.inventoryId?.category)
-        .filter(Boolean),
-    ),
-  ].sort();
+  // (Categories are now fetched from API and stored in categories state)
 
   const addToCart = (stockItem: StorefrontStockItem) => {
     if (stockItem.availableQuantity <= 0) {
@@ -203,8 +222,6 @@ export const POS: React.FC = () => {
       }
       return [...prev, { stockItem, qty: 1 }];
     });
-    // Dispatch custom event for tutorial validation
-    window.dispatchEvent(new CustomEvent("product-added"));
   };
 
   const updateQty = (id: string, delta: number) => {
@@ -248,60 +265,50 @@ export const POS: React.FC = () => {
   };
 
   // Handle barcode scanning from search input
-  const handleBarcodeScan = (searchValue: string) => {
+  const handleBarcodeScan = async (searchValue: string) => {
     if (!searchValue.trim()) return;
 
-    // Filter products by selected storefront first
-    const storefrontProducts = allStockItems.filter((item) => {
-      const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-      const isHidden = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3";
-      return matchesStorefront && !isHidden;
-    });
-
-    // Find matching product by barcode, productCode, or SKU (case-insensitive)
-    // Only try exact matches (not partial) for barcode scanning
-    const matchingProduct = storefrontProducts.find((item) => {
-      const barcodeToMatch = searchValue.trim().toLowerCase();
-      const productBarcode =
-        (item.inventoryId as any)?.barcode?.toLowerCase() || "";
-      const productCode = item.inventoryId.productCode?.toLowerCase() || "";
-      const sku = item.inventoryId.SKU?.toLowerCase() || "";
-
-      // Exact match only for barcode scanning
-      return (
-        (productBarcode && productBarcode === barcodeToMatch) ||
-        (productCode && productCode === barcodeToMatch) ||
-        (sku && sku === barcodeToMatch)
+    try {
+      // Use API to find the exact product by barcode/code
+      const response = await fetchStorefrontStock(
+        selectedStorefrontId,
+        1,
+        1, // We only need the first matching item
+        undefined,
+        searchValue.trim(),
       );
-    });
 
-    if (matchingProduct) {
-      // Check if product is in stock
-      if (matchingProduct.availableQuantity <= 0) {
-        toast.error(t("pos.outOfStock"));
-        setSearch(""); // Clear search
-        return;
+      if (response.success && response.data && response.data.length > 0) {
+        const matchingProduct = response.data[0];
+
+        // Check if product is in stock
+        if (matchingProduct.availableQuantity <= 0) {
+          toast.error(t("pos.outOfStock"));
+          setSearch(""); // Clear search
+          return;
+        }
+
+        // Add to cart (will increment if already exists)
+        addToCart(matchingProduct);
+
+        // Show success feedback
+        toast.success(
+          `${matchingProduct.inventoryId.productName} ${
+            t("pos.addedToCart") || "added to cart"
+          }`,
+        );
+
+        // Clear search input after successful scan
+        setSearch("");
+      } else {
+        // If no exact match found via API, we just keep the search term as is
+        // so the user can see if there are partial matches in the grid
+        toast.error(t("pos.productNotFound") || "Product not found");
       }
-
-      // Add to cart (will increment if already exists)
-      addToCart(matchingProduct);
-
-      // Show success feedback
-      toast.success(
-        `${matchingProduct.inventoryId.productName} ${
-          t("pos.addedToCart") || "added to cart"
-        }`,
-        {
-          duration: 1500,
-        },
-      );
-
-      // Clear search after successful barcode scan
-      setSearch("");
-      return true; // Indicate barcode was found and processed
+    } catch (error) {
+      console.error("Error during barcode scan:", error);
+      toast.error(t("pos.failedToSearchProduct") || "Failed to search product");
     }
-
-    return false; // No barcode match found, continue with regular search
   };
 
   // Calculate totals
@@ -386,6 +393,7 @@ export const POS: React.FC = () => {
         paidAmount: finalPaidAmount,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
+        orderDate: new Date(createdAt).toISOString(),
         ...(paymentType === "credit" && selectedCreditPersonId
           ? { creditPersonId: selectedCreditPersonId }
           : {}),
@@ -422,7 +430,7 @@ export const POS: React.FC = () => {
 
         // Device detection for print method selection
         const device = detectDevice();
-        console.log("Device:", device);
+        // console.log("Device:", device);
 
         // Navigate to professional A4 receipt page
         navigate(`/print-receipt/${receiptData.invoiceNumber}`);
@@ -437,8 +445,11 @@ export const POS: React.FC = () => {
         );
         setPaymentType("paid");
         setSelectedCreditPersonId("");
+        setCreatedAt(new Date().toISOString().split("T")[0]);
 
-        // toast.success(t("pos.saleCompleted"));
+        // Show success modal instead of toast
+        setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
+        setShowSuccessModal(true);
 
         // Refresh stock after sale
         await loadStockItems();
@@ -504,7 +515,10 @@ export const POS: React.FC = () => {
                 }
                 className="search-input w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 onKeyDown={(e) => {
                   // When Enter is pressed, try to scan barcode first
                   if (e.key === "Enter" && search.trim()) {
@@ -639,6 +653,81 @@ export const POS: React.FC = () => {
             filteredProducts.length.toString(),
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+            <div className="text-sm text-gray-600">
+              {t("pos.showingProducts").replace(
+                "{count}",
+                ((currentPage - 1) * itemsPerPage + 1).toString(),
+              )}{" "}
+              to {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
+              {totalItems}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="First Page"
+              >
+                <ChevronDown className="w-4 h-4 rotate-90" />
+              </button>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {t("common.previous") || "Prev"}
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) pageNum = i + 1;
+                  else if (currentPage <= 3) pageNum = i + 1;
+                  else if (currentPage >= totalPages - 2)
+                    pageNum = totalPages - 4 + i;
+                  else pageNum = currentPage - 2 + i;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${
+                        currentPage === pageNum
+                          ? "bg-primary text-white border-primary"
+                          : "hover:bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {t("common.next") || "Next"}
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Last Page"
+              >
+                <ChevronDown className="w-4 h-4 -rotate-90" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Product Grid */}
         <div className="flex overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 pb-20">
@@ -784,8 +873,6 @@ export const POS: React.FC = () => {
                   : Math.ceil(total);
               setPaidAmount(initialPaidAmount);
               setShowCheckoutModal(true);
-              // Dispatch custom event for tutorial validation
-              window.dispatchEvent(new CustomEvent("checkout-initiated"));
             }}
             disabled={cart.length === 0}
             className="start-btn w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -794,6 +881,23 @@ export const POS: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Loading Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4">
+            <Loader2 className="w-16 h-16 animate-spin text-primary" />
+            <div className="text-center">
+              <p className="text-xl font-bold text-gray-800 mb-1">
+                {t("pos.processing")}
+              </p>
+              <p className="text-sm text-gray-500">
+                Please wait while we process your order...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Checkout Modal */}
       {showCheckoutModal && (
@@ -846,6 +950,22 @@ export const POS: React.FC = () => {
                   <option value="paid">{t("pos.paid")}</option>
                   <option value="credit">{t("pos.credit")}</option>
                 </select>
+              </div>
+
+              {/* Order Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("pos.orderDate") || "Order Date"}
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="date"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    value={createdAt}
+                    onChange={(e) => setCreatedAt(e.target.value)}
+                  />
+                </div>
               </div>
 
               {/* Credit Person Selector - Only show when paymentType is credit */}
@@ -1097,7 +1217,8 @@ export const POS: React.FC = () => {
                 disabled={
                   cart.length === 0 ||
                   isProcessing ||
-                  (paymentType === "paid" && paidAmount < total)
+                  (paymentType === "paid" && paidAmount < total) ||
+                  (paymentType === "credit" && paidAmount > total)
                 }
                 className="complete-sale-btn w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
@@ -1332,24 +1453,46 @@ export const POS: React.FC = () => {
         </div>
       )}
 
-      {/* Loading Modal */}
-      {isProcessing && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-sm mx-4">
-            <div className="relative">
-              <Loader2 className="w-16 h-16 text-primary animate-spin" />
-              <div className="absolute inset-0 w-16 h-16 border-4 border-primary/20 rounded-full"></div>
-            </div>
-            <div className="text-center">
-              <h3 className="text-xl font-bold text-slate-800 mb-2">
-                {t("pos.processing")}
-              </h3>
-              <p className="text-slate-600 text-sm">
-                Please wait while we process your transaction...
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            {/* Success Icon and Header */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 text-center">
+              <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-4">
+                <svg
+                  className="w-12 h-12 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {t("pos.saleCompleted")}
+              </h2>
+              <p className="text-green-50 text-sm">
+                Your order has been processed successfully
               </p>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-primary h-full rounded-full animate-pulse w-3/4"></div>
+
+            {/* Action Button */}
+            <div className="p-6 pt-6">
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSuccessOrderNumber("");
+                }}
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold transition-colors shadow-lg"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

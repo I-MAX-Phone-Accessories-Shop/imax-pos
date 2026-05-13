@@ -42,23 +42,43 @@ interface FetchStorefrontStockResponse {
     totalItems: number;
     itemsPerPage: number;
   };
+  summary?: {
+    totalProducts: number;
+    totalQuantity: number;
+    totalAmount: number;
+  };
 }
 
 export const fetchStorefrontStock = async (
-  storefrontId?: string
+  storefrontId?: string,
+  page: number = 1,
+  limit: number = 100,
+  category?: string,
+  search?: string,
 ): Promise<FetchStorefrontStockResponse> => {
   try {
-    const url = storefrontId
-      ? `/storefront-inventory?storefrontId=${storefrontId}`
-      : "/storefront-inventory";
+    const params = new URLSearchParams();
+    if (storefrontId) params.append("storefrontId", storefrontId);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+    if (category && category !== "all") params.append("category", category);
+    if (search && search.trim()) params.append("search", search.trim());
+
+    const url = `/storefront-inventory?${params.toString()}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching storefront stock:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch storefront stock",
+      message:
+        error.response?.data?.message || "Failed to fetch storefront stock",
       data: [],
+      summary: {
+        totalProducts: 0,
+        totalQuantity: 0,
+        totalAmount: 0,
+      },
     };
   }
 };

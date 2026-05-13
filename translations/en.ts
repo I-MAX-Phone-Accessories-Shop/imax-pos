@@ -150,6 +150,7 @@ export const en = {
     searchOrScanBarcode: "Search products or scan barcode...",
     barcodeNotFound: "Product with this barcode not found",
     addedToCart: "added to cart",
+    orderDate: "Order Date",
   },
   inventory: {
     title: "Product Inventory",

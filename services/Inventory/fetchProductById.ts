@@ -42,6 +42,7 @@ export interface ProductDetail {
   taxRate: number;
   status: string;
   tags: string[];
+  note?: string;
   createdAt: string;
   updatedAt: string;
   __v: number;

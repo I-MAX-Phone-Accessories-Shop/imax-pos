@@ -23,6 +23,7 @@ import {
   updateStorefrontStockQuantity,
   UpdateStorefrontStockQuantityPayload,
 } from "../services/Storefront/updateStorefrontStockQuantity";
+import { fetchCategories } from "../services/Inventory/fetchCategories";
 
 export const StorefrontDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,16 +44,41 @@ export const StorefrontDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState<string[]>([]);
   const [storefrontName, setStorefrontName] = useState(
     storefrontInfo?.storefrontName || "Storefront",
   );
   const [storefrontCode, setStorefrontCode] = useState(
     storefrontInfo?.storefrontCode || "",
   );
+  const [totalProduct, setTotalProduct] = useState(0);
+  const [totalproductQuantity, setTotalproductQuantity] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 100;
 
   useEffect(() => {
     loadStorefrontStock();
-  }, [id]);
+  }, [id, currentPage, itemsPerPage, selectedCategory, searchTerm]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetchCategories();
+      if (response.success && response.data) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
 
   const loadStorefrontStock = async () => {
     if (!id) {
@@ -63,10 +89,28 @@ export const StorefrontDetail: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetchStorefrontStock(id);
+      const response = await fetchStorefrontStock(
+        id,
+        currentPage,
+        itemsPerPage,
+        selectedCategory,
+        searchTerm,
+      );
       // console.log(response);
-      if (response.success && response.data) {
+      if (response.success) {
+        if (response.summary) {
+          setTotalProduct(response.summary.totalProducts);
+          setTotalproductQuantity(response.summary.totalQuantity);
+          setTotalAmount(response.summary.totalAmount);
+        }
         setStockItems(response.data);
+
+        // Update pagination info
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+          setTotalItems(response.pagination.totalItems);
+          setCurrentPage(response.pagination.currentPage);
+        }
 
         // Update storefront info from first item if not provided via state
         if (response.data.length > 0 && !storefrontInfo) {
@@ -93,34 +137,18 @@ export const StorefrontDetail: React.FC = () => {
     }
   };
 
+  console.log(stockItems);
+
   const totalQuantity = stockItems.reduce(
     (sum, item) => sum + item.quantity,
     0,
   );
   const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
-  // Get unique categories from stock items
-  const categories = Array.from(
-    new Set(stockItems.map((item) => item.inventoryId.category)),
-  ).filter(Boolean);
-
-  // Filter stock items based on search term and category
+  // Filter stock items (search and category filtering handled by API)
   const filteredStockItems = stockItems.filter((item) => {
     const hideProduct = item.inventoryId._id === "69a15d55218ec5ff9a3fe4a3";
-    const matchesSearch =
-      searchTerm === "" ||
-      item.inventoryId.productName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      item.inventoryId.productCode
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-
-    const matchesCategory =
-      selectedCategory === "all" ||
-      item.inventoryId.category === selectedCategory;
-
-    return !hideProduct && matchesSearch && matchesCategory;
+    return !hideProduct;
   });
 
   // Calculate totals based on filtered items
@@ -222,7 +250,7 @@ export const StorefrontDetail: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => navigate("/storefront")}
@@ -266,7 +294,10 @@ export const StorefrontDetail: React.FC = () => {
                 type="text"
                 placeholder="Search by product name or code..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
               />
             </div>
@@ -278,7 +309,10 @@ export const StorefrontDetail: React.FC = () => {
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none appearance-none"
               >
                 <option value="all">All Categories</option>
@@ -297,6 +331,7 @@ export const StorefrontDetail: React.FC = () => {
               onClick={() => {
                 setSearchTerm("");
                 setSelectedCategory("all");
+                setCurrentPage(1);
               }}
               className="px-3 py-2 sm:px-4 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
             >
@@ -326,10 +361,13 @@ export const StorefrontDetail: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-500">
                 Total Products
               </p>
-              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
+              {/* <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
                 {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems.length
                   : stockItems.length}
+              </p> */}
+              <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
+                {totalProduct}
               </p>
             </div>
           </div>
@@ -345,9 +383,7 @@ export const StorefrontDetail: React.FC = () => {
                 Total Quantity
               </p>
               <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">
-                {searchTerm || selectedCategory !== "all"
-                  ? filteredTotalQuantity
-                  : totalQuantity}
+                {totalproductQuantity}
               </p>
             </div>
           </div>
@@ -377,7 +413,7 @@ export const StorefrontDetail: React.FC = () => {
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-500">Total Amount</p>
               <p className="text-lg sm:text-2xl font-bold text-indigo-600 truncate">
-                {searchTerm || selectedCategory !== "all"
+                {/* {searchTerm || selectedCategory !== "all"
                   ? filteredStockItems
                       .reduce((sum, item) => {
                         const sellingPrice = item.inventoryId.sellingPrice || 0;
@@ -385,7 +421,8 @@ export const StorefrontDetail: React.FC = () => {
                         return sum + itemTotal;
                       }, 0)
                       .toLocaleString()
-                  : totalStorefrontAmount.toLocaleString()}{" "}
+                  : totalStorefrontAmount.toLocaleString()}{" "} */}
+                {totalAmount}
                 <span className="hidden sm:inline">MMK</span>
               </p>
             </div>
@@ -414,6 +451,7 @@ export const StorefrontDetail: React.FC = () => {
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedCategory("all");
+                    setCurrentPage(1);
                   }}
                   className="text-primary hover:text-primary-700 underline"
                 >
@@ -602,6 +640,106 @@ export const StorefrontDetail: React.FC = () => {
                 </tfoot> */}
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg border">
+            <div className="text-sm text-slate-600">
+              Showing{" "}
+              {stockItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}{" "}
+              to {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
+              {totalItems} items
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* First Page */}
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                First
+              </button>
+
+              {/* Previous Page */}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-primary text-white border-primary"
+                          : "hover:bg-slate-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Page */}
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+
+              {/* Last Page */}
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Last
+              </button>
+            </div>
+
+            {/* Items per page selector */}
+            {/* <div className="flex items-center gap-2 text-sm">
+              <label className="text-slate-600">Per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary outline-none"
+              >
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+                <option value={500}>500</option>
+              </select>
+            </div> */}
           </div>
         )}
       </div>

@@ -4,7 +4,7 @@ import {
   DollarSign,
   CreditCard,
   BarChart3,
-  TrendingUp,
+  // TrendingUp,
   Gift,
 } from "lucide-react";
 

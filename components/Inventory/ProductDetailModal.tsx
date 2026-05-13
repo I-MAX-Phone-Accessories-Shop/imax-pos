@@ -230,6 +230,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     </div> */}
                   </div>
 
+                  {/* Note */}
+                  {product.note && (
+                    <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-xs text-orange-600 font-medium mb-1">
+                        {t("pos.note") || "Note"}
+                      </p>
+                      <p className="text-sm text-slate-800">
+                        {product.note}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Description */}
                   {/* {product.description && (
                     <div>

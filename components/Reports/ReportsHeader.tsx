@@ -19,6 +19,8 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   storefronts,
   selectedStorefront,
   onStorefrontChange,
+  // onRefresh,
+  // loading,
   startDate,
   endDate,
   onDateRangeChange,
