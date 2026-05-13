@@ -50,9 +50,15 @@ export const StorefrontDetail: React.FC = () => {
     storefrontInfo?.storefrontCode || "",
   );
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(100);
+
   useEffect(() => {
     loadStorefrontStock();
-  }, [id]);
+  }, [id, currentPage, itemsPerPage]);
 
   const loadStorefrontStock = async () => {
     if (!id) {
@@ -63,10 +69,21 @@ export const StorefrontDetail: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetchStorefrontStock(id);
+      const response = await fetchStorefrontStock(
+        id,
+        currentPage,
+        itemsPerPage,
+      );
       // console.log(response);
       if (response.success && response.data) {
         setStockItems(response.data);
+
+        // Update pagination info
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+          setTotalItems(response.pagination.totalItems);
+          setCurrentPage(response.pagination.currentPage);
+        }
 
         // Update storefront info from first item if not provided via state
         if (response.data.length > 0 && !storefrontInfo) {
@@ -601,6 +618,106 @@ export const StorefrontDetail: React.FC = () => {
                   </tr>
                 </tfoot> */}
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg border">
+            <div className="text-sm text-slate-600">
+              Showing{" "}
+              {stockItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}{" "}
+              to {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
+              {totalItems} items
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* First Page */}
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                First
+              </button>
+
+              {/* Previous Page */}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-primary text-white border-primary"
+                          : "hover:bg-slate-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Page */}
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+
+              {/* Last Page */}
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Last
+              </button>
+            </div>
+
+            {/* Items per page selector */}
+            <div className="flex items-center gap-2 text-sm">
+              <label className="text-slate-600">Per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary outline-none"
+              >
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+                <option value={500}>500</option>
+              </select>
             </div>
           </div>
         )}

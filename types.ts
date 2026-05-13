@@ -36,6 +36,7 @@ export interface Product {
   costPrice: number;
   sellingPrice: number;
   lowStockThreshold: number;
+  status?: "active" | "inactive";
 }
 
 export interface CartItem extends Product {

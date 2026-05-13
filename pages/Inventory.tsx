@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Product, ProductCategory } from "../types";
 import { createProduct } from "../services/Inventory/createProduct";
 import { updateProduct } from "../services/Inventory/updateProduct";
+import { updateProductStatus } from "../services/Inventory/updateProductStatus";
 import { fetchProducts } from "../services/Inventory/fetchProducts";
 import { transferInventoryToWarehouse } from "../services/Inventory/transferInventoryToWarehouse";
 import { transferInventoryToStorefront } from "../services/Inventory/transferInventoryToStorefront";
@@ -27,7 +28,10 @@ import {
 import { WarehouseProfile } from "../types";
 import { Building2, X, Loader2, Store, FileUp } from "lucide-react";
 import { SearchInput } from "../components/Inventory/SearchInput";
-import { importExcel, ImportExcelResponse } from "../services/Inventory/importExcel";
+import {
+  importExcel,
+  ImportExcelResponse,
+} from "../services/Inventory/importExcel";
 import { useRef } from "react";
 import { ImportResultModal } from "../components/Inventory/ImportResultModal";
 
@@ -112,6 +116,7 @@ export const Inventory: React.FC = () => {
       costPrice: apiProduct.buyingPrice,
       sellingPrice: apiProduct.sellingPrice,
       lowStockThreshold: apiProduct.reorderPoint || 0,
+      status: (apiProduct.status as "active" | "inactive") || "active",
     };
   };
 
@@ -437,6 +442,31 @@ export const Inventory: React.FC = () => {
       toast.error(t("inventory.failedToLoadDetails"));
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  const handleStatusToggle = async (
+    productId: string,
+    currentStatus: "active" | "inactive",
+  ) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+    try {
+      const response = await updateProductStatus(productId, {
+        status: newStatus,
+      });
+
+      if (response.success) {
+        toast.success(
+          `Product ${newStatus === "active" ? "activated" : "deactivated"} successfully`,
+        );
+        await loadProducts();
+      } else {
+        toast.error(response.message || "Failed to update product status");
+      }
+    } catch (error) {
+      console.error("Error updating product status:", error);
+      toast.error("Failed to update product status");
     }
   };
 
@@ -810,6 +840,7 @@ export const Inventory: React.FC = () => {
             products={filteredProducts}
             onEdit={openEdit}
             onViewDetails={handleViewDetails}
+            onStatusToggle={handleStatusToggle}
             selectedProductIds={selectedProductIds}
             onSelectionChange={handleSelectionChange}
             onSelectAll={handleSelectAll}

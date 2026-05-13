@@ -45,19 +45,25 @@ interface FetchStorefrontStockResponse {
 }
 
 export const fetchStorefrontStock = async (
-  storefrontId?: string
+  storefrontId?: string,
+  page: number = 1,
+  limit: number = 100,
 ): Promise<FetchStorefrontStockResponse> => {
   try {
-    const url = storefrontId
-      ? `/storefront-inventory?storefrontId=${storefrontId}`
-      : "/storefront-inventory";
+    const params = new URLSearchParams();
+    if (storefrontId) params.append("storefrontId", storefrontId);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+
+    const url = `/storefront-inventory?${params.toString()}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching storefront stock:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch storefront stock",
+      message:
+        error.response?.data?.message || "Failed to fetch storefront stock",
       data: [],
     };
   }
