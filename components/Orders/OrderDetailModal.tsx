@@ -57,10 +57,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     // Transform order data to receipt format
     const receiptData = {
       invoiceNumber: order.orderNumber,
-      storefrontName:
-        order.storefrontId?.locationName ||
-        order.storefrontId?.storefrontName ||
-        "Unknown Store",
+      storefrontName: "HONGCHI Myanmar",
       date: order.createdAt,
       items:
         order.ordersProducts?.map((item) => ({
@@ -77,7 +74,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       paymentMethod: getPaymentMethodLabel(order.paymentMethod),
       paidAmount: order.paidAmount,
       change: order.extraChange,
-      note: order.notes,
+      note: (order as any).notes,
     };
 
     // Device detection for print method selection
@@ -92,8 +89,8 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       // For mobile devices (Android/iOS), navigate to receipt page
       navigate(`/print-receipt/${receiptData.invoiceNumber}`);
     } else {
-      // For desktop/Windows, use thermal receipt function
-      printThermalReceipt(receiptData, "58mm");
+      // For desktop/Windows, use A4 size for printing
+      printThermalReceipt(receiptData, "A4");
     }
   };
 

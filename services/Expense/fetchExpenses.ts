@@ -32,18 +32,24 @@ interface FetchExpensesResponse {
   data: Expense[];
 }
 
-export const fetchExpenses = async (): Promise<FetchExpensesResponse> => {
+export const fetchExpenses = async (
+  startDate?: string | null,
+  endDate?: string | null,
+): Promise<FetchExpensesResponse> => {
   try {
-    const response = await axios.get("/expense");
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const url = `/expense${params.toString() ? `?${params.toString()}` : ""}`;
+    const response = await axios.get(url);
     return response.data;
   } catch (error: any) {
     console.error("Error fetching expenses:", error);
     return {
       success: false,
-      message:
-        error.response?.data?.message || "Failed to fetch expenses",
+      message: error.response?.data?.message || "Failed to fetch expenses",
       data: [],
     };
   }
 };
-

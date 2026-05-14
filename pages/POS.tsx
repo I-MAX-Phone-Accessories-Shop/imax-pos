@@ -409,7 +409,7 @@ export const POS: React.FC = () => {
         const receiptData = {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
-          storefrontName: selectedStorefront?.locationName || "Store",
+          storefrontName: "HONGCHI Myanmar",
           items: cart.map((i) => ({
             name: i.stockItem.inventoryId.productName,
             code: i.stockItem.inventoryId.productCode,
@@ -437,8 +437,8 @@ export const POS: React.FC = () => {
           // For mobile devices (Android/iOS), navigate to receipt page
           navigate(`/print-receipt/${receiptData.invoiceNumber}`);
         } else {
-          // For desktop/Windows, use thermal receipt function
-          printThermalReceipt(receiptData, "58mm");
+          // For desktop/Windows, use A4 size for printing
+          printThermalReceipt(receiptData, "A4");
         }
         setCart([]);
         setDiscount(0);

@@ -135,9 +135,8 @@ const PrintReceipt: React.FC = () => {
       <style>{`
         @media print {
           @page {
-            size: 58mm auto;
-            margin: 0;
-            padding: 0;
+            size: A4;
+            margin: 20mm;
           }
           * {
             margin: 0;
@@ -145,11 +144,6 @@ const PrintReceipt: React.FC = () => {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            filter: contrast(200%) !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
             overflow: visible !important;
           }
           html {
@@ -159,16 +153,14 @@ const PrintReceipt: React.FC = () => {
             overflow: visible !important;
           }
           body {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            width: 58mm;
-            max-width: 58mm;
-            margin: 0 auto !important;
-            padding: 1mm 0.5mm !important;
-            line-height: 1.3;
-            text-align: center;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12pt;
+            width: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.5;
+            text-align: left;
             color: #000000 !important;
-            font-weight: bold;
             background: white !important;
             height: auto !important;
             min-height: auto !important;
@@ -177,53 +169,32 @@ const PrintReceipt: React.FC = () => {
           .thermal-receipt-container {
             display: block !important;
             background: white !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            margin: 0 auto !important;
+            width: 100% !important;
+            margin: 0 !important;
             padding: 0 !important;
           }
           .no-print {
             display: none !important;
           }
           .thermal-receipt-page {
-            width: 58mm !important;
-            max-width: 58mm !important;
+            width: 100% !important;
             background: white !important;
             color: #000000 !important;
-            font-weight: bold !important;
-            filter: contrast(200%) !important;
             height: auto !important;
             min-height: auto !important;
             overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-          }
-          .no-print {
-            display: none !important;
           }
           .print-receipt {
             margin: 0 !important;
-            padding: 1mm 0.5mm !important;
+            padding: 0 !important;
             background: white !important;
             min-height: auto !important;
             height: auto !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
+            width: 100% !important;
             overflow: visible !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
           }
           .print-receipt * {
-            font-family: 'Courier New', monospace;
-            font-weight: bold !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
+            font-family: 'Helvetica', 'Arial', sans-serif;
           }
         }
         @media screen {
@@ -241,8 +212,8 @@ const PrintReceipt: React.FC = () => {
             border: 1px solid #ccc;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             background: white;
-            width: 58mm;
-            max-width: 58mm;
+            width: 210mm;
+            padding: 20mm;
           }
         }
       `}</style>
@@ -276,265 +247,160 @@ const PrintReceipt: React.FC = () => {
           {/* Header */}
           <div
             className="header"
-            style={{ textAlign: "center", marginBottom: "1mm" }}
+            style={{ textAlign: "center", marginBottom: "5mm" }}
           >
             <h2
               style={{
-                fontSize: "20px",
-                fontWeight: "900",
-                marginBottom: "1mm",
+                fontSize: "28px",
+                fontWeight: "bold",
+                marginBottom: "2mm",
                 marginTop: "0",
                 textTransform: "uppercase",
-                letterSpacing: "0",
               }}
             >
-              AutoShop
+              HONGCHI Myanmar
             </h2>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              လိပ်စာ - A(30)၊ပထမထပ်၊
-              <br />
-              &nbsp;&nbsp;&nbsp;&nbspယုဇနပလာဇာ
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09670577147(Viber)
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: "800",
-                marginBottom: "1mm",
-                textTransform: "uppercase",
-                letterSpacing: "0",
-              }}
-            >
-              ဖုန်း-09440064007(Viber)
-            </div>
           </div>
 
           {/* Order Info */}
           <div
             className="order-info"
             style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
-              padding: "0.5mm 0",
-              margin: "1mm 0",
+              borderTop: "2px solid #000",
+              borderBottom: "2px solid #000",
+              padding: "2mm 0",
+              margin: "5mm 0",
+              textAlign: "left",
             }}
           >
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              Order: {receiptData.invoiceNumber}
-            </p>
-            <p
-              style={{
-                margin: "1px 0",
-                fontSize: "12px",
-                fontWeight: "900",
-              }}
-            >
-              {formatDate(receiptData.date)} {formatTime(receiptData.date)}
-            </p>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <p
+                style={{
+                  margin: "1px 0",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                }}
+              >
+                Invoice: {receiptData.invoiceNumber}
+              </p>
+              <p style={{ margin: "1px 0", fontSize: "16px" }}>
+                Date: {formatDate(receiptData.date)}{" "}
+                {formatTime(receiptData.date)}
+              </p>
+            </div>
           </div>
 
           {/* Items */}
-          <div style={{ marginBottom: "2mm" }}>
-            <div
-              className="items-header"
-              style={{
-                borderBottom: "1px dashed #000",
-                paddingBottom: "1mm",
-                marginBottom: "2mm",
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "14px",
-                fontWeight: "900",
-              }}
-            >
-              <span style={{ flex: "1", textAlign: "left" }}>Item</span>
-              <span style={{ width: "55px", textAlign: "right" }}>Amt</span>
-            </div>
-
-            {receiptData.items.length > 0 ? (
-              receiptData.items.map((item, index) => (
-                <div
-                  key={`${item.code || item.name}-${index}`}
-                  style={{
-                    marginBottom: "1mm",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
+          <div style={{ marginBottom: "5mm" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid #000" }}>
+                  <th style={{ textAlign: "left", padding: "2mm 0" }}>
+                    Description
+                  </th>
+                  <th style={{ textAlign: "center", padding: "2mm 0" }}>Qty</th>
+                  <th style={{ textAlign: "right", padding: "2mm 0" }}>
+                    Price
+                  </th>
+                  <th style={{ textAlign: "right", padding: "2mm 0" }}>
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {receiptData.items.map((item, index) => (
+                  <tr
+                    key={`${item.code || item.name}-${index}`}
+                    style={{ borderBottom: "1px solid #eee" }}
                   >
-                    <span
-                      style={{
-                        flex: "1",
-                        fontSize: "14px",
-                        wordBreak: "break-word",
-                        paddingRight: "1mm",
-                        textAlign: "left",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {item.name.substring(0, 25)}
-                      {item.name.length > 25 ? "..." : ""} x{item.qty}
-                    </span>
-                    <span
-                      style={{
-                        width: "55px",
-                        textAlign: "right",
-                        fontSize: "14px",
-                        fontWeight: "900",
-                      }}
-                    >
+                    <td style={{ padding: "2mm 0" }}>{item.name}</td>
+                    <td style={{ textAlign: "center", padding: "2mm 0" }}>
+                      {item.qty}
+                    </td>
+                    <td style={{ textAlign: "right", padding: "2mm 0" }}>
+                      {item.price.toLocaleString()}
+                    </td>
+                    <td style={{ textAlign: "right", padding: "2mm 0" }}>
                       {(item.price * item.qty).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: "14px",
-                  fontWeight: "900",
-                }}
-              >
-                No items
-              </p>
-            )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* Summary */}
           <div
             className="summary-section"
             style={{
-              borderTop: "1px dashed #000",
-              borderBottom: "1px dashed #000",
+              marginTop: "5mm",
               padding: "2mm 0",
-              marginBottom: "2mm",
+              textAlign: "right",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Subtotal</span>
-              <span>{receiptData.subtotal.toLocaleString()}</span>
-            </div>
-
-            {receiptData.discountPercent > 0 && (
+            <div style={{ display: "inline-block", minWidth: "250px" }}>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
                 }}
               >
-                <span>Discount</span>
-                <span style={{ fontWeight: "900" }}>
-                  {receiptData.discountPercent}%
-                </span>
+                <span>Subtotal:</span>
+                <span>{receiptData.subtotal.toLocaleString()}</span>
               </div>
-            )}
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: "2mm",
-                paddingTop: "2mm",
-                borderTop: "1px solid #000",
-                fontSize: "16px",
-                fontWeight: "900",
-              }}
-            >
-              <span>TOTAL</span>
-              <span>{receiptData.total.toLocaleString()}</span>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "1mm",
-                fontSize: "13px",
-                fontWeight: "900",
-              }}
-            >
-              <span>Payment</span>
-              <span>{receiptData.paymentMethod}</span>
-            </div>
-
-            {receiptData.paidAmount && (
+              {receiptData.discountPercent > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "1mm",
+                  }}
+                >
+                  <span>Discount ({receiptData.discountPercent}%):</span>
+                  <span>
+                    -
+                    {(
+                      (receiptData.subtotal * receiptData.discountPercent) /
+                      100
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              )}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
+                  marginTop: "2mm",
+                  paddingTop: "2mm",
+                  borderTop: "2px solid #000",
+                  fontSize: "20px",
+                  fontWeight: "bold",
                 }}
               >
-                <span>Paid</span>
-                <span>{receiptData.paidAmount.toLocaleString()}</span>
+                <span>TOTAL:</span>
+                <span>{receiptData.total.toLocaleString()} MMK</span>
               </div>
-            )}
-
-            {receiptData.change && receiptData.change > 0 && (
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  marginBottom: "1mm",
-                  fontSize: "13px",
-                  fontWeight: "900",
+                  marginTop: "2mm",
                 }}
               >
-                <span>Change</span>
-                <span>{receiptData.change.toLocaleString()}</span>
+                <span>Payment Method:</span>
+                <span>{receiptData.paymentMethod}</span>
               </div>
-            )}
+            </div>
           </div>
 
           {receiptData.note && (
             <div
               style={{
-                marginBottom: "2mm",
-                fontSize: "11px",
+                marginTop: "10mm",
+                padding: "2mm",
+                border: "1px solid #eee",
                 fontStyle: "italic",
-                fontWeight: "900",
               }}
             >
               Note: {receiptData.note}
@@ -546,24 +412,21 @@ const PrintReceipt: React.FC = () => {
             className="footer"
             style={{
               textAlign: "center",
-              marginTop: "2mm",
-              paddingTop: "2mm",
-              borderTop: "1px dashed #000",
-              fontSize: "12px",
+              marginTop: "20mm",
+              paddingTop: "5mm",
+              borderTop: "1px solid #eee",
             }}
           >
             <p
               style={{
-                margin: "1mm 0",
-                fontSize: "14px",
-                fontWeight: "900",
+                fontSize: "16px",
+                fontWeight: "bold",
+                marginBottom: "2mm",
               }}
             >
-              Thank you!
+              Thank you for your business!
             </p>
-            <p style={{ margin: "1mm 0", opacity: 0.7, fontWeight: "900" }}>
-              AutoShop Receipt
-            </p>
+            <p style={{ opacity: 0.7 }}>HONGCHI Myanmar</p>
           </div>
         </div>
       </div>
