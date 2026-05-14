@@ -49,9 +49,11 @@ export interface ProductSalesStatisticsResponse {
 export const fetchProductSalesStatistics = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
+    console.log("startDate", startDate);
+    console.log("endDate", endDate);
     let url = `/sale-report/products?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
 
@@ -104,7 +106,7 @@ export const fetchProductSalesStatistics = async (
  */
 export const fetchAllStorefrontsProductSalesStatistics = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
     let url = `/sale-report/products`;
@@ -126,7 +128,7 @@ export const fetchAllStorefrontsProductSalesStatistics = async (
   } catch (error: any) {
     console.error(
       "Error fetching all storefronts product sales statistics:",
-      error
+      error,
     );
     return {
       success: false,

@@ -45,8 +45,10 @@ export interface PaidOrdersReportResponse {
 export const fetchPaidOrdersReport = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<PaidOrdersReportResponse> => {
+  console.log("startDate-caller", startDate);
+  console.log("endDate-caller", endDate);
   try {
     let url = `/sale-report/paid-orders?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();
@@ -99,7 +101,7 @@ export const fetchPaidOrdersReport = async (
  */
 export const fetchAllStorefrontsPaidOrdersReport = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<PaidOrdersReportResponse> => {
   try {
     let url = `/sale-report/paid-orders`;
