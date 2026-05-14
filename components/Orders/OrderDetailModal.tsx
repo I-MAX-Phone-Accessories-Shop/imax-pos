@@ -57,10 +57,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     // Transform order data to receipt format
     const receiptData = {
       invoiceNumber: order.orderNumber,
-      storefrontName:
-        order.storefrontId?.locationName ||
-        order.storefrontId?.storefrontName ||
-        "Unknown Store",
+      storefrontName: "HONGCHI Myanmar",
       date: order.createdAt,
       items:
         order.ordersProducts?.map((item) => ({
@@ -77,7 +74,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       paymentMethod: getPaymentMethodLabel(order.paymentMethod),
       paidAmount: order.paidAmount,
       change: order.extraChange,
-      note: order.notes,
+      note: (order as any).notes,
     };
 
     // Save receipt data to localStorage for A4 printing

@@ -431,33 +431,39 @@ export const CreditDetail: React.FC = () => {
           <div className="flex gap-2 mb-6 border-b">
             <button
               onClick={() => setActiveTab("orders")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "orders"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === "orders"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
             >
               <Receipt className="w-4 h-4" />
-              {t("creditDetail.associatedOrders")} ({personaDetail.orders.length})
+              {t("creditDetail.associatedOrders")} (
+              {personaDetail.orders.length})
             </button>
             <button
               onClick={() => setActiveTab("products")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "products"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === "products"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
             >
               <Box className="w-4 h-4" />
-              Purchased Products ({productsReport?.data.totals.totalUniqueProducts || 0})
+              Purchased Products (
+              {productsReport?.data.totals.totalUniqueProducts || 0})
             </button>
             <button
               onClick={() => setActiveTab("payments")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "payments"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === "payments"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
             >
               <CreditCard className="w-4 h-4" />
-              {t("creditDetail.paymentRecords")} ({personaDetail.creditRecords.count})
+              {t("creditDetail.paymentRecords")} (
+              {personaDetail.creditRecords.count})
             </button>
           </div>
 
@@ -521,9 +527,12 @@ export const CreditDetail: React.FC = () => {
                   {loadingProducts ? (
                     <div className="p-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-                      <p className="text-slate-400 text-sm">Loading products...</p>
+                      <p className="text-slate-400 text-sm">
+                        Loading products...
+                      </p>
                     </div>
-                  ) : !productsReport || productsReport.data.products.length === 0 ? (
+                  ) : !productsReport ||
+                    productsReport.data.products.length === 0 ? (
                     <div className="p-12 text-center text-slate-400 text-sm">
                       No products found for this credit persona.
                     </div>
@@ -531,7 +540,9 @@ export const CreditDetail: React.FC = () => {
                     <table className="w-full text-sm text-left">
                       <thead className="bg-slate-50 text-slate-600 border-b">
                         <tr>
-                          <th className="px-4 py-3 font-medium">Product Name</th>
+                          <th className="px-4 py-3 font-medium">
+                            Product Name
+                          </th>
                           <th className="px-4 py-3 font-medium">SKU</th>
                           <th className="px-4 py-3 font-medium text-right">
                             Quantity
@@ -599,9 +610,9 @@ export const CreditDetail: React.FC = () => {
                         <th className="px-4 py-3 font-medium">
                           {t("common.method")}
                         </th>
-                        <th className="px-4 py-3 font-medium text-right">
+                        {/* <th className="px-4 py-3 font-medium text-right">
                           {t("creditDetail.orderAmount")}
-                        </th>
+                        </th> */}
                         <th className="px-4 py-3 font-medium text-right">
                           {t("creditDetail.amountPaid")}
                         </th>
@@ -632,20 +643,22 @@ export const CreditDetail: React.FC = () => {
                               {getPaymentMethodLabel(record.paymentMethod)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-right text-slate-600">
+                          {/* <td className="px-4 py-3 text-right text-slate-600">
                             {record.orderId.finalAmount.toLocaleString()} MMK
-                          </td>
+                          </td> */}
                           <td className="px-4 py-3 text-right font-bold text-green-600">
                             {record.paidAmount.toLocaleString()} MMK
                           </td>
                           <td className="px-4 py-3 text-right">
                             <span
-                              className={`font-medium ${record.orderId.remainingBalance > 0
-                                ? "text-orange-600"
-                                : "text-green-600"
-                                }`}
+                              className={`font-medium ${
+                                record.orderId.remainingBalance > 0
+                                  ? "text-orange-600"
+                                  : "text-green-600"
+                              }`}
                             >
-                              {record.orderId.remainingBalance.toLocaleString()} MMK
+                              {record.orderId.remainingBalance.toLocaleString()}{" "}
+                              MMK
                             </span>
                           </td>
                           <td className="px-4 py-3 text-slate-500 text-xs">

@@ -409,7 +409,7 @@ export const POS: React.FC = () => {
         const receiptData = {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
-          storefrontName: selectedStorefront?.locationName || "Store",
+          storefrontName: "HONGCHI Myanmar",
           items: cart.map((i) => ({
             name: i.stockItem.inventoryId.productName,
             code: i.stockItem.inventoryId.productCode,

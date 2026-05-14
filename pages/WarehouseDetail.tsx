@@ -229,25 +229,37 @@ export const WarehouseDetail: React.FC = () => {
   const addTransferItem = () => {
     // Get available products (not already in transfer list)
     const usedCodes = transferItems.map((i) => i.productCode);
+    console.log("usedCodes", usedCodes);
+    console.log("stockItems", stockItems);
+
     const availableProducts = stockItems.filter(
       (item) =>
         !usedCodes.includes(item.inventoryId.productCode) &&
-        item.availableQuantity > 0,
+        (item.availableQuantity > 0 || item.quantity > 0), // Check both availableQuantity and quantity
     );
 
+    console.log("availableProducts", availableProducts);
+
     if (availableProducts.length === 0) {
-      toast.error("No more products available to add");
+      toast.error(
+        "No more products available to add. All products may have 0 quantity or are already selected.",
+      );
       return;
     }
 
     const firstAvailable = availableProducts[0];
+    const maxQuantity = Math.max(
+      firstAvailable.availableQuantity || 0,
+      firstAvailable.quantity || 0,
+    );
+
     setTransferItems([
       ...transferItems,
       {
         productCode: firstAvailable.inventoryId.productCode,
         productName: firstAvailable.inventoryId.productName,
         quantity: 1,
-        maxQuantity: firstAvailable.availableQuantity,
+        maxQuantity: maxQuantity,
         notes: "",
       },
     ]);
@@ -270,15 +282,16 @@ export const WarehouseDetail: React.FC = () => {
         (item) => item.inventoryId.productCode === value,
       );
       if (stockItem) {
+        const maxQuantity = Math.max(
+          stockItem.availableQuantity || 0,
+          stockItem.quantity || 0,
+        );
         updated[index] = {
           ...updated[index],
           productCode: value as string,
           productName: stockItem.inventoryId.productName,
-          maxQuantity: stockItem.availableQuantity,
-          quantity: Math.min(
-            updated[index].quantity,
-            stockItem.availableQuantity,
-          ),
+          maxQuantity: maxQuantity,
+          quantity: Math.min(updated[index].quantity, maxQuantity),
         };
       }
     } else if (field === "quantity") {
@@ -358,7 +371,7 @@ export const WarehouseDetail: React.FC = () => {
     return stockItems.filter(
       (item) =>
         !usedCodes.includes(item.inventoryId.productCode) &&
-        item.availableQuantity > 0,
+        (item.availableQuantity > 0 || item.quantity > 0), // Check both availableQuantity and quantity
     );
   };
 
@@ -662,10 +675,10 @@ export const WarehouseDetail: React.FC = () => {
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       Qty
                     </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                    {/* <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       <span className="hidden sm:inline">Available</span>
                       <span className="sm:hidden">Avail</span>
-                    </th>
+                    </th> */}
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       <span className="hidden sm:inline">Price</span>
                       <span className="sm:hidden">$</span>
@@ -708,9 +721,9 @@ export const WarehouseDetail: React.FC = () => {
                       <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
                         {item.quantity}
                       </td>
-                      <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
+                      {/* <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
                         {item.availableQuantity}
-                      </td>
+                      </td> */}
                       <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
                         {(item.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
                         <span className="hidden sm:inline">MMK</span>
@@ -747,7 +760,7 @@ export const WarehouseDetail: React.FC = () => {
                           <div className="flex items-center gap-1 sm:gap-2">
                             <button
                               onClick={() => openTransferModal(item)}
-                              disabled={item.availableQuantity === 0}
+                              disabled={item.quantity == 0}
                               className="text-xs bg-purple-50 text-primary-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <ArrowRightLeft className="w-3 h-3" />{" "}
