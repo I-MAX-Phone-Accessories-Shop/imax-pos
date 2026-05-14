@@ -116,7 +116,7 @@ export const Expenses: React.FC = () => {
       amount: expense.amount,
       date: expense.date.split("T")[0], // Extract date part if it includes time
       notes: expense.notes || "",
-      locationId: expense.locationId || "", // Include locationId
+      locationId: expense.locationId?._id || "", // Include locationId _id
     });
     setIsModalOpen(true);
   };
