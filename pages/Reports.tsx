@@ -279,32 +279,18 @@ export const Reports: React.FC = () => {
     setLoadingStatistics(true);
     try {
       // Always use dates - default to today if not set
-      const today = getToday();
-      const startDateToUse = startDate || today;
-      const endDateToUse = endDate || today;
 
-      const startDateStr = formatDateForAPI(startDateToUse);
-      const endDateStr = formatDateForAPI(endDateToUse);
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
 
-      // Ensure dates are always provided
-      if (!startDateStr || !endDateStr) {
-        const todayStr = formatDateForAPI(today);
-        const response = await fetchProductSalesStatistics(
-          selectedStorefront,
-          todayStr,
-          todayStr,
-        );
-        setProductSalesStatistics(response);
-      } else {
-        const response = await fetchProductSalesStatistics(
-          selectedStorefront,
-          startDateStr,
-          endDateStr,
-        );
-        setProductSalesStatistics(response);
-      }
+      const response = await fetchProductSalesStatistics(
+        selectedStorefront,
+        startDateStr,
+        endDateStr,
+      );
+      setProductSalesStatistics(response);
     } catch (error) {
-      console.error("Error loading product sales statistics:", error);
+      // console.error("Error loading product sales statistics:", error);
       toast.error("Failed to load product sales statistics");
     } finally {
       setLoadingStatistics(false);

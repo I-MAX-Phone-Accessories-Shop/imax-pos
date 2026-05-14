@@ -759,7 +759,7 @@ export const WarehouseDetail: React.FC = () => {
                         {userRole === "owner" && (
                           <div className="flex items-center gap-1 sm:gap-2">
                             <button
-                              onClick={() => console.log(item)}
+                              onClick={() => openTransferModal(item)}
                               disabled={item.quantity == 0}
                               className="text-xs bg-purple-50 text-primary-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
