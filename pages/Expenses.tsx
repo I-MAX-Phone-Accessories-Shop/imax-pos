@@ -22,12 +22,24 @@ import {
 } from "../services/Location/fetchLocationProfiles";
 import { useLanguage } from "../context/LanguageContext";
 import { ConfirmModal } from "../components/Common/ConfirmModal";
+import { DateRangePicker } from "../components/Reports/DateRangePicker";
+
+// Helper function to get today's date
+const getToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
 
 export const Expenses: React.FC = () => {
   const { t } = useLanguage();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<LocationProfile[]>([]);
+
+  // Date Filter State
+  const [startDate, setStartDate] = useState<Date | null>(getToday());
+  const [endDate, setEndDate] = useState<Date | null>(getToday());
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,6 +61,10 @@ export const Expenses: React.FC = () => {
 
   useEffect(() => {
     loadExpenses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, endDate]);
+
+  useEffect(() => {
     loadLocations();
   }, []);
 
@@ -66,10 +82,20 @@ export const Expenses: React.FC = () => {
     }
   };
 
+  const formatDateForAPI = (date: Date | null): string | null => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const loadExpenses = async () => {
     setLoading(true);
     try {
-      const response = await fetchExpenses();
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+      const response = await fetchExpenses(startDateStr, endDateStr);
       if (response.success && response.data) {
         setExpenses(response.data);
       } else {
@@ -238,27 +264,43 @@ export const Expenses: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-row justify-between items-start gap-4 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <PieChart className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
-          {t("expenses.title")}
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <PieChart className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
+            {t("expenses.title")}
+          </h1>
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
-          >
-            <Plus className="w-4 h-4" />{" "}
-            <span className="hidden sm:inline">{t("expenses.addExpense")}</span>
-          </button>
-          <button
-            onClick={loadExpenses}
-            disabled={loading}
-            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">{t("common.refresh")}</span>
-          </button>
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(newStartDate, newEndDate) => {
+              setStartDate(newStartDate);
+              setEndDate(newEndDate);
+            }}
+          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
+            >
+              <Plus className="w-4 h-4" />{" "}
+              <span className="hidden sm:inline">
+                {t("expenses.addExpense")}
+              </span>
+            </button>
+            <button
+              onClick={loadExpenses}
+              disabled={loading}
+              className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+              />
+              <span className="hidden sm:inline">{t("common.refresh")}</span>
+            </button>
+          </div>
         </div>
       </div>
 
