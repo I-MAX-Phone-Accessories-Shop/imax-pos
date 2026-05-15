@@ -17,7 +17,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-import { printThermalReceipt } from "../components/ThermalReceipt";
+import { getSavedPrintPaperSize } from "../utils/printPaperSize";
 import { detectDevice } from "../utils/deviceDetect";
 import {
   fetchStorefrontStock,
@@ -433,7 +433,9 @@ export const POS: React.FC = () => {
         // console.log("Device:", device);
 
         // Navigate to professional A4 receipt page
-        navigate(`/print-receipt/${receiptData.invoiceNumber}`);
+        navigate(
+          `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}&autoprint=1`,
+        );
         setCart([]);
         setDiscount(0);
         setMarkup(0);

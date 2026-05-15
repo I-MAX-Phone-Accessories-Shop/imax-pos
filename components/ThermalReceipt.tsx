@@ -1,4 +1,9 @@
 import React from "react";
+import { fetchShopSettings } from "../services/ShopSettings/fetchShopSettings";
+import {
+  getPrintShopBranding,
+  preloadImage,
+} from "../utils/printShopBranding";
 
 interface ReceiptItem {
   name: string;
@@ -436,10 +441,25 @@ interface ThermalReceiptProps {
 // };
 
 // Helper function to print receipt
-export const printThermalReceipt = (
+export const printThermalReceipt = async (
   receiptData: ReceiptData,
   paperSize: string = "58mm",
 ) => {
+  const shopResponse = await fetchShopSettings();
+  const branding = getPrintShopBranding(shopResponse.data ?? null);
+  if (branding.logo) {
+    await preloadImage(branding.logo);
+  }
+
+  const contactParts = [
+    branding.phone && `Tel: ${branding.phone}`,
+    branding.website,
+  ].filter(Boolean);
+
+  const logoHeader = branding.logo
+    ? `<img src="${branding.logo}" alt="${branding.shopName}" style="width: 18mm; height: 18mm; object-fit: contain; margin: 0 auto 2mm; display: block;" />`
+    : "";
+
   // Create a hidden iframe for printing
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
@@ -637,8 +657,9 @@ export const printThermalReceipt = (
       <div class="thermal-receipt-page">
         <!-- Header with Logo -->
         <div class="header">
-          <div class="logo-text">I-MAX</div>
-          <div class="tagline">Phone Accessories Shop</div>
+          ${logoHeader}
+          <div class="logo-text">${branding.shopName}</div>
+          ${branding.address ? `<div class="tagline">${branding.address}</div>` : ""}
         </div>
         
         <!-- Invoice Header -->
@@ -675,16 +696,14 @@ export const printThermalReceipt = (
         `,
           )
           .join("")}
-          )
-          .join("")}
         
         <!-- Summary Section -->
         <div class="summary-section">
           <div class="payment-info">
             <div style="font-weight: bold; margin-bottom: 2mm;">Payment Info:</div>
             <div>Method: ${receiptData.paymentMethod}</div>
-            ${receiptData.paidAmount ? `<div>Paid: ${receiptData.paidAmount.toLocaleString()} MMK</div>` : ""}
-            ${receiptData.change && receiptData.change > 0 ? `<div>Change: ${receiptData.change.toLocaleString()} MMK</div>` : ""}
+            ${receiptData.paidAmount ? `<div>Paid: ${receiptData.paidAmount.toLocaleString()} ${branding.currency}</div>` : ""}
+            ${receiptData.change && receiptData.change > 0 ? `<div>Change: ${receiptData.change.toLocaleString()} ${branding.currency}</div>` : ""}
             ${receiptData.note ? `<div style="margin-top: 2mm; font-style: italic;">Note: ${receiptData.note}</div>` : ""}
           </div>
           <div class="totals">
@@ -704,7 +723,7 @@ export const printThermalReceipt = (
             }
             <div class="summary-row total-row">
               <span>TOTAL:</span>
-              <span>${receiptData.total.toLocaleString()} MMK</span>
+              <span>${receiptData.total.toLocaleString()} ${branding.currency}</span>
             </div>
           </div>
         </div>
@@ -719,8 +738,8 @@ export const printThermalReceipt = (
         
         <!-- Contact Bar -->
         <div class="contact-bar">
-          <span>Contact Us: 09960780006</span>
-          <span>I-MAX Shop</span>
+          <span>${contactParts.length > 0 ? contactParts.join(" | ") : branding.address || ""}</span>
+          <span>${branding.shopName}</span>
         </div>
       </div>
     </body>

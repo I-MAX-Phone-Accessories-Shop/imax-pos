@@ -12,6 +12,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  Store,
 } from "lucide-react";
 import {
   fetchStockAuditLogs,
@@ -24,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { TransferList } from "../components/Purchasing/TransferList";
 import { TransferDetailModal } from "../components/Purchasing/TransferDetailModal";
+import { ShopSettingsTab } from "../components/Settings/ShopSettingsTab";
 
 export const Settings: React.FC = () => {
   const { currentUser, setUserRole, logs } = useApp();
@@ -39,7 +41,9 @@ export const Settings: React.FC = () => {
   );
   const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] =
     useState(false);
-  const [activeTab, setActiveTab] = useState<"audit" | "transfer">("audit");
+  const [activeTab, setActiveTab] = useState<
+    "audit" | "transfer" | "shop"
+  >("shop");
 
   const loadStockAuditLogs = async (page: number = 1) => {
     setLoading(true);
@@ -101,6 +105,18 @@ export const Settings: React.FC = () => {
       {/* Tabs */}
       <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 border-b overflow-x-auto">
         <button
+          onClick={() => setActiveTab("shop")}
+          className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
+            activeTab === "shop"
+              ? "border-b-2 border-blue-800 text-blue-800"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Store className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline">Shop Settings</span>
+          <span className="sm:hidden">Shop</span>
+        </button>
+        <button
           onClick={() => setActiveTab("audit")}
           className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${activeTab === "audit"
             ? "border-b-2 border-blue-800 text-blue-800"
@@ -123,6 +139,9 @@ export const Settings: React.FC = () => {
           <span className="sm:hidden">Transfers</span>
         </button>
       </div>
+
+      {/* Shop Settings Tab */}
+      {activeTab === "shop" && <ShopSettingsTab />}
 
       {/* Audit Logs Tab */}
       {activeTab === "audit" && (

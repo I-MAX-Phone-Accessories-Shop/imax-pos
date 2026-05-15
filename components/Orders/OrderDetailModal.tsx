@@ -22,7 +22,7 @@ import {
   formatDate,
 } from "./orderUtils";
 import { useLanguage } from "../../context/LanguageContext";
-import { printThermalReceipt } from "../ThermalReceipt";
+import { getSavedPrintPaperSize } from "../../utils/printPaperSize";
 import { detectDevice } from "../../utils/deviceDetect";
 import { useNavigate } from "react-router-dom";
 import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
@@ -82,7 +82,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     localStorage.setItem(receiptId, JSON.stringify(receiptData));
 
     // Navigate to A4 print page for all devices
-    navigate(`/print-receipt/${receiptData.invoiceNumber}`);
+    navigate(
+      `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}&autoprint=1`,
+    );
   };
 
   if (!isOpen) return null;
