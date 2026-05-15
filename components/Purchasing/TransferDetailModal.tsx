@@ -3,6 +3,10 @@ import { Modal } from "../Modal";
 import { fetchTransferById } from "../../services/Purchase/fetchTransferById";
 import { TransferData } from "../../services/Purchase/fetchTransfers";
 import {
+  fetchProductById,
+  ProductDetail,
+} from "../../services/Inventory/fetchProductById";
+import {
   Package,
   Calendar,
   FileText,
@@ -25,6 +29,9 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
 }) => {
   const [transfer, setTransfer] = useState<TransferData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [productDetails, setProductDetails] = useState<
+    Record<string, ProductDetail>
+  >({});
 
   useEffect(() => {
     if (isOpen && transferId) {
@@ -39,6 +46,27 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
       const res = await fetchTransferById(transferId);
       if (res.success && res.data) {
         setTransfer(res.data);
+
+        // Fetch product details for each line item
+        const productPromises = res.data.lineItems.map(async (item) => {
+          if (item.inventoryId) {
+            const productRes = await fetchProductById(item.inventoryId);
+            if (productRes.success && productRes.data) {
+              return { [item.inventoryId]: productRes.data };
+            }
+          }
+          return null;
+        });
+
+        const productResults = await Promise.all(productPromises);
+        const products = productResults.reduce((acc, result) => {
+          if (result) {
+            return { ...acc, ...result };
+          }
+          return acc;
+        }, {});
+
+        setProductDetails(products);
       }
     } catch (error) {
       console.error("Failed to load transfer details", error);
@@ -82,7 +110,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
           storefrontName?: string;
         }
       | null
-      | undefined
+      | undefined,
   ): string => {
     if (!value) return "-";
     if (typeof value === "string") return value;
@@ -104,7 +132,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
           storefrontName?: string;
         }
       | null
-      | undefined
+      | undefined,
   ): string => {
     if (!value) return "-";
     if (typeof value === "string") return value;
@@ -163,7 +191,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                 Transfer Date
               </div>
               <div className="font-bold text-lg">
-                {new Date(transfer.transferDate).toLocaleDateString()}
+                {new Date(transfer.transferDate).toDateString()}
               </div>
             </div>
             <div className="bg-slate-50 p-4 rounded-lg border">
@@ -182,7 +210,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
               </div>
               <span
                 className={`inline-block px-3 py-1 rounded-full text-sm font-bold border ${getStatusColor(
-                  transfer.status
+                  transfer.status,
                 )}`}
               >
                 {transfer.status.toUpperCase()}
@@ -228,7 +256,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                       ID:{" "}
                       {(transfer.destinationStorefrontId as any)._id?.substring(
                         0,
-                        12
+                        12,
                       ) || "-"}
                     </div>
                   )}
@@ -251,7 +279,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                       ID:{" "}
                       {(transfer.destinationWarehouseId as any)._id?.substring(
                         0,
-                        12
+                        12,
                       ) || "-"}
                     </div>
                   )}
@@ -276,7 +304,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
           </div>
 
           {/* Received Date */}
-          {transfer.receivedDate && (
+          {/* {transfer.receivedDate && (
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 text-green-700 text-sm font-semibold mb-2">
                 <Calendar className="w-4 h-4" />
@@ -286,7 +314,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                 {new Date(transfer.receivedDate).toLocaleString()}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Notes */}
           {transfer.notes && (
@@ -312,7 +340,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                     <th className="p-3 text-left">#</th>
                     <th className="p-3 text-left">Product Name</th>
                     <th className="p-3 text-center">Quantity</th>
-                    <th className="p-3 text-left">GRN Line Item ID</th>
+                    {/* <th className="p-3 text-left">GRN Line Item ID</th> */}
                     <th className="p-3 text-left">Notes</th>
                   </tr>
                 </thead>
@@ -321,14 +349,14 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                     <tr key={item._id} className="hover:bg-slate-50">
                       <td className="p-3 text-slate-500">{index + 1}</td>
                       <td className="p-3 font-mono text-xs truncate max-w-xs">
-                        {item.inventoryId?.productName || "-"}
+                        {productDetails[item.inventoryId]?.productName || "-"}
                       </td>
                       <td className="p-3 text-center">
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
                           {item.quantity}
                         </span>
                       </td>
-                      <td
+                      {/* <td
                         className="p-3 font-mono text-xs truncate max-w-xs"
                         title={
                           item.grnLineItemId
@@ -345,7 +373,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                                 ?.substring(0, 12)
                                 ?.concat("...") || "-"
                           : "-"}
-                      </td>
+                      </td> */}
                       <td className="p-3 text-slate-500">
                         {item.notes || "-"}
                       </td>

@@ -13,6 +13,7 @@ export interface InventoryInfo {
 export interface AdminInfo {
   _id: string;
   name: string;
+  role: string;
 }
 
 export interface LocationInfo {
@@ -26,13 +27,13 @@ export interface StockAuditLog {
   inventoryId: InventoryInfo;
   adminId: AdminInfo;
   locationId: LocationInfo;
-  locationType: string;
+  locationType: "warehouse" | "storefront" | string;
   stockRecordId: string;
   beforeQuantity: number;
   afterQuantity: number;
   quantityChange: number;
   action: string;
-  reason: string;
+  reason: string | null;
   relatedTransactionId: string | null;
   relatedTransactionType: string | null;
   createdAt: string;
@@ -43,10 +44,10 @@ export interface StockAuditLog {
 }
 
 interface Pagination {
-  currentPage: number;
+  currentPage: string | number;
   totalPages: number;
   totalItems: number;
-  itemsPerPage: number;
+  itemsPerPage: string | number;
 }
 
 interface FetchStockAuditLogsResponse {
@@ -56,9 +57,14 @@ interface FetchStockAuditLogsResponse {
   pagination: Pagination;
 }
 
-export const fetchStockAuditLogs = async (): Promise<FetchStockAuditLogsResponse> => {
+export const fetchStockAuditLogs = async (
+  page: number = 1,
+  limit: number = 10,
+): Promise<FetchStockAuditLogsResponse> => {
   try {
-    const response = await axios.get("/stock-audit-logs");
+    const response = await axios.get(
+      `/stock-audit-logs?page=${page}&limit=${limit}`,
+    );
     return response.data;
   } catch (error: any) {
     console.error("Error fetching stock audit logs:", error);
@@ -76,4 +82,3 @@ export const fetchStockAuditLogs = async (): Promise<FetchStockAuditLogsResponse
     };
   }
 };
-

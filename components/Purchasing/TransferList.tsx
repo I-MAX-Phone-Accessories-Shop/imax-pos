@@ -83,35 +83,35 @@ export const TransferList: React.FC<TransferListProps> = ({
         </h2>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 mb-4">
-          <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
-            <button
-              onClick={() => setSourceTypeFilter("all")}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                sourceTypeFilter === "all"
-                  ? "bg-white text-slate-800 shadow-sm"
-                  : "text-slate-600 hover:text-slate-800"
-              }`}
-            >
-              All Sources
-            </button>
+        {/* <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
+              <button
+                onClick={() => setSourceTypeFilter("all")}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  sourceTypeFilter === "all"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+              >
+                All Sources
+              </button>
 
-            <button
-              onClick={() => setSourceTypeFilter("WAREHOUSE")}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                sourceTypeFilter === "WAREHOUSE"
-                  ? "bg-white text-slate-800 shadow-sm"
-                  : "text-slate-600 hover:text-slate-800"
-              }`}
-            >
-              Warehouse
-            </button>
-          </div>
-        </div>
+              <button
+                onClick={() => setSourceTypeFilter("WAREHOUSE")}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  sourceTypeFilter === "WAREHOUSE"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+              >
+                Warehouse
+              </button>
+            </div>
+          </div> */}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="h-[calc(100vh-450px)] overflow-y-auto">
+        <div className="h-[calc(100vh-430px)] overflow-y-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>
@@ -120,7 +120,7 @@ export const TransferList: React.FC<TransferListProps> = ({
                 <th className="p-4">Transfer Date</th>
                 <th className="p-4">Items</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">Notes</th>
+                {/* <th className="p-4">Notes</th> */}
                 <th className="p-4">Actions</th>
               </tr>
             </thead>
@@ -143,7 +143,7 @@ export const TransferList: React.FC<TransferListProps> = ({
                       </span>
                     </td>
                     <td className="p-4">
-                      {new Date(transfer.transferDate).toLocaleDateString()}
+                      {new Date(transfer.transferDate).toDateString()}
                     </td>
                     <td className="p-4">
                       <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
@@ -159,14 +159,14 @@ export const TransferList: React.FC<TransferListProps> = ({
                         {transfer.status.toUpperCase()}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-500 truncate max-w-xs">
+                    {/* <td className="p-4 text-slate-500 truncate max-w-xs">
                       {transfer.notes || "-"}
-                    </td>
+                    </td> */}
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onViewTransfer?.(transfer)}
-                          className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                          className="text-xs bg-primary/50 text-white px-3 py-1.5 rounded hover:bg-primary/70 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                         >
                           <Eye className="w-3 h-3" /> View
                         </button>

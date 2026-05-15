@@ -144,16 +144,38 @@ export const CreditOrders: React.FC = () => {
   };
 
   const filteredOrders = orders.filter((order) => {
+    const searchLower = search.toLowerCase();
+
+    const matchesOrderNumber = order.orderNumber
+      ?.toLowerCase()
+      .includes(searchLower);
+
+    const matchesStorefront = order.storefrontId?.locationName
+      ?.toLowerCase()
+      .includes(searchLower);
+
+    const matchesCreditPerson =
+      order.creditPersonId &&
+      typeof order.creditPersonId === "object" &&
+      (order.creditPersonId.name?.toLowerCase().includes(searchLower) ||
+        order.creditPersonId.phone?.includes(search));
+
+    const matchesProductName = order.ordersProducts?.some((product) =>
+      product.inventoryId?.productName?.toLowerCase().includes(searchLower),
+    );
+
+    const matchesProductCode = order.ordersProducts?.some(
+      (product) =>
+        product.inventoryId?.productCode?.toLowerCase().includes(searchLower) ||
+        product.inventoryId?.SKU?.toLowerCase().includes(searchLower),
+    );
+
     const matchesSearch =
-      order.orderNumber?.toLowerCase().includes(search.toLowerCase()) ||
-      order.storefrontId?.locationName
-        ?.toLowerCase()
-        .includes(search.toLowerCase()) ||
-      (order.creditPersonId &&
-        typeof order.creditPersonId === "object" &&
-        order.creditPersonId.name
-          ?.toLowerCase()
-          .includes(search.toLowerCase()));
+      matchesOrderNumber ||
+      matchesStorefront ||
+      matchesCreditPerson ||
+      matchesProductName ||
+      matchesProductCode;
 
     return matchesSearch;
   });

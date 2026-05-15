@@ -244,7 +244,8 @@ export const en = {
   orders: {
     title: "Order Management",
     subtitle: "View and manage all sales orders",
-    search: "Search by order number or storefront",
+    search:
+      "Search by order number, storefront, customer, or product name/code...",
     orderNumber: "Order Number",
     storefront: "Storefront",
     items: "Items",
@@ -322,7 +323,8 @@ export const en = {
   creditOrders: {
     title: "Credit Orders",
     subtitle: "Manage credit sales and customer balances",
-    search: "Search by order number or storefront",
+    search:
+      "Search by order number, storefront, customer, or product name/code...",
     allstorefront: "All Storefronts",
     allmethod: "All Methods",
     orderNumber: "Order Number",
