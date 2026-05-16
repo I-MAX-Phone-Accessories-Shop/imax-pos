@@ -3,12 +3,18 @@ import axios from "../axios";
 export interface CreditRecordOrder {
   _id: string;
   orderNumber: string;
-  finalAmount: number;
-  paidAmount: number;
-  paymentType: string;
-  createdAt: string;
-  totalPaidAmount: Record<string, unknown>;
-  remainingBalance: number;
+  finalAmount?: number;
+  paidAmount?: number;
+  paymentType?: string;
+  createdAt?: string;
+  totalPaidAmount?: Record<string, unknown>;
+  remainingBalance?: number;
+}
+
+export interface CreditRecordAddedBy {
+  _id: string;
+  name: string;
+  role: string;
 }
 
 export interface CreditRecord {
@@ -18,11 +24,13 @@ export interface CreditRecord {
   paidAmount: number;
   paymentDate: string;
   paymentMethod: string;
-  notes: string | null;
-  isDeleted: boolean;
-  deletedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+  notes?: string | null;
+  remainingBalanceAfterPayment: number;
+  addedBy?: CreditRecordAddedBy;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
   id: string;
 }
 
@@ -51,33 +59,39 @@ export interface CreditPersonaRecordsData {
   summary: CreditPersonaSummary;
 }
 
+export interface CreditRecordsPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
+
 interface FetchCreditPersonaRecordsResponse {
   success: boolean;
   message: string;
   data?: CreditPersonaRecordsData;
-  pagination?: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
+  pagination?: CreditRecordsPagination;
 }
 
 export const fetchCreditPersonaRecords = async (
-  creditPersonId: string
+  creditPersonId: string,
+  page: number = 1,
 ): Promise<FetchCreditPersonaRecordsResponse> => {
   try {
     const response = await axios.get(
-      `/credit-persona/${creditPersonId}/credit-records`
+      `/credit-persona/${creditPersonId}/credit-records`,
+      { params: { page } },
     );
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching credit persona records:", error);
+    const message =
+      axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message
+        : "Failed to fetch credit persona records";
     return {
       success: false,
-      message:
-        error.response?.data?.message || "Failed to fetch credit persona records",
+      message,
     };
   }
 };
-

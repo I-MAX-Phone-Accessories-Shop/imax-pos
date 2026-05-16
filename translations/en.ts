@@ -208,7 +208,7 @@ export const en = {
     failedToLoadInvalid: "Failed to load products: Invalid response format",
     failedToFetch: "Failed to fetch products. Please try again.",
     requiredFieldsError:
-      "Product Name, Product Code, SKU, Buying Price, and Selling Price are required",
+      "Product Name, Product Code, Category, Buying Price, and Selling Price are required",
     sellingPriceError:
       "Selling Price must be greater than or equal to Buying Price",
     productUpdatedLocal:

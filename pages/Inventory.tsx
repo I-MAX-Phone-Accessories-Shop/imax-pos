@@ -261,6 +261,7 @@ export const Inventory: React.FC = () => {
     if (
       !formData.productName ||
       !formData.productCode ||
+      !formData.category?.trim() ||
       !formData.buyingPrice ||
       !formData.sellingPrice
     ) {

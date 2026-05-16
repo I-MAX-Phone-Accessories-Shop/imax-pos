@@ -37,6 +37,7 @@ const InfoRow: React.FC<{
 export const ShopInfoCard: React.FC<ShopInfoCardProps> = ({ settings }) => {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleString();
+  console.log(settings);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -90,7 +91,7 @@ export const ShopInfoCard: React.FC<ShopInfoCardProps> = ({ settings }) => {
         <InfoRow
           icon={<Phone className="w-4 h-4" />}
           label="Phone"
-          value={settings.formattedPhoneNumber || settings.phoneNumber}
+          value={settings.phoneNumber}
         />
         {/* <InfoRow
           icon={<Mail className="w-4 h-4" />}

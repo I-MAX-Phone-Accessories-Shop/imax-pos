@@ -21,7 +21,9 @@ import {
   VoucherReceiptData,
 } from "../components/Print/VoucherContent";
 
-const loadReceiptData = (orderId: string | undefined): VoucherReceiptData | null => {
+const loadReceiptData = (
+  orderId: string | undefined,
+): VoucherReceiptData | null => {
   if (!orderId) return null;
 
   const storedData = localStorage.getItem(`receipt_${orderId}`);
@@ -49,8 +51,12 @@ const PrintReceipt: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [receiptData, setReceiptData] = useState<VoucherReceiptData | null>(null);
-  const [shopBranding, setShopBranding] = useState<PrintShopBranding | null>(null);
+  const [receiptData, setReceiptData] = useState<VoucherReceiptData | null>(
+    null,
+  );
+  const [shopBranding, setShopBranding] = useState<PrintShopBranding | null>(
+    null,
+  );
   const [paperSize, setPaperSize] = useState<PrintPaperSize>(() => {
     const fromUrl = parsePrintPaperSize(searchParams.get("size"));
     return fromUrl ?? getSavedPrintPaperSize();
@@ -96,9 +102,12 @@ const PrintReceipt: React.FC = () => {
 
       setLoadingMessage("Loading shop settings...");
       const shopResponse = await fetchShopSettings();
+      console.log(shopResponse);
       const branding = getPrintShopBranding(shopResponse.data ?? null);
 
       if (!cancelled) setShopBranding(branding);
+
+      console.log(branding);
 
       if (branding.logo) {
         setLoadingMessage("Loading shop logo...");
@@ -147,13 +156,7 @@ const PrintReceipt: React.FC = () => {
       window.clearTimeout(printTimer);
       window.removeEventListener("afterprint", handleAfterPrint);
     };
-  }, [
-    shouldAutoPrint,
-    isReady,
-    receiptData,
-    shopBranding,
-    handleBack,
-  ]);
+  }, [shouldAutoPrint, isReady, receiptData, shopBranding, handleBack]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -210,34 +213,34 @@ const PrintReceipt: React.FC = () => {
       `}</style>
 
       {!shouldAutoPrint && (
-      <div className="no-print bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 mb-6">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <h1 className="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">
-              Print Preview — {shopBranding.shopName}
-            </h1>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={handlePrint}
-                className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-all font-bold"
-              >
-                Print Now
-              </button>
-              <button
-                onClick={handleBack}
-                className="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-xl hover:bg-slate-200 transition-all font-bold"
-              >
-                Close
-              </button>
+        <div className="no-print bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 mb-6">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <h1 className="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">
+                Print Preview — {shopBranding.shopName}
+              </h1>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handlePrint}
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-all font-bold"
+                >
+                  Print Now
+                </button>
+                <button
+                  onClick={handleBack}
+                  className="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-xl hover:bg-slate-200 transition-all font-bold"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          </div>
-          <PrintPaperSizeSelector
-            value={paperSize}
-            onChange={handlePaperSizeChange}
-          />
-          <p className="text-xs text-slate-500">
-            Change default size in Shop Settings. Click Print when ready.
-          </p>
+            <PrintPaperSizeSelector
+              value={paperSize}
+              onChange={handlePaperSizeChange}
+            />
+            <p className="text-xs text-slate-500">
+              Change default size in Shop Settings. Click Print when ready.
+            </p>
           </div>
         </div>
       )}

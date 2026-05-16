@@ -17,11 +17,14 @@ import {
   Box,
   Coins,
   LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   fetchCreditPersonaRecords,
   CreditPersonaRecordsData,
+  CreditRecordsPagination,
 } from "../services/Credit/fetchCreditPersonaRecords";
 import { createCreditRecord } from "../services/Credit/createCreditRecord";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
@@ -68,6 +71,11 @@ export const CreditDetail: React.FC = () => {
   );
   const [personPhone, setPersonPhone] = useState(personInfo?.phone || "");
 
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsPagination, setPaymentsPagination] =
+    useState<CreditRecordsPagination | null>(null);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+
   // Add Payment Modal State
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,13 +110,43 @@ export const CreditDetail: React.FC = () => {
     }
   }, [id]);
 
+  const loadPaymentRecords = async (page: number = 1) => {
+    if (!id) return;
+    setPaymentsLoading(true);
+    try {
+      const response = await fetchCreditPersonaRecords(id, page);
+      if (response.success && response.data) {
+        setPersonaDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                creditRecords: response.data!.creditRecords,
+                summary: response.data!.summary,
+                orders: response.data!.orders,
+              }
+            : response.data!,
+        );
+        setPaymentsPagination(response.pagination ?? null);
+        setPaymentsPage(page);
+      } else {
+        toast.error(response.message || "Failed to load payment records");
+      }
+    } catch (error) {
+      console.error("Error loading payment records:", error);
+      toast.error("Failed to load payment records");
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
   const loadCreditDetail = async () => {
     if (!id) return;
     setLoading(true);
     setLoadingProducts(true);
+    setPaymentsPage(1);
     try {
       const [personaResponse, productsResponse] = await Promise.all([
-        fetchCreditPersonaRecords(id),
+        fetchCreditPersonaRecords(id, 1),
         fetchCreditPersonaProducts(id),
       ]);
 
@@ -116,6 +154,7 @@ export const CreditDetail: React.FC = () => {
         setPersonaDetail(personaResponse.data);
         setPersonName(personaResponse.data.creditPerson.name);
         setPersonPhone(personaResponse.data.creditPerson.phone);
+        setPaymentsPagination(personaResponse.pagination ?? null);
       } else {
         toast.error(personaResponse.message || "Failed to load credit details");
       }
@@ -463,7 +502,7 @@ export const CreditDetail: React.FC = () => {
             >
               <CreditCard className="w-4 h-4" />
               {t("creditDetail.paymentRecords")} (
-              {personaDetail.creditRecords.count})
+              {personaDetail.summary.totalCreditRecords})
             </button>
           </div>
 
@@ -587,87 +626,209 @@ export const CreditDetail: React.FC = () => {
 
             {activeTab === "payments" && (
               <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                <div className="p-4 border-b bg-slate-50">
+                <div className="p-4 border-b bg-slate-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                   <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-primary" />
                     {t("creditDetail.paymentRecords")}
                   </h2>
+                  {paymentsPagination && paymentsPagination.totalItems > 0 && (
+                    <p className="text-xs text-slate-500">
+                      {paymentsPagination.totalItems} total records
+                    </p>
+                  )}
                 </div>
-                {personaDetail.creditRecords.records.length === 0 ? (
+                {paymentsLoading ? (
+                  <div className="p-12 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                    <p className="text-slate-400 text-sm">
+                      Loading payments...
+                    </p>
+                  </div>
+                ) : personaDetail.creditRecords.records.length === 0 ? (
                   <div className="p-8 text-center text-slate-400">
                     {t("creditDetail.noRecords")}
                   </div>
                 ) : (
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-slate-600 border-b">
-                      <tr>
-                        <th className="px-4 py-3 font-medium">
-                          {t("creditDetail.order")}
-                        </th>
-                        <th className="px-4 py-3 font-medium">
-                          {t("creditDetail.paymentDate")}
-                        </th>
-                        <th className="px-4 py-3 font-medium">
-                          {t("common.method")}
-                        </th>
-                        {/* <th className="px-4 py-3 font-medium text-right">
-                          {t("creditDetail.orderAmount")}
-                        </th> */}
-                        <th className="px-4 py-3 font-medium text-right">
-                          {t("creditDetail.amountPaid")}
-                        </th>
-                        <th className="px-4 py-3 font-medium text-right">
-                          {t("creditDetail.remaining")}
-                        </th>
-                        <th className="px-4 py-3 font-medium">
-                          {t("common.notes")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {personaDetail.creditRecords.records.map((record) => (
-                        <tr key={record._id} className="hover:bg-slate-50">
-                          <td className="px-4 py-3">
-                            <span className="text-blue-600 font-medium">
-                              {record.orderId.orderNumber}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5" />
-                              {formatDate(record.paymentDate)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
-                              {getPaymentMethodLabel(record.paymentMethod)}
-                            </span>
-                          </td>
-                          {/* <td className="px-4 py-3 text-right text-slate-600">
-                            {record.orderId.finalAmount.toLocaleString()} MMK
-                          </td> */}
-                          <td className="px-4 py-3 text-right font-bold text-green-600">
-                            {record.paidAmount.toLocaleString()} MMK
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <span
-                              className={`font-medium ${
-                                record.orderId.remainingBalance > 0
-                                  ? "text-orange-600"
-                                  : "text-green-600"
-                              }`}
+                  <>
+                    <div className="overflow-x-auto h-[calc(100vh-525px)]">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-50 text-slate-600 border-b sticky top-0">
+                          <tr>
+                            <th className="px-4 py-3 font-medium">
+                              {t("creditDetail.order")}
+                            </th>
+                            <th className="px-4 py-3 font-medium">
+                              {t("creditDetail.paymentDate")}
+                            </th>
+                            <th className="px-4 py-3 font-medium">
+                              {t("common.method")}
+                            </th>
+                            <th className="px-4 py-3 font-medium text-right">
+                              {t("creditDetail.amountPaid")}
+                            </th>
+                            <th className="px-4 py-3 font-medium text-right">
+                              {t("creditDetail.remaining")}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {personaDetail.creditRecords.records.map((record) => (
+                            <tr key={record._id} className="hover:bg-slate-50">
+                              <td className="px-4 py-3">
+                                <span className="text-blue-600 font-medium">
+                                  {record.orderId.orderNumber}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  {formatDate(record.paymentDate)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
+                                  {getPaymentMethodLabel(record.paymentMethod)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right font-bold text-green-600">
+                                {record.paidAmount.toLocaleString()} MMK
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span
+                                  className={`font-medium ${
+                                    record.remainingBalanceAfterPayment > 0
+                                      ? "text-orange-600"
+                                      : "text-green-600"
+                                  }`}
+                                >
+                                  {record.remainingBalanceAfterPayment?.toLocaleString()}{" "}
+                                  MMK
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {paymentsPagination &&
+                      paymentsPagination.totalPages > 1 && (
+                        <div className="px-4 py-3 border-t flex items-center justify-between bg-slate-50">
+                          <div className="flex-1 flex justify-between sm:hidden">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                loadPaymentRecords(paymentsPage - 1)
+                              }
+                              disabled={paymentsPage <= 1 || paymentsLoading}
+                              className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50"
                             >
-                              {record.orderId.remainingBalance.toLocaleString()}{" "}
-                              MMK
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-slate-500 text-xs">
-                            {record.notes || "-"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              Previous
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                loadPaymentRecords(paymentsPage + 1)
+                              }
+                              disabled={
+                                paymentsPage >= paymentsPagination.totalPages ||
+                                paymentsLoading
+                              }
+                              className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50"
+                            >
+                              Next
+                            </button>
+                          </div>
+                          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-700">
+                              Showing{" "}
+                              <span className="font-medium">
+                                {(paymentsPage - 1) *
+                                  paymentsPagination.itemsPerPage +
+                                  1}
+                              </span>{" "}
+                              to{" "}
+                              <span className="font-medium">
+                                {Math.min(
+                                  paymentsPage *
+                                    paymentsPagination.itemsPerPage,
+                                  paymentsPagination.totalItems,
+                                )}
+                              </span>{" "}
+                              of{" "}
+                              <span className="font-medium">
+                                {paymentsPagination.totalItems}
+                              </span>{" "}
+                              results
+                            </p>
+                            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  loadPaymentRecords(paymentsPage - 1)
+                                }
+                                disabled={paymentsPage <= 1 || paymentsLoading}
+                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"
+                              >
+                                <ChevronLeft className="h-5 w-5" />
+                              </button>
+                              {Array.from(
+                                {
+                                  length: Math.min(
+                                    5,
+                                    paymentsPagination.totalPages,
+                                  ),
+                                },
+                                (_, i) => {
+                                  let pageNum: number;
+                                  const { totalPages } = paymentsPagination;
+                                  if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                  } else if (paymentsPage <= 3) {
+                                    pageNum = i + 1;
+                                  } else if (paymentsPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                  } else {
+                                    pageNum = paymentsPage - 2 + i;
+                                  }
+                                  return (
+                                    <button
+                                      key={pageNum}
+                                      type="button"
+                                      onClick={() =>
+                                        loadPaymentRecords(pageNum)
+                                      }
+                                      disabled={paymentsLoading}
+                                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                        paymentsPage === pageNum
+                                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                          : "bg-white border-slate-300 text-slate-500 hover:bg-slate-50"
+                                      }`}
+                                    >
+                                      {pageNum}
+                                    </button>
+                                  );
+                                },
+                              )}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  loadPaymentRecords(paymentsPage + 1)
+                                }
+                                disabled={
+                                  paymentsPage >=
+                                    paymentsPagination.totalPages ||
+                                  paymentsLoading
+                                }
+                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"
+                              >
+                                <ChevronRight className="h-5 w-5" />
+                              </button>
+                            </nav>
+                          </div>
+                        </div>
+                      )}
+                  </>
                 )}
               </div>
             )}

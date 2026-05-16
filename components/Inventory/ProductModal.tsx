@@ -215,6 +215,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div className="relative">
               <input
                 type="text"
+                required
                 className="w-full border rounded p-2 pr-8"
                 value={categoryInput || formData.category}
                 onChange={(e) => {

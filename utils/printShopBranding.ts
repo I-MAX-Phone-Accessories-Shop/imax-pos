@@ -14,7 +14,7 @@ export const getPrintShopBranding = (
 ): PrintShopBranding => ({
   shopName: settings?.shopName || "Shop",
   logo: settings?.logo || undefined,
-  phone: settings?.formattedPhoneNumber || settings?.phoneNumber,
+  phone: settings?.phoneNumber,
   address: settings?.address,
   website: settings?.socialMedia?.website,
   currency: settings?.currency || "MMK",

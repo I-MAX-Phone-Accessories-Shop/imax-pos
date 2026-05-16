@@ -41,9 +41,9 @@ export const Settings: React.FC = () => {
   );
   const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] =
     useState(false);
-  const [activeTab, setActiveTab] = useState<
-    "audit" | "transfer" | "shop"
-  >("shop");
+  const [activeTab, setActiveTab] = useState<"audit" | "transfer" | "shop">(
+    "shop",
+  );
 
   const loadStockAuditLogs = async (page: number = 1) => {
     setLoading(true);
@@ -118,10 +118,11 @@ export const Settings: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab("audit")}
-          className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${activeTab === "audit"
-            ? "border-b-2 border-blue-800 text-blue-800"
-            : "text-slate-500 hover:text-slate-700"
-            }`}
+          className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
+            activeTab === "audit"
+              ? "border-b-2 border-blue-800 text-blue-800"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
         >
           <FileText className="w-3 h-3 sm:w-4 sm:h-4" />{" "}
           <span className="hidden sm:inline">Stock Audit Logs</span>
@@ -129,10 +130,11 @@ export const Settings: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab("transfer")}
-          className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${activeTab === "transfer"
-            ? "border-b-2 border-blue-800 text-blue-800"
-            : "text-slate-500 hover:text-slate-700"
-            }`}
+          className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
+            activeTab === "transfer"
+              ? "border-b-2 border-blue-800 text-blue-800"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
         >
           <Truck className="w-3 h-3 sm:w-4 sm:h-4" />{" "}
           <span className="hidden sm:inline">Transfer Management</span>
@@ -153,7 +155,9 @@ export const Settings: React.FC = () => {
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border">
-                <span className="text-xs font-medium text-slate-600">Show:</span>
+                <span className="text-xs font-medium text-slate-600">
+                  Show:
+                </span>
                 <select
                   value={limit}
                   onChange={(e) => setLimit(Number(e.target.value))}
@@ -283,12 +287,13 @@ export const Settings: React.FC = () => {
                           </td>
                           <td className="px-2 sm:px-4 py-3">
                             <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${log.action === "add"
-                                ? "bg-green-100 text-green-700"
-                                : log.action === "remove"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-slate-100 text-slate-700"
-                                }`}
+                              className={`px-2 py-1 rounded text-xs font-medium ${
+                                log.action === "add"
+                                  ? "bg-green-100 text-green-700"
+                                  : log.action === "remove"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-slate-100 text-slate-700"
+                              }`}
                             >
                               {log.action}
                             </span>
@@ -307,14 +312,19 @@ export const Settings: React.FC = () => {
                                 <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />
                               ) : null}
                               <span
-                                className={`font-bold text-xs sm:text-sm ${log.isIncrease
-                                  ? "text-green-600"
-                                  : log.isDecrease
-                                    ? "text-red-600"
-                                    : "text-slate-600"
-                                  }`}
+                                className={`font-bold text-xs sm:text-sm ${
+                                  log.isIncrease
+                                    ? "text-green-600"
+                                    : log.isDecrease
+                                      ? "text-red-600"
+                                      : "text-slate-600"
+                                }`}
                               >
-                                {log.isIncrease ? "+" : log.isDecrease ? "-" : ""}
+                                {log.isIncrease
+                                  ? "+"
+                                  : log.isDecrease
+                                    ? "-"
+                                    : ""}
                                 {Math.abs(log.quantityChange).toLocaleString()}
                               </span>
                             </div>
@@ -327,11 +337,8 @@ export const Settings: React.FC = () => {
                               {log?.adminId?.role}
                             </div>
                           </td>
-                          <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs max-w-xs truncate">
-                            <span
-                              className="truncate"
-                              title={log?.reason || "-"}
-                            >
+                          <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs w-[600px]">
+                            <span className="" title={log?.reason || "-"}>
                               {log?.reason || "-"}
                             </span>
                           </td>
@@ -389,31 +396,35 @@ export const Settings: React.FC = () => {
                         </button>
 
                         {/* Page Numbers */}
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          let pageNum;
-                          if (totalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (currentPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i;
-                          } else {
-                            pageNum = currentPage - 2 + i;
-                          }
+                        {Array.from(
+                          { length: Math.min(5, totalPages) },
+                          (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
 
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => loadStockAuditLogs(pageNum)}
-                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
-                                ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                                : "bg-white border-slate-300 text-slate-500 hover:bg-slate-50"
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => loadStockAuditLogs(pageNum)}
+                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                  currentPage === pageNum
+                                    ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                    : "bg-white border-slate-300 text-slate-500 hover:bg-slate-50"
                                 }`}
-                            >
-                              {pageNum}
-                            </button>
-                          );
-                        })}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          },
+                        )}
 
                         <button
                           onClick={() => loadStockAuditLogs(currentPage + 1)}
