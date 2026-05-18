@@ -42,6 +42,7 @@ enum PaymentMethod {
   WAVE_PAY = "WavePay",
   AYA_PAY = "AYA Pay",
   UAB_PAY = "UAB Pay",
+  MMQR = "MMQR",
   BANK_TRANSFER = "Bank Transfer",
   NORMAL = "Normal",
   HOT = "Hot",
@@ -377,6 +378,7 @@ export const POS: React.FC = () => {
         [PaymentMethod.NORMAL]: "normal",
         [PaymentMethod.HOT]: "hot",
         [PaymentMethod.FOC]: "foc",
+        [PaymentMethod.MMQR]:"MMQR",
       };
 
       const discountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
@@ -1040,6 +1042,9 @@ export const POS: React.FC = () => {
                       </option>
                       <option value={PaymentMethod.BANK_TRANSFER}>
                         {t("pos.bankTransfer")}
+                      </option>
+                      <option value={PaymentMethod.MMQR}>
+                        <span>MMQR</span>
                       </option>
                       <option value={PaymentMethod.FOC}>
                         <span>FOC</span>
