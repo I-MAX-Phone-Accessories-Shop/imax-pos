@@ -368,11 +368,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               min="0"
               className="w-full border rounded p-2"
               value={formData.sellingPrice}
-              onChange={(e) => {
-                const sellingPrice = Number(e.target.value);
-                const buyingPrice = sellingPrice > 0 ? sellingPrice * 0.9 : 0;
-                updateFormData({ sellingPrice, buyingPrice });
-              }}
+              onChange={(e) =>
+                updateFormData({ sellingPrice: Number(e.target.value) })
+              }
             />
           </div>
           <div className="col-span-2">

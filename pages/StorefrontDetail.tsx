@@ -117,13 +117,13 @@ export const StorefrontDetail: React.FC = () => {
           const firstItem = response.data[0];
           setStorefrontName(
             firstItem.storefrontId.locationName ||
-              firstItem.storefrontId.storefrontName ||
-              "Storefront",
+            firstItem.storefrontId.storefrontName ||
+            "Storefront",
           );
           setStorefrontCode(
             firstItem.storefrontId.locationCode ||
-              firstItem.storefrontId.storefrontCode ||
-              "",
+            firstItem.storefrontId.storefrontCode ||
+            "",
           );
         }
       } else {
@@ -228,8 +228,7 @@ export const StorefrontDetail: React.FC = () => {
 
       if (result.success) {
         toast.success(
-          `Stock ${
-            adjustmentType === "increase" ? "increased" : "decreased"
+          `Stock ${adjustmentType === "increase" ? "increased" : "decreased"
           } successfully!`,
         );
         setIsAdjustmentModalOpen(false);
@@ -422,8 +421,8 @@ export const StorefrontDetail: React.FC = () => {
                       }, 0)
                       .toLocaleString()
                   : totalStorefrontAmount.toLocaleString()}{" "} */}
-                {totalAmount}
-                <span className="hidden sm:inline">MMK</span>
+                {totalAmount ? totalAmount.toLocaleString() : 0}
+                <span className="hidden sm:inline"> MMK</span>
               </p>
             </div>
           </div>
@@ -690,11 +689,10 @@ export const StorefrontDetail: React.FC = () => {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${
-                        currentPage === pageNum
-                          ? "bg-primary text-white border-primary"
-                          : "hover:bg-slate-50"
-                      }`}
+                      className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${currentPage === pageNum
+                        ? "bg-primary text-white border-primary"
+                        : "hover:bg-slate-50"
+                        }`}
                     >
                       {pageNum}
                     </button>
@@ -782,11 +780,10 @@ export const StorefrontDetail: React.FC = () => {
 
               {/* Adjustment Type Info */}
               <div
-                className={`p-3 rounded-lg ${
-                  adjustmentType === "increase"
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
-                }`}
+                className={`p-3 rounded-lg ${adjustmentType === "increase"
+                  ? "bg-green-50 border border-green-200"
+                  : "bg-red-50 border border-red-200"
+                  }`}
               >
                 <p className="text-sm font-medium">
                   {adjustmentType === "increase"
@@ -849,11 +846,10 @@ export const StorefrontDetail: React.FC = () => {
                 <button
                   onClick={handleSubmitAdjustment}
                   disabled={isAdjusting || adjustmentQuantity <= 0}
-                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${
-                    adjustmentType === "increase"
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
-                  }`}
+                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${adjustmentType === "increase"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                    }`}
                 >
                   {isAdjusting ? (
                     <>

@@ -407,7 +407,7 @@ export const Inventory: React.FC = () => {
       productName: p.name,
       productCode: apiProduct?.productCode || "", // Using id as productCode for existing products
       saleCode: apiProduct?.saleCode || "",
-      SKU: apiProduct?.SKU || "",
+      SKU: apiProduct?.SKU || apiProduct?.productCode,
       barcode: apiProduct?.barcode || "",
       category: p.category,
       subCategory: apiProduct?.subCategory || "",
@@ -635,7 +635,7 @@ export const Inventory: React.FC = () => {
       if (response.success) {
         toast.success(
           response.message ||
-            "Inventory transferred to storefront successfully",
+          "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
         setShowSelectBoxes(false);
@@ -834,9 +834,9 @@ export const Inventory: React.FC = () => {
             {products.length === 0
               ? t("inventory.noProductsFound")
               : t("inventory.noProductsInCategory").replace(
-                  "{category}",
-                  selectedCategory,
-                )}
+                "{category}",
+                selectedCategory,
+              )}
           </p>
         </div>
       ) : (
