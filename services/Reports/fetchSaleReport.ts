@@ -43,7 +43,8 @@ export interface SaleReportResponse {
 export const fetchSaleReport = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null,
 ): Promise<SaleReportResponse> => {
   try {
     let url = `/sale-report?storefrontId=${storefrontId}`;
@@ -54,6 +55,9 @@ export const fetchSaleReport = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {
@@ -101,7 +105,8 @@ export const fetchSaleReport = async (
  */
 export const fetchAllStorefrontsSaleReport = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null,
 ): Promise<SaleReportResponse> => {
   try {
     let url = `/sale-report`;
@@ -112,6 +117,9 @@ export const fetchAllStorefrontsSaleReport = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {

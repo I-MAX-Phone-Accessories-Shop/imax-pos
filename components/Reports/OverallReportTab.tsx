@@ -33,7 +33,11 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
       ? saleReports.filter((report) => report.success)
       : saleReports.filter(
           (report) =>
-            report.success && report.data.storefront._id === selectedStorefront,
+            report.success &&
+            (report.data.storefront == null ||
+              report.data.storefront._id === selectedStorefront ||
+              (report.data.storefront as unknown as { id?: string } | null)
+                ?.id === selectedStorefront),
         );
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -150,18 +154,24 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {reportsToShow.map((report) => (
+                {reportsToShow.map((report, idx) => {
+                  const storefront = report.data.storefront;
+                  const rowKey =
+                    storefront?._id ??
+                    (storefront as unknown as { id?: string } | null)?.id ??
+                    `no-storefront-${idx}`;
+                  return (
                   <tr
-                    key={report.data.storefront._id}
+                    key={rowKey}
                     className="hover:bg-slate-50"
                   >
                     <td className="px-4 py-3">
                       <div>
                         <p className="font-medium text-slate-800">
-                          {report.data.storefront.locationName}
+                          {storefront?.locationName || "Direct Sale"}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {report.data.storefront.locationCode}
+                          {storefront?.locationCode || "-"}
                         </p>
                       </div>
                     </td>
@@ -187,7 +197,8 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                       {report.data.report.creditOrderCount}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -3,16 +3,16 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
+  ShoppingBag,
   Package,
   Truck,
   Store,
   CreditCard,
   PieChart,
   Settings,
-  ShoppingBag,
-  Users,
   X,
   Receipt,
+  ClipboardList,
   Shield,
   LogOut,
   MessageSquare,
@@ -55,12 +55,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
+    {
+      path: "/direct-sale",
+      label: t("sidebar.directSale"),
+      icon: ShoppingBag,
+    },
     { path: "/inventory", label: t("sidebar.inventory"), icon: Package },
     { path: "/warehouse", label: t("sidebar.warehouse"), icon: Truck },
     { path: "/storefront", label: t("sidebar.storefront"), icon: Store },
     // { path: "/suppliers", label: t("sidebar.suppliers"), icon: Users },
     // { path: "/purchasing", label: t("sidebar.purchasing"), icon: ShoppingBag },
     { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
+    {
+      path: "/direct-sale-orders",
+      label: t("sidebar.directSaleOrders"),
+      icon: ClipboardList,
+    },
     {
       path: "/credit-orders",
       label: t("sidebar.creditOrder"),
@@ -85,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <div
-        className={`sidebar w-72 bg-primary text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${
+        className={`sidebar w-72 bg-brand text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -93,13 +103,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="px-4 py-4 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
             <img
-              src="/autologo.jpg"
-              alt="AutoShop Logo"
+              src="/shewpyi.jpg"
+              alt="shewpyi-pos Logo"
               className="w-10 h-10 object-contain rounded-lg"
             />
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight">
-                AutoShop
+                shewpyi-pos
               </h1>
             </div>
           </div>
@@ -152,7 +162,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 className={({ isActive }) =>
                   `w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
                     isActive
-                      ? "bg-white text-primary shadow-lg shadow-black/10"
+                      ? "bg-white text-brand shadow-lg shadow-black/10"
                       : "text-white/70 hover:bg-white/10 hover:text-white"
                   }`
                 }

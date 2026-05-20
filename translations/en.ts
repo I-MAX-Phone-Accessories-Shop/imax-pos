@@ -52,7 +52,7 @@ export const en = {
     processing: "Processing...",
   },
   app: {
-    title: "AutoShop",
+    title: "shewpyi-pos",
     subtitle: "POS System",
   },
   login: {
@@ -67,16 +67,18 @@ export const en = {
     loginFailed: "Login failed",
     checkCredentials: "Login failed. Please check your credentials.",
     welcomeBack: "Welcome back, {name}!",
-    copyright: "© 2024 AutoShop All rights reserved.",
+    copyright: "© 2024 shewpyi-pos All rights reserved.",
   },
   sidebar: {
     checkout: "Checkout (POS)",
+    directSale: "Direct Sale",
     inventory: "Inventory",
     warehouse: "Warehouse",
     storefront: "Storefront",
     suppliers: "Suppliers",
     purchasing: "Purchasing",
     orders: "Orders",
+    directSaleOrders: "Direct Sale Orders",
     creditOrder: "Credit Orders",
     creditSales: "Credit Sales",
     expenses: "Expenses",
@@ -151,6 +153,13 @@ export const en = {
     barcodeNotFound: "Product with this barcode not found",
     addedToCart: "added to cart",
     orderDate: "Order Date",
+  },
+  directSale: {
+    title: "Direct Sale",
+    loading: "Loading Direct Sale...",
+    currentSale: "Direct Sale",
+    saleCompleted: "Direct sale completed!",
+    failedToProcessSale: "Failed to process direct sale",
   },
   inventory: {
     title: "Product Inventory",
@@ -319,6 +328,10 @@ export const en = {
     failedToLoadDetails: "Failed to load order details",
     creditPersonAssigned: "Credit person assigned successfully",
     failedToAssign: "Failed to assign credit person",
+  },
+  directSaleOrders: {
+    title: "Direct Sale Orders",
+    subtitle: "View and manage direct sale orders",
   },
   creditOrders: {
     title: "Credit Orders",
@@ -655,6 +668,9 @@ export const en = {
   },
   reports: {
     title: "Reports",
+    storefrontSales: "Storefront POS",
+    directSale: "Direct sale",
+    dataSourceAria: "Report data source",
   },
   settings: {
     title: "System Settings",

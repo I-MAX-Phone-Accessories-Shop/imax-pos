@@ -17,6 +17,8 @@ interface OrdersFiltersProps {
   onPaymentMethodChange: (value: string) => void;
   orders: Order[];
   filteredOrders: Order[];
+  /** When true, show payment type (paid / credit) filter for API-backed lists */
+  showPaymentTypeFilter?: boolean;
 }
 
 export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
@@ -31,6 +33,7 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
   onPaymentMethodChange,
   orders,
   filteredOrders,
+  showPaymentTypeFilter = false,
 }) => {
   const { t } = useLanguage();
   const uniquePaymentMethods = Array.from(
@@ -69,18 +72,20 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
             </select>
           </div>
 
-          {/* Payment Type Filter */}
-          {/* <div className="flex items-center gap-2">
-          <select
-            className="border border-gray-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            value={paymentTypeFilter}
-            onChange={(e) => onPaymentTypeChange(e.target.value)}
-          >
-            <option value="all">All Types</option>
-            <option value="paid">Paid</option>
-            <option value="credit">Credit</option>
-          </select>
-        </div> */}
+          {/* Payment Type Filter (optional; e.g. Direct Sale Orders) */}
+          {showPaymentTypeFilter && (
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
+                value={paymentTypeFilter}
+                onChange={(e) => onPaymentTypeChange(e.target.value)}
+              >
+                <option value="all">{t("orders.allTypes")}</option>
+                <option value="paid">{t("orders.paid")}</option>
+                <option value="credit">{t("pos.credit")}</option>
+              </select>
+            </div>
+          )}
 
           {/* Payment Method Filter */}
           <div className="flex items-center gap-2">

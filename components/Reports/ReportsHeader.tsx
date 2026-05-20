@@ -1,6 +1,9 @@
 import React from "react";
 import { LocationProfile } from "../../services/Location/fetchLocationProfiles";
 import { DateRangePicker } from "./DateRangePicker";
+import { useLanguage } from "../../context/LanguageContext";
+
+export type ReportsDataSource = "storefront" | "direct-sale";
 
 interface ReportsHeaderProps {
   storefronts: LocationProfile[];
@@ -13,6 +16,8 @@ interface ReportsHeaderProps {
   onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
   fixedStartDate?: boolean;
   singleDate?: boolean;
+  reportDataSource: ReportsDataSource;
+  onReportDataSourceChange: (source: ReportsDataSource) => void;
 }
 
 export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
@@ -26,13 +31,27 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   onDateRangeChange,
   fixedStartDate,
   singleDate,
+  reportDataSource,
+  onReportDataSourceChange,
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
         Financial Reports
       </h1>
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <select
+          value={reportDataSource}
+          onChange={(e) =>
+            onReportDataSourceChange(e.target.value as ReportsDataSource)
+          }
+          className="px-3 py-2 sm:px-4 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm sm:text-base bg-white"
+          aria-label={t("reports.dataSourceAria")}
+        >
+          <option value="storefront">{t("reports.storefrontSales")}</option>
+          <option value="direct-sale">{t("reports.directSale")}</option>
+        </select>
         <select
           value={selectedStorefront}
           onChange={(e) => onStorefrontChange(e.target.value)}

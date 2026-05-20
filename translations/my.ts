@@ -52,7 +52,7 @@ export const my = {
     processing: "လုပ်ဆောင်နေသည်...",
   },
   app: {
-    title: "AutoShop",
+    title: "shewpyi-pos",
     subtitle: "POS စနစ်",
   },
   login: {
@@ -68,16 +68,18 @@ export const my = {
     checkCredentials:
       "ဝင်ရောက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ သင့်အထောက်အထားများကို စစ်ဆေးပါ။",
     welcomeBack: "{name} ကို ပြန်လည်ကြိုဆိုပါသည်!",
-    copyright: "© 2024 AutoShop မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
+    copyright: "© 2024 shewpyi-pos မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
   },
   sidebar: {
     checkout: "ဘောင်ချာထုတ်",
+    directSale: "တိုက်ရိုက် ရောင်းချမှု",
     inventory: "ကုန်ပစ္စည်းစာရင်း",
     warehouse: "ကုန်လှောင်ရုံ",
     storefront: "ဆိုင်ခန်း",
     suppliers: "ပစ္စည်း သွင်းသူများ",
     purchasing: "ပစ္စည်းဝယ်ယူမှု",
     orders: "အော်ဒါများ",
+    directSaleOrders: "တိုက်ရိုက် ရောင်းချမှု အော်ဒါများ",
     creditOrder: "အကြွေး အော်ဒါများ",
     creditSales: "အကြွေး ရောင်းချမှုများ",
     expenses: "အထွေထွေ အသုံးစရိတ်",
@@ -152,6 +154,13 @@ export const my = {
     barcodeNotFound: "ဤဘားကုဒ်ဖြင့် ကုန်ပစ္စည်းကို မတွေ့ရှိပါ",
     addedToCart: "ထည့်သွင်းပြီးပါပြီ",
     orderDate: "ဘောင်ချာ ရက်စွဲ",
+  },
+  directSale: {
+    title: "တိုက်ရိုက် ရောင်းချမှု",
+    loading: "တိုက်ရိုက် ရောင်းချမှု ခေတ္တစောင့်ဆိုင်းနေသည်...",
+    currentSale: "တိုက်ရိုက် ရောင်းချမှု",
+    saleCompleted: "တိုက်ရိုက် ရောင်းချမှု အောင်မြင်ပါသည်!",
+    failedToProcessSale: "တိုက်ရိုက် ရောင်းချမှု မအောင်မြင်ပါ",
   },
   inventory: {
     title: "ကုန်ပစ္စည်းစာရင်း",
@@ -326,6 +335,10 @@ export const my = {
     currentQuantity: "လက်ရှိအရေအတွက်",
     itemsToRemoveSubtotal: "ဖယ်ရှားရန် ပစ္စည်းများ စုစုပေါင်းခွဲ",
     noItemsInOrder: "ဤအော်ဒါတွင် ပစ္စည်းများ မရှိပါ",
+  },
+  directSaleOrders: {
+    title: "တိုက်ရိုက် ရောင်းချမှု အော်ဒါများ",
+    subtitle: "တိုက်ရိုက် ရောင်းချမှု အော်ဒါများကို ကြည့်ရှုနှင့် စီမံခန့်ခွဲပါ",
   },
   creditOrders: {
     title: "အကြွေး အော်ဒါများ",
@@ -665,6 +678,9 @@ export const my = {
   },
   reports: {
     title: "အစီရင်ခံစာများ",
+    storefrontSales: "ဆိုင်ခန်း POS",
+    directSale: "တိုက်ရိုက် ရောင်းချမှု",
+    dataSourceAria: "အစီရင်ခံစာ ဒေတာရင်းမြစ်",
   },
   settings: {
     title: "စနစ်ဆက်တင်များ",

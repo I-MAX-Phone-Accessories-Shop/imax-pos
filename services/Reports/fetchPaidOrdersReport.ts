@@ -45,7 +45,8 @@ export interface PaidOrdersReportResponse {
 export const fetchPaidOrdersReport = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null,
 ): Promise<PaidOrdersReportResponse> => {
   try {
     let url = `/sale-report/paid-orders?storefrontId=${storefrontId}`;
@@ -56,6 +57,9 @@ export const fetchPaidOrdersReport = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {
@@ -99,7 +103,8 @@ export const fetchPaidOrdersReport = async (
  */
 export const fetchAllStorefrontsPaidOrdersReport = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null,
 ): Promise<PaidOrdersReportResponse> => {
   try {
     let url = `/sale-report/paid-orders`;
@@ -110,6 +115,9 @@ export const fetchAllStorefrontsPaidOrdersReport = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {

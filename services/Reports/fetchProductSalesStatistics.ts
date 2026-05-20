@@ -49,7 +49,8 @@ export interface ProductSalesStatisticsResponse {
 export const fetchProductSalesStatistics = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null,
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
     let url = `/sale-report/products?storefrontId=${storefrontId}`;
@@ -60,6 +61,9 @@ export const fetchProductSalesStatistics = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {
@@ -104,7 +108,8 @@ export const fetchProductSalesStatistics = async (
  */
 export const fetchAllStorefrontsProductSalesStatistics = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null,
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
     let url = `/sale-report/products`;
@@ -115,6 +120,9 @@ export const fetchAllStorefrontsProductSalesStatistics = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {

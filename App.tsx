@@ -7,6 +7,7 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { Sidebar } from "./components/Sidebar";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { POS } from "./pages/POS";
+import { DirectSale } from "./pages/DirectSale";
 import { Warehouse } from "./pages/Warehouse";
 import { WarehouseDetail } from "./pages/WarehouseDetail";
 import { Storefront } from "./pages/Storefront";
@@ -20,6 +21,7 @@ import { CreditDetail } from "./pages/CreditDetail";
 import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
+import { DirectSaleOrders } from "./pages/DirectSaleOrders";
 import { CreditOrders } from "./pages/CreditOrders";
 import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
@@ -37,7 +39,7 @@ const AppLayout: React.FC = () => {
       {token && (
         <>
           {/* Header */}
-          <header className="bg-primary border-b border-white/10 sticky top-0 z-30 print:hidden shadow-lg">
+          <header className="bg-brand border-b border-white/10 sticky top-0 z-30 print:hidden shadow-lg">
             <div className="flex items-center justify-between h-14 px-4">
               <div className="flex items-center">
                 <button
@@ -47,13 +49,8 @@ const AppLayout: React.FC = () => {
                 >
                   <Menu className="w-6 h-6 text-white" />
                 </button>
-                <img
-                  src="/autologo.jpg"
-                  alt="AutoShop Logo"
-                  className="w-8 h-8 object-contain rounded-lg mr-2"
-                />
                 <h1 className="text-lg font-bold text-white tracking-wide">
-                  AutoShop
+                  shewpyi-pos
                 </h1>
               </div>
               <div className="flex items-center gap-2">
@@ -93,6 +90,14 @@ const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <POS />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/direct-sale"
+            element={
+              <ProtectedRoute>
+                <DirectSale />
               </ProtectedRoute>
             }
           />
@@ -157,6 +162,14 @@ const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Orders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/direct-sale-orders"
+            element={
+              <ProtectedRoute>
+                <DirectSaleOrders />
               </ProtectedRoute>
             }
           />

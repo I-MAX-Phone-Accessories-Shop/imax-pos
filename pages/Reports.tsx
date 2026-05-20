@@ -38,7 +38,7 @@ import {
   fetchAllStorefrontsFOCOrders,
   FOCOrder,
 } from "../services/Reports/fetchFOCOrders";
-import { ReportsHeader } from "../components/Reports/ReportsHeader";
+import { ReportsHeader, ReportsDataSource } from "../components/Reports/ReportsHeader";
 import { ReportTabs } from "../components/Reports/ReportTabs";
 import { OverallReportTab } from "../components/Reports/OverallReportTab";
 import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
@@ -104,6 +104,12 @@ export const Reports: React.FC = () => {
     FOCOrder[]
   >([]);
 
+  const [reportsDataSource, setReportsDataSource] =
+    useState<ReportsDataSource>("storefront");
+
+  const reportSaleType =
+    reportsDataSource === "direct-sale" ? "direct-sale" : null;
+
   useEffect(() => {
     loadReports();
   }, []);
@@ -140,7 +146,7 @@ export const Reports: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStorefront, activeTab, startDate, endDate]);
+  }, [selectedStorefront, activeTab, startDate, endDate, reportsDataSource]);
 
   const formatDateForAPI = (date: Date | null): string | null => {
     if (!date) return null;
@@ -167,18 +173,25 @@ export const Reports: React.FC = () => {
         const allReportResponse = await fetchAllStorefrontsSaleReport(
           startDateStr,
           endDateStr,
+          reportSaleType,
         );
         setAllStorefrontsReport(allReportResponse);
 
         // Load individual storefront reports
         const reports = await Promise.all(
           storefrontList.map((storefront) =>
-            fetchSaleReport(storefront._id, startDateStr, endDateStr),
+            fetchSaleReport(
+              storefront._id,
+              startDateStr,
+              endDateStr,
+              reportSaleType,
+            ),
           ),
         );
         setSaleReports(reports);
 
-        if (storefrontList.length > 0 && selectedStorefront === "all") {
+        // Don't auto-switch away from "all" (needed for direct-sale where storefront can be null).
+        if (storefrontList.length > 0 && !selectedStorefront) {
           setSelectedStorefront(storefrontList[0]._id);
         }
       } else {
@@ -203,6 +216,7 @@ export const Reports: React.FC = () => {
         selectedStorefront,
         startDateStr,
         endDateStr,
+        reportSaleType,
       );
       setPaidOrdersReport(response);
     } catch (error) {
@@ -221,6 +235,7 @@ export const Reports: React.FC = () => {
       const response = await fetchAllStorefrontsPaidOrdersReport(
         startDateStr,
         endDateStr,
+        reportSaleType,
       );
       setAllStorefrontsPaidOrdersReport(response);
     } catch (error) {
@@ -285,6 +300,7 @@ export const Reports: React.FC = () => {
         selectedStorefront,
         startDateStr,
         endDateStr,
+        reportSaleType,
       );
       setProductSalesStatistics(response);
     } catch (error) {
@@ -310,12 +326,14 @@ export const Reports: React.FC = () => {
         const response = await fetchAllStorefrontsProductSalesStatistics(
           todayStr,
           todayStr,
+          reportSaleType,
         );
         setAllStorefrontsProductSalesStatistics(response);
       } else {
         const response = await fetchAllStorefrontsProductSalesStatistics(
           startDateStr,
           endDateStr,
+          reportSaleType,
         );
         setAllStorefrontsProductSalesStatistics(response);
       }
@@ -419,7 +437,11 @@ export const Reports: React.FC = () => {
         ] = await Promise.all([
           fetchStorefrontStock(),
           fetchAllStorefrontsCreditOrdersReport(fixedStartStr, chosenDateStr),
-          fetchAllStorefrontsPaidOrdersReport(chosenDateStr, chosenDateStr),
+          fetchAllStorefrontsPaidOrdersReport(
+            chosenDateStr,
+            chosenDateStr,
+            reportSaleType,
+          ),
           fetchCreditRecords(
             chosenDateStr || undefined,
             chosenDateStr || undefined,
@@ -455,6 +477,7 @@ export const Reports: React.FC = () => {
             selectedStorefront,
             chosenDateStr,
             chosenDateStr,
+            reportSaleType,
           ),
           fetchCreditRecords(
             chosenDateStr || undefined,
@@ -592,14 +615,22 @@ export const Reports: React.FC = () => {
     selectedStorefront === "all"
       ? saleReports
       : saleReports.filter(
-          (report) => report.data.storefront._id === selectedStorefront,
+          (report) =>
+            report.data.storefront?._id === selectedStorefront ||
+            // Some responses might use `id` instead of `_id`
+            (report.data.storefront as unknown as { id?: string } | null)?.id ===
+              selectedStorefront ||
+            // Direct-sale aggregate responses may not include storefront at all
+            report.data.storefront == null,
         );
 
   // Use the appropriate report based on selection
   const displayReport =
     selectedStorefront === "all"
       ? allStorefrontsReport?.data.report || aggregatedReport
-      : filteredReports[0]?.data.report || aggregatedReport;
+      : filteredReports[0]?.data.report ||
+        allStorefrontsReport?.data.report ||
+        aggregatedReport;
 
   if (loading) {
     return (
@@ -623,7 +654,8 @@ export const Reports: React.FC = () => {
         startDate={startDate}
         endDate={endDate}
         onDateRangeChange={handleDateRangeChange}
-        // singleDate={activeTab === "overall"}
+        reportDataSource={reportsDataSource}
+        onReportDataSourceChange={setReportsDataSource}
       />
 
       <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
