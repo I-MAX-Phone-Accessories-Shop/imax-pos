@@ -9,6 +9,8 @@ export interface VoucherReceiptItem {
   price: number;
 }
 
+export type VoucherDocumentType = "invoice" | "quotation";
+
 export interface VoucherReceiptData {
   invoiceNumber: string;
   storefrontName: string;
@@ -16,11 +18,15 @@ export interface VoucherReceiptData {
   items: VoucherReceiptItem[];
   subtotal: number;
   discountPercent: number;
+  /** Fixed discount in MMK (quotations); shown when > 0 */
+  discountAmount?: number;
+  tax?: number;
   total: number;
   paymentMethod: string;
   paidAmount?: number;
   change?: number;
   note?: string;
+  documentType?: VoucherDocumentType;
 }
 
 interface VoucherContentProps {
@@ -37,6 +43,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   formatDate,
 }) => {
   const isThermal = paperSize === "thermal-80mm";
+  const isQuotation = receiptData.documentType === "quotation";
   const contactParts = [
     shopBranding.phone && `Tel: ${shopBranding.phone}`,
     shopBranding.website,
@@ -74,12 +81,15 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
         }`}
       >
         <div>
-          <p className="font-bold mb-0.5">INVOICE TO :</p>
+          <p className="font-bold mb-0.5">
+            {isQuotation ? "QUOTATION TO :" : "INVOICE TO :"}
+          </p>
           <p>{receiptData.storefrontName}</p>
         </div>
         <div className={isThermal ? "" : "text-right"}>
           <p className="font-bold mb-0.5">
-            INVOICE NO : {receiptData.invoiceNumber}
+            {isQuotation ? "QUOTATION NO" : "INVOICE NO"} :{" "}
+            {receiptData.invoiceNumber}
           </p>
           <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
         </div>
@@ -144,19 +154,31 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
       >
         <div>
           <div className="mb-3 sm:mb-6">
-            <p className="font-bold mb-1">Payment Info:</p>
-            <p>Method: {receiptData.paymentMethod}</p>
-            {receiptData.paidAmount != null && (
-              <p>
-                Paid: {receiptData.paidAmount.toLocaleString()}{" "}
-                {shopBranding.currency}
-              </p>
-            )}
-            {receiptData.change != null && receiptData.change > 0 && (
-              <p>
-                Change: {receiptData.change.toLocaleString()}{" "}
-                {shopBranding.currency}
-              </p>
+            {isQuotation ? (
+              <>
+                <p className="font-bold mb-1">Document:</p>
+                <p>{receiptData.paymentMethod}</p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Prices are estimates. Not a final invoice.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-bold mb-1">Payment Info:</p>
+                <p>Method: {receiptData.paymentMethod}</p>
+                {receiptData.paidAmount != null && (
+                  <p>
+                    Paid: {receiptData.paidAmount.toLocaleString()}{" "}
+                    {shopBranding.currency}
+                  </p>
+                )}
+                {receiptData.change != null && receiptData.change > 0 && (
+                  <p>
+                    Change: {receiptData.change.toLocaleString()}{" "}
+                    {shopBranding.currency}
+                  </p>
+                )}
+              </>
             )}
           </div>
           {receiptData.note && <p className="italic">Note: {receiptData.note}</p>}
@@ -167,9 +189,21 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <span>SUB TOTAL:</span>
             <span>{receiptData.subtotal.toLocaleString()}</span>
           </div>
-          {receiptData.discountPercent > 0 && (
+          {(receiptData.tax ?? 0) > 0 && (
+            <div className="flex justify-between mb-1 sm:mb-2">
+              <span>TAX:</span>
+              <span>+{(receiptData.tax ?? 0).toLocaleString()}</span>
+            </div>
+          )}
+          {(receiptData.discountAmount ?? 0) > 0 && (
             <div className="flex justify-between mb-1 sm:mb-2">
               <span>DISCOUNT:</span>
+              <span>-{(receiptData.discountAmount ?? 0).toLocaleString()}</span>
+            </div>
+          )}
+          {receiptData.discountPercent > 0 && (
+            <div className="flex justify-between mb-1 sm:mb-2">
+              <span>DISCOUNT ({receiptData.discountPercent}%):</span>
               <span>
                 -
                 {(
@@ -193,7 +227,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
 
       <div className="mt-8 sm:mt-16 text-center">
         <p className="voucher-footer-title font-bold italic mb-1">
-          Thank you for your business!
+          {isQuotation
+            ? "Thank you — please confirm before ordering."
+            : "Thank you for your business!"}
         </p>
         <div className="voucher-sign border-t border-gray-300 mt-6 sm:mt-8 pt-4">
           <p className="text-xs text-right">

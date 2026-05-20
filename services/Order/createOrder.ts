@@ -7,7 +7,11 @@ interface OrderProduct {
 }
 
 interface CreateOrderRequest {
-  storefrontId: string;
+  saleType?: "storefront" | "direct-sale";
+  storefrontId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  note?: string;
   ordersProducts: OrderProduct[];
   subTotal?: number;
   tax?: number;

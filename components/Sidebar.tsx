@@ -13,6 +13,7 @@ import {
   X,
   Receipt,
   ClipboardList,
+  FileText,
   Shield,
   LogOut,
   ChevronDown,
@@ -89,6 +90,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: t("sidebar.directSale"),
             icon: ShoppingBag,
           },
+          {
+            path: "/quotations/create",
+            label: t("sidebar.createQuotation"),
+            icon: FileText,
+          },
         ],
       },
       {
@@ -107,6 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: t("sidebar.creditOrder"),
             icon: CreditCard,
           },
+          { path: "/quotations", label: t("sidebar.quotations"), icon: FileText },
         ],
       },
       {

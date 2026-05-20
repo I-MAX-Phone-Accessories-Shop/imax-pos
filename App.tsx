@@ -24,6 +24,9 @@ import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
 import { DirectSaleOrders } from "./pages/DirectSaleOrders";
 import { CreditOrders } from "./pages/CreditOrders";
+import { QuotationList } from "./pages/QuotationList";
+import { QuotationCreate } from "./pages/QuotationCreate";
+import { QuotationDetail } from "./pages/QuotationDetail";
 import { AccountManagement } from "./pages/AccountManagement";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -179,6 +182,42 @@ const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <CreditOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotations"
+            element={
+              <ProtectedRoute>
+                <QuotationList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotations/create"
+            element={
+              <ProtectedRoute>
+                <QuotationCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotations/new"
+            element={<Navigate to="/quotations/create" replace />}
+          />
+          <Route
+            path="/quotations/:id/edit"
+            element={
+              <ProtectedRoute>
+                <QuotationCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotations/:id"
+            element={
+              <ProtectedRoute>
+                <QuotationDetail />
               </ProtectedRoute>
             }
           />
