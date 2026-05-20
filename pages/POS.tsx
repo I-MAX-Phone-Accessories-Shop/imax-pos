@@ -322,15 +322,15 @@ export const POS: React.FC = () => {
     0,
   );
 
-  const totalAfterDiscount = Math.ceil(
-    subtotal * (1 - Math.ceil(discount) / 100),
+  const totalAfterDiscount = Math.round(
+    subtotal * (1 - (Number(discount) || 0) / 100),
   );
   const totalAfterMarkup = subtotal + markupAmount;
 
   const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
   const combinedDiscountAmount = useMarkup
     ? 0
-    : Math.ceil(subtotal - totalAfterDiscount);
+    : Math.round(subtotal - totalAfterDiscount);
 
   // Auto-update paid amount when discount or subtotal changes in checkout modal
   useEffect(() => {
@@ -380,7 +380,7 @@ export const POS: React.FC = () => {
         [PaymentMethod.MMQR]: "MMQR",
       };
 
-      const discountAmount = useMarkup ? 0 : subtotal - totalAfterDiscount;
+      const discountAmount = useMarkup ? 0 : Math.round(subtotal - totalAfterDiscount);
 
       const orderPayload = {
         storefrontId: selectedStorefrontId,
