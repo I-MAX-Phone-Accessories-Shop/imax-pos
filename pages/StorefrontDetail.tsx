@@ -24,6 +24,7 @@ import {
   UpdateStorefrontStockQuantityPayload,
 } from "../services/Storefront/updateStorefrontStockQuantity";
 import { fetchCategories } from "../services/Inventory/fetchCategories";
+import { QuantityByUnitDisplay } from "../components/UOM/QuantityByUnitDisplay";
 
 export const StorefrontDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -541,7 +542,10 @@ export const StorefrontDetail: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
-                        {item.quantity}
+                        <QuantityByUnitDisplay
+                          quantity={item.quantity}
+                          quantityByUnit={item.quantityByUnit}
+                        />
                       </td>
                       <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
                         {item.availableQuantity}

@@ -3,6 +3,7 @@ import axios from "../axios";
 interface OrderProduct {
   inventoryId: string;
   quantity: number;
+  unit?: string;
 }
 
 interface CreateOrderRequest {

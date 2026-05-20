@@ -214,6 +214,42 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         {product.unitOfMeasure}
                       </p>
                     </div>
+                    {product.uomConversions &&
+                      product.uomConversions.length > 0 && (
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500 font-medium mb-2">
+                            {t("inventory.uomConversions")}
+                          </p>
+                          <table className="w-full text-sm border rounded-lg overflow-hidden">
+                            <thead className="bg-slate-50">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs text-slate-500">
+                                  {t("inventory.conversionUnit")}
+                                </th>
+                                <th className="px-3 py-2 text-right text-xs text-slate-500">
+                                  {t("inventory.conversionFactor")}
+                                </th>
+                                <th className="px-3 py-2 text-center text-xs text-slate-500">
+                                  {t("inventory.defaultSellingUnitShort")}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {product.uomConversions.map((row, i) => (
+                                <tr key={i}>
+                                  <td className="px-3 py-2">{row.unit}</td>
+                                  <td className="px-3 py-2 text-right">
+                                    {row.factor}
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    {row.isDefaultSellingUnit ? "✓" : ""}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     {/* <div>
                       <p className="text-xs text-slate-500 font-medium mb-1">
                         {t("inventory.productStatus")}

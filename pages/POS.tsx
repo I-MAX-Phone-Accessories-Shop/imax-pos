@@ -34,6 +34,17 @@ import {
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
 import { deviceDetect } from "react-device-detect";
+import { CartUnitSelector } from "../components/UOM/CartUnitSelector";
+import {
+  UomCartItem,
+  cartLineToOrderProduct,
+  cartLineSubtotal,
+  createCartLine,
+  getCartLineId,
+  getCartLineMaxQty,
+  getCartLineUnitPrice,
+  getInventoryUomFromStock,
+} from "../utils/posCartUom";
 
 // Payment methods
 enum PaymentMethod {
@@ -49,10 +60,7 @@ enum PaymentMethod {
   FOC = "FOC",
 }
 
-interface CartItem {
-  stockItem: StorefrontStockItem;
-  qty: number;
-}
+type CartItem = UomCartItem;
 
 export const POS: React.FC = () => {
   const { t } = useLanguage();
@@ -206,31 +214,32 @@ export const POS: React.FC = () => {
       return;
     }
 
+    const newLine = createCartLine(stockItem, 1);
+    const lineId = getCartLineId(newLine);
+    const maxQty = getCartLineMaxQty(newLine);
+
     setCart((prev) => {
-      const existing = prev.find(
-        (item) => item.stockItem._id === stockItem._id,
-      );
+      const existing = prev.find((item) => getCartLineId(item) === lineId);
       if (existing) {
-        if (existing.qty + 1 > stockItem.availableQuantity) {
+        if (existing.qty + 1 > maxQty) {
           toast.error(t("pos.cannotExceedStock"));
           return prev;
         }
         return prev.map((item) =>
-          item.stockItem._id === stockItem._id
-            ? { ...item, qty: item.qty + 1 }
-            : item,
+          getCartLineId(item) === lineId ? { ...item, qty: item.qty + 1 } : item,
         );
       }
-      return [...prev, { stockItem, qty: 1 }];
+      return [...prev, newLine];
     });
   };
 
-  const updateQty = (id: string, delta: number) => {
+  const updateQty = (lineId: string, delta: number) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.stockItem._id === id) {
+        if (getCartLineId(item) === lineId) {
           const newQty = item.qty + delta;
-          if (newQty > item.stockItem.availableQuantity) {
+          const maxQty = getCartLineMaxQty(item);
+          if (newQty > maxQty) {
             toast.error(t("pos.cannotExceedStock"));
             return item;
           }
@@ -242,17 +251,17 @@ export const POS: React.FC = () => {
     );
   };
 
-  const setQty = (id: string, newQty: number) => {
+  const setQty = (lineId: string, newQty: number) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.stockItem._id === id) {
-          // Validate quantity
+        if (getCartLineId(item) === lineId) {
+          const maxQty = getCartLineMaxQty(item);
           if (newQty < 1) {
             return { ...item, qty: 1 };
           }
-          if (newQty > item.stockItem.availableQuantity) {
+          if (newQty > maxQty) {
             toast.error(t("pos.cannotExceedStock"));
-            return { ...item, qty: item.stockItem.availableQuantity };
+            return { ...item, qty: maxQty };
           }
           return { ...item, qty: newQty };
         }
@@ -261,8 +270,22 @@ export const POS: React.FC = () => {
     );
   };
 
-  const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.stockItem._id !== id));
+  const setCartLineUnit = (lineId: string, unit: string) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (getCartLineId(item) !== lineId) return item;
+        const updated = { ...item, selectedUnit: unit };
+        const maxQty = getCartLineMaxQty(updated);
+        return {
+          ...updated,
+          qty: Math.min(updated.qty, maxQty) || 1,
+        };
+      }),
+    );
+  };
+
+  const removeFromCart = (lineId: string) => {
+    setCart((prev) => prev.filter((item) => getCartLineId(item) !== lineId));
   };
 
   // Handle barcode scanning from search input
@@ -311,16 +334,7 @@ export const POS: React.FC = () => {
     }
   };
 
-  // Calculate totals
-  const getItemPrice = (item: StorefrontStockItem) => {
-    // Use sellingPrice from inventory if available, otherwise use placeholder
-    return item.inventoryId.sellingPrice; // Default to 10000 MMK if not available
-  };
-
-  const subtotal = cart.reduce(
-    (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
-    0,
-  );
+  const subtotal = cart.reduce((sum, item) => sum + cartLineSubtotal(item), 0);
 
   const totalAfterDiscount = Math.round(
     subtotal * (1 - (Number(discount) || 0) / 100),
@@ -384,10 +398,7 @@ export const POS: React.FC = () => {
 
       const orderPayload = {
         storefrontId: selectedStorefrontId,
-        ordersProducts: cart.map((item) => ({
-          inventoryId: item.stockItem.inventoryId._id,
-          quantity: item.qty,
-        })),
+        ordersProducts: cart.map(cartLineToOrderProduct),
         subTotal: subtotal,
         discount: discountAmount,
         finalAmount: total,
@@ -415,7 +426,8 @@ export const POS: React.FC = () => {
             name: i.stockItem.inventoryId.productName,
             code: i.stockItem.inventoryId.productCode,
             qty: i.qty,
-            price: getItemPrice(i.stockItem),
+            unit: i.selectedUnit,
+            price: getCartLineUnitPrice(i),
           })),
           subtotal,
           discountPercent: discount,
@@ -759,7 +771,8 @@ export const POS: React.FC = () => {
                 </div>
                 <div className="mt-4 flex justify-between items-end">
                   <span className="font-bold text-primary-600">
-                    {getItemPrice(stockItem).toLocaleString()} MMK
+                    {(stockItem.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
+                    MMK
                   </span>
                 </div>
               </div>
@@ -788,60 +801,77 @@ export const POS: React.FC = () => {
               {t("pos.emptyCart")}
             </div>
           ) : (
-            cart.map((item) => (
-              <div
-                key={item.stockItem._id}
-                className="flex justify-between items-start border-b border-gray-200 pb-4"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">
-                    {item.stockItem.inventoryId.productName}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {(getItemPrice(item.stockItem) * item.qty).toLocaleString()}{" "}
-                    MMK
-                  </p>
+            cart.map((item) => {
+              const lineId = getCartLineId(item);
+              const { baseUnit, conversions } =
+                getInventoryUomFromStock(item.stockItem);
+              const unitPrice = getCartLineUnitPrice(item);
+              const maxQty = getCartLineMaxQty(item);
+              return (
+                <div
+                  key={lineId}
+                  className="flex flex-col gap-2 border-b border-gray-200 pb-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        {item.stockItem.inventoryId.productName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {unitPrice.toLocaleString()} MMK / {item.selectedUnit}{" "}
+                        · {(unitPrice * item.qty).toLocaleString()} MMK
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => removeFromCart(lineId)}
+                      className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CartUnitSelector
+                      baseUnit={baseUnit}
+                      conversions={conversions}
+                      selectedUnit={item.selectedUnit}
+                      onUnitChange={(unit) => setCartLineUnit(lineId, unit)}
+                    />
+                    <div className="cart-item-controls flex items-center gap-2 ml-auto">
+                      <button
+                        onClick={() => updateQty(lineId, -1)}
+                        className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max={maxQty}
+                        value={item.qty}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          setQty(lineId, value);
+                        }}
+                        onBlur={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          if (value < 1) setQty(lineId, 1);
+                        }}
+                        className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="text-xs text-gray-500">
+                        {item.selectedUnit}
+                      </span>
+                      <button
+                        onClick={() => updateQty(lineId, 1)}
+                        className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="cart-item-controls flex items-center gap-2 ml-2">
-                  <button
-                    onClick={() => updateQty(item.stockItem._id, -1)}
-                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <input
-                    type="number"
-                    min="1"
-                    max={item.stockItem.availableQuantity}
-                    value={item.qty}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setQty(item.stockItem._id, value);
-                    }}
-                    onBlur={(e) => {
-                      // Ensure quantity is at least 1 when input loses focus
-                      const value = parseInt(e.target.value) || 1;
-                      if (value < 1) {
-                        setQty(item.stockItem._id, 1);
-                      }
-                    }}
-                    className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <button
-                    onClick={() => updateQty(item.stockItem._id, 1)}
-                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => removeFromCart(item.stockItem._id)}
-                    className="p-1 text-red-500 hover:bg-red-50 rounded ml-2 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

@@ -4,14 +4,25 @@ import { toast } from "sonner";
 import { Order } from "../../services/Order/fetchOrders";
 import { removeItemsFromOrder } from "../../services/Order/removeItemsFromOrder";
 import { AddItemToOrderRequest } from "../../services/Order/addItemsToOrder";
+import {
+  fetchStorefrontStock,
+  StorefrontStockItem,
+} from "../../services/Storefront/fetchStorefrontStock";
 import { useLanguage } from "../../context/LanguageContext";
+import { UomConversion } from "../../types/uom";
+import { CartUnitSelector } from "../UOM/CartUnitSelector";
+import { buildOrderProductLine, normalizeUnit } from "../../utils/uom";
 
 interface SelectedItemToRemove {
+  orderLineId: string;
   inventoryId: string;
   productName: string;
   productCode: string;
   currentQuantity: number;
   removeQuantity: number;
+  selectedUnit: string;
+  unitOfMeasure: string;
+  uomConversions?: UomConversion[];
   unitPrice: number;
   subtotalToRemove: number;
 }
@@ -40,8 +51,60 @@ export const RemoveItemsFromOrderModal: React.FC<
   const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
   const [useMarkup, setUseMarkup] = useState(false); // Add useMarkup state
 
+  const loadOrderLineItems = async (currentOrder: Order) => {
+    let stockByInventoryId: Record<
+      string,
+      { unitOfMeasure: string; uomConversions?: UomConversion[] }
+    > = {};
+
+    try {
+      const response = await fetchStorefrontStock();
+      if (response.success && response.data) {
+        response.data
+          .filter(
+            (item: StorefrontStockItem) =>
+              item.storefrontId?._id === currentOrder.storefrontId?._id,
+          )
+          .forEach((item: StorefrontStockItem) => {
+            stockByInventoryId[item.inventoryId._id] = {
+              unitOfMeasure:
+                item.inventoryId.unitOfMeasure?.trim() || "piece",
+              uomConversions: item.inventoryId.uomConversions,
+            };
+          });
+      }
+    } catch (error) {
+      console.error("Error loading stock for UOM:", error);
+    }
+
+    const initialItems: SelectedItemToRemove[] =
+      currentOrder.ordersProducts?.map((item) => {
+        const stock = stockByInventoryId[item.inventoryId._id];
+        const baseUnit = stock?.unitOfMeasure || "piece";
+        const soldUnit = item.unit
+          ? normalizeUnit(item.unit)
+          : baseUnit;
+        return {
+          orderLineId: item._id,
+          inventoryId: item.inventoryId._id,
+          productName: item.inventoryId.productName || "Unknown",
+          productCode: item.inventoryId.productCode || "",
+          currentQuantity: item.quantity,
+          removeQuantity: 0,
+          selectedUnit: soldUnit,
+          unitOfMeasure: baseUnit,
+          uomConversions: stock?.uomConversions,
+          unitPrice: item.unitPrice || 0,
+          subtotalToRemove: 0,
+        };
+      }) || [];
+
+    setSelectedItems(initialItems);
+  };
+
   useEffect(() => {
     if (isOpen && order) {
+      loadOrderLineItems(order);
       // Initialize form with existing order values
       setTax(order.tax || 0);
       const existingDiscount = order.discount || 0;
@@ -76,18 +139,6 @@ export const RemoveItemsFromOrderModal: React.FC<
 
       setPaidAmount(order.paidAmount || 0);
       setDiscountManuallyChanged(false);
-      // Initialize selected items from order products
-      const initialItems: SelectedItemToRemove[] =
-        order.ordersProducts?.map((item) => ({
-          inventoryId: item.inventoryId._id,
-          productName: item.inventoryId.productName || "Unknown",
-          productCode: item.inventoryId.productCode || "",
-          currentQuantity: item.quantity,
-          removeQuantity: 0,
-          unitPrice: item.unitPrice || 0,
-          subtotalToRemove: 0,
-        })) || [];
-      setSelectedItems(initialItems);
     } else {
       // Reset form when modal closes
       setSelectedItems([]);
@@ -103,11 +154,11 @@ export const RemoveItemsFromOrderModal: React.FC<
   }, [isOpen, order]);
 
   const handleQuantityChange = (
-    inventoryId: string,
+    orderLineId: string,
     removeQuantity: number,
   ) => {
     const updatedItems = selectedItems.map((item) => {
-      if (item.inventoryId === inventoryId) {
+      if (item.orderLineId === orderLineId) {
         // Ensure removeQuantity doesn't exceed currentQuantity and is not negative
         const validQuantity = Math.max(
           0,
@@ -147,9 +198,8 @@ export const RemoveItemsFromOrderModal: React.FC<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [discountPercent, selectedItems, order]);
 
-  const handleRemoveItem = (inventoryId: string) => {
-    // Remove item from selection (set removeQuantity to 0, but keep in list)
-    handleQuantityChange(inventoryId, 0);
+  const handleRemoveItem = (orderLineId: string) => {
+    handleQuantityChange(orderLineId, 0);
   };
 
   const calculateTotals = () => {
@@ -237,10 +287,14 @@ export const RemoveItemsFromOrderModal: React.FC<
       const totals = calculateTotals();
 
       const payload = {
-        items: itemsToRemove.map((item) => ({
-          inventoryId: item.inventoryId,
-          quantity: item.removeQuantity, // Negative quantity for removal
-        })) as AddItemToOrderRequest[],
+        items: itemsToRemove.map((item) =>
+          buildOrderProductLine(
+            item.inventoryId,
+            item.removeQuantity,
+            item.unitOfMeasure,
+            item.selectedUnit,
+          ),
+        ) as AddItemToOrderRequest[],
         subTotal: totals.subTotal,
         tax: totals.tax,
         discount: totals.discount,
@@ -324,7 +378,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                 <div className="space-y-3">
                   {selectedItems.map((item) => (
                     <div
-                      key={item.inventoryId}
+                      key={item.orderLineId}
                       className="bg-slate-50 p-3 rounded-lg border"
                     >
                       <div className="mb-2">
@@ -335,18 +389,36 @@ export const RemoveItemsFromOrderModal: React.FC<
                           {item.productCode}
                         </p>
                       </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs text-slate-500">
+                          {t("inventory.unitOfMeasure") || "Unit"}:
+                        </span>
+                        <CartUnitSelector
+                          baseUnit={item.unitOfMeasure}
+                          conversions={item.uomConversions}
+                          selectedUnit={item.selectedUnit}
+                          onUnitChange={() => {}}
+                          disabled
+                        />
+                        {!item.uomConversions?.length && (
+                          <span className="text-xs font-medium text-slate-700">
+                            {item.selectedUnit}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-slate-500 mb-1">
                             {t("orders.currentQuantity") || "Current Qty"}:{" "}
                             <span className="font-medium text-slate-700">
-                              {item.currentQuantity}
+                              {item.currentQuantity} {item.selectedUnit}
                             </span>
                           </p>
                           <p className="text-xs text-slate-500">
                             {t("orders.unitPrice") || "Unit Price"}:{" "}
                             <span className="font-medium text-slate-700">
-                              {item.unitPrice.toLocaleString()} MMK
+                              {item.unitPrice.toLocaleString()} MMK /{" "}
+                              {item.selectedUnit}
                             </span>
                           </p>
                         </div>
@@ -355,7 +427,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                             <button
                               onClick={() =>
                                 handleQuantityChange(
-                                  item.inventoryId,
+                                  item.orderLineId,
                                   item.removeQuantity - 1,
                                 )
                               }
@@ -371,7 +443,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                               value={item.removeQuantity}
                               onChange={(e) =>
                                 handleQuantityChange(
-                                  item.inventoryId,
+                                  item.orderLineId,
                                   parseInt(e.target.value) || 0,
                                 )
                               }
@@ -380,7 +452,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                             <button
                               onClick={() =>
                                 handleQuantityChange(
-                                  item.inventoryId,
+                                  item.orderLineId,
                                   item.removeQuantity + 1,
                                 )
                               }
@@ -426,7 +498,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                 <div className="space-y-2">
                   {itemsToRemove.map((item) => (
                     <div
-                      key={item.inventoryId}
+                      key={item.orderLineId}
                       className="bg-red-50 p-3 rounded-lg border border-red-200 flex items-center justify-between"
                     >
                       <div className="flex-1">
@@ -434,13 +506,13 @@ export const RemoveItemsFromOrderModal: React.FC<
                           {item.productName}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {item.productCode}
+                          {item.productCode} · {item.selectedUnit}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right min-w-[100px]">
                           <p className="font-medium text-red-600 text-sm">
-                            -{item.removeQuantity} x{" "}
+                            -{item.removeQuantity} {item.selectedUnit} x{" "}
                             {item.unitPrice.toLocaleString()}
                           </p>
                           <p className="font-medium text-red-600 text-sm">
@@ -448,7 +520,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                           </p>
                         </div>
                         <button
-                          onClick={() => handleRemoveItem(item.inventoryId)}
+                          onClick={() => handleRemoveItem(item.orderLineId)}
                           className="p-1 text-red-600 hover:bg-red-100 rounded"
                         >
                           <Trash2 className="w-4 h-4" />

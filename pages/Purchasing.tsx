@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { ShoppingBag, FileText, PackageCheck } from "lucide-react";
 import { Supplier, Product, ApiPurchaseOrder } from "../types";
 import { fetchSuppliers } from "../services/Supplier/fetchSuppliers";
@@ -19,6 +20,7 @@ type TabType = "po" | "grn";
 
 export const Purchasing: React.FC = () => {
   const { t } = useLanguage();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>("po");
 
   // Shared State
@@ -59,6 +61,16 @@ export const Purchasing: React.FC = () => {
   const [transferGRNId, setTransferGRNId] = useState<string | null>(null);
 
   // Fetch Suppliers and Products
+  useEffect(() => {
+    const state = location.state as { viewPoId?: string } | null;
+    if (state?.viewPoId) {
+      setSelectedPOId(state.viewPoId);
+      setIsPODetailModalOpen(true);
+      setActiveTab("po");
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   useEffect(() => {
     const loadData = async () => {
       try {

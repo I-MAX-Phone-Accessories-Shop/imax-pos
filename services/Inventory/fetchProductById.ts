@@ -1,4 +1,5 @@
 import axios from "../axios";
+import { UomConversion } from "../../types/uom";
 
 export interface ProductLocation {
   locationId: string;
@@ -37,6 +38,7 @@ export interface ProductDetail {
   buyingPrice: number;
   sellingPrice: number;
   unitOfMeasure: string;
+  uomConversions?: UomConversion[];
   reorderPoint: number;
   reorderQuantity: number;
   taxRate: number;

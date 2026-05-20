@@ -11,6 +11,15 @@ import {
   AddItemToOrderRequest,
 } from "../../services/Order/addItemsToOrder";
 import { useLanguage } from "../../context/LanguageContext";
+import { UomConversion } from "../../types/uom";
+import { CartUnitSelector } from "../UOM/CartUnitSelector";
+import {
+  buildOrderProductLine,
+  cartLineKey,
+  getAvailableQuantityInUnit,
+  getDefaultSellingUnit,
+  getUnitPrice,
+} from "../../utils/uom";
 
 interface InventoryProduct {
   _id: string;
@@ -18,17 +27,66 @@ interface InventoryProduct {
   productCode: string;
   sellingPrice: number;
   buyingPrice: number;
-  availableQuantity?: number;
+  unitOfMeasure: string;
+  uomConversions?: UomConversion[];
+  quantityByUnit?: Record<string, number>;
+  availableQuantity: number;
 }
 
 interface SelectedItem {
+  lineId: string;
   inventoryId: string;
   productName: string;
   productCode: string;
   quantity: number;
+  selectedUnit: string;
+  unitOfMeasure: string;
+  uomConversions?: UomConversion[];
+  quantityByUnit?: Record<string, number>;
+  availableQuantity: number;
+  sellingPrice: number;
   unitPrice: number;
   subtotal: number;
 }
+
+const buildSelectedItem = (
+  product: InventoryProduct,
+  quantity: number,
+  selectedUnit?: string,
+): SelectedItem => {
+  const unit =
+    selectedUnit ||
+    getDefaultSellingUnit(product.unitOfMeasure, product.uomConversions);
+  const unitPrice = getUnitPrice(
+    product.sellingPrice,
+    product.unitOfMeasure,
+    unit,
+    product.uomConversions,
+  );
+  const maxQty = getAvailableQuantityInUnit(
+    product.unitOfMeasure,
+    unit,
+    product.uomConversions,
+    product.availableQuantity,
+    product.quantityByUnit,
+  );
+  const qty = Math.min(Math.max(1, quantity), maxQty);
+  return {
+    lineId: cartLineKey(product._id, unit),
+    inventoryId: product._id,
+    productName: product.productName,
+    productCode: product.productCode,
+    quantity: qty,
+    selectedUnit: unit,
+    unitOfMeasure: product.unitOfMeasure,
+    uomConversions: product.uomConversions,
+    quantityByUnit: product.quantityByUnit,
+    availableQuantity: product.availableQuantity,
+    sellingPrice: product.sellingPrice,
+    unitPrice,
+    subtotal: unitPrice * qty,
+  };
+};
 
 interface AddItemsToOrderModalProps {
   isOpen: boolean;
@@ -184,8 +242,11 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
             productName: item.inventoryId.productName || "",
             productCode: item.inventoryId.productCode || "",
             sellingPrice: item.inventoryId.sellingPrice || 0,
-            buyingPrice: 0, // Not needed for adding items, but keeping for interface consistency
-            availableQuantity: item.quantity || item.availableQuantity || 0,
+            buyingPrice: 0,
+            unitOfMeasure: item.inventoryId.unitOfMeasure?.trim() || "piece",
+            uomConversions: item.inventoryId.uomConversions,
+            quantityByUnit: item.quantityByUnit,
+            availableQuantity: item.availableQuantity || item.quantity || 0,
           }),
         );
         setInventoryProducts(products);
@@ -217,56 +278,118 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   );
 
   const handleAddItem = (product: InventoryProduct) => {
-    const existingItem = selectedItems.find(
-      (item) => item.inventoryId === product._id,
-    );
-    if (existingItem) {
-      // Increase quantity if item already exists
-      const updatedItems = selectedItems.map((item) =>
-        item.inventoryId === product._id
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-              subtotal: (item.quantity + 1) * item.unitPrice,
-            }
-          : item,
-      );
-      setSelectedItems(updatedItems);
-    } else {
-      // Add new item
-      const newItem: SelectedItem = {
-        inventoryId: product._id,
-        productName: product.productName,
-        productCode: product.productCode,
-        quantity: 1,
-        unitPrice: product.sellingPrice,
-        subtotal: product.sellingPrice,
-      };
-      setSelectedItems([...selectedItems, newItem]);
-    }
-  };
-
-  const handleRemoveItem = (inventoryId: string) => {
-    setSelectedItems(
-      selectedItems.filter((item) => item.inventoryId !== inventoryId),
-    );
-  };
-
-  const handleQuantityChange = (inventoryId: string, quantity: number) => {
-    if (quantity < 1) {
-      handleRemoveItem(inventoryId);
+    if (product.availableQuantity <= 0) {
+      toast.error(t("orders.outOfStock") || "Out of stock");
       return;
     }
-    const updatedItems = selectedItems.map((item) =>
-      item.inventoryId === inventoryId
-        ? {
-            ...item,
-            quantity,
-            subtotal: quantity * item.unitPrice,
-          }
-        : item,
+
+    const defaultUnit = getDefaultSellingUnit(
+      product.unitOfMeasure,
+      product.uomConversions,
     );
-    setSelectedItems(updatedItems);
+    const lineId = cartLineKey(product._id, defaultUnit);
+    const existingItem = selectedItems.find((item) => item.lineId === lineId);
+
+    if (existingItem) {
+      const maxQty = getAvailableQuantityInUnit(
+        product.unitOfMeasure,
+        existingItem.selectedUnit,
+        product.uomConversions,
+        product.availableQuantity,
+        product.quantityByUnit,
+      );
+      if (existingItem.quantity + 1 > maxQty) {
+        toast.error(t("pos.cannotExceedStock") || "Cannot exceed stock");
+        return;
+      }
+      setSelectedItems(
+        selectedItems.map((item) =>
+          item.lineId === lineId
+            ? buildSelectedItem(product, item.quantity + 1, item.selectedUnit)
+            : item,
+        ),
+      );
+    } else {
+      setSelectedItems([
+        ...selectedItems,
+        buildSelectedItem(product, 1, defaultUnit),
+      ]);
+    }
+  };
+
+  const handleRemoveItem = (lineId: string) => {
+    setSelectedItems(selectedItems.filter((item) => item.lineId !== lineId));
+  };
+
+  const handleQuantityChange = (lineId: string, quantity: number) => {
+    if (quantity < 1) {
+      handleRemoveItem(lineId);
+      return;
+    }
+    setSelectedItems(
+      selectedItems.map((item) => {
+        if (item.lineId !== lineId) return item;
+        const product: InventoryProduct = {
+          _id: item.inventoryId,
+          productName: item.productName,
+          productCode: item.productCode,
+          sellingPrice: item.sellingPrice,
+          buyingPrice: 0,
+          unitOfMeasure: item.unitOfMeasure,
+          uomConversions: item.uomConversions,
+          quantityByUnit: item.quantityByUnit,
+          availableQuantity: item.availableQuantity,
+        };
+        const maxQty = getAvailableQuantityInUnit(
+          item.unitOfMeasure,
+          item.selectedUnit,
+          item.uomConversions,
+          item.availableQuantity,
+          item.quantityByUnit,
+        );
+        if (quantity > maxQty) {
+          toast.error(t("pos.cannotExceedStock") || "Cannot exceed stock");
+          return buildSelectedItem(product, maxQty, item.selectedUnit);
+        }
+        return buildSelectedItem(product, quantity, item.selectedUnit);
+      }),
+    );
+  };
+
+  const handleUnitChange = (lineId: string, unit: string) => {
+    setSelectedItems((prev) => {
+      const source = prev.find((i) => i.lineId === lineId);
+      if (!source) return prev;
+
+      const product: InventoryProduct = {
+        _id: source.inventoryId,
+        productName: source.productName,
+        productCode: source.productCode,
+        sellingPrice: source.sellingPrice,
+        buyingPrice: 0,
+        unitOfMeasure: source.unitOfMeasure,
+        uomConversions: source.uomConversions,
+        quantityByUnit: source.quantityByUnit,
+        availableQuantity: source.availableQuantity,
+      };
+      const updated = buildSelectedItem(product, source.quantity, unit);
+      const rest = prev.filter((i) => i.lineId !== lineId);
+      const duplicateIdx = rest.findIndex((i) => i.lineId === updated.lineId);
+
+      if (duplicateIdx >= 0) {
+        const duplicate = rest[duplicateIdx];
+        return rest.map((i, idx) =>
+          idx === duplicateIdx
+            ? buildSelectedItem(
+                product,
+                duplicate.quantity + updated.quantity,
+                unit,
+              )
+            : i,
+        );
+      }
+      return [...rest, updated];
+    });
   };
 
   const calculateTotals = () => {
@@ -345,10 +468,14 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       const totals = calculateTotals();
 
       const payload = {
-        items: selectedItems.map((item) => ({
-          inventoryId: item.inventoryId,
-          quantity: item.quantity,
-        })) as AddItemToOrderRequest[],
+        items: selectedItems.map((item) =>
+          buildOrderProductLine(
+            item.inventoryId,
+            item.quantity,
+            item.unitOfMeasure,
+            item.selectedUnit,
+          ),
+        ) as AddItemToOrderRequest[],
         subTotal: totals.subTotal,
         tax: totals.tax,
         discount: totals.discount,
@@ -579,70 +706,92 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {selectedItems.map((item) => (
-                    <div
-                      key={item.inventoryId}
-                      className="bg-slate-50 p-3 rounded-lg border flex items-center justify-between"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-800 text-sm">
-                          {item.productName}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {item.productCode}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
+                  {selectedItems.map((item) => {
+                    const maxQty = getAvailableQuantityInUnit(
+                      item.unitOfMeasure,
+                      item.selectedUnit,
+                      item.uomConversions,
+                      item.availableQuantity,
+                      item.quantityByUnit,
+                    );
+                    return (
+                      <div
+                        key={item.lineId}
+                        className="bg-slate-50 p-3 rounded-lg border flex flex-col gap-2"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-slate-800 text-sm">
+                              {item.productName}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {item.productCode} · {item.unitPrice.toLocaleString()}{" "}
+                              MMK / {item.selectedUnit}
+                            </p>
+                          </div>
                           <button
-                            onClick={() =>
-                              handleQuantityChange(
-                                item.inventoryId,
-                                item.quantity - 1,
-                              )
-                            }
-                            className="w-6 h-6 rounded border flex items-center justify-center hover:bg-slate-200 text-sm"
+                            onClick={() => handleRemoveItem(item.lineId)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
                           >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleQuantityChange(
-                                item.inventoryId,
-                                parseInt(e.target.value) || 1,
-                              )
-                            }
-                            className="w-12 text-center border rounded py-1 text-sm"
-                          />
-                          <button
-                            onClick={() =>
-                              handleQuantityChange(
-                                item.inventoryId,
-                                item.quantity + 1,
-                              )
-                            }
-                            className="w-6 h-6 rounded border flex items-center justify-center hover:bg-slate-200 text-sm"
-                          >
-                            +
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="text-right min-w-[90px]">
-                          <p className="font-medium text-slate-800 text-sm">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <CartUnitSelector
+                            baseUnit={item.unitOfMeasure}
+                            conversions={item.uomConversions}
+                            selectedUnit={item.selectedUnit}
+                            onUnitChange={(unit) =>
+                              handleUnitChange(item.lineId, unit)
+                            }
+                          />
+                          <div className="flex items-center gap-1 ml-auto">
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.lineId,
+                                  item.quantity - 1,
+                                )
+                              }
+                              className="w-6 h-6 rounded border flex items-center justify-center hover:bg-slate-200 text-sm"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxQty}
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  item.lineId,
+                                  parseInt(e.target.value) || 1,
+                                )
+                              }
+                              className="w-12 text-center border rounded py-1 text-sm"
+                            />
+                            <span className="text-xs text-slate-500">
+                              {item.selectedUnit}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.lineId,
+                                  item.quantity + 1,
+                                )
+                              }
+                              className="w-6 h-6 rounded border flex items-center justify-center hover:bg-slate-200 text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <p className="font-medium text-slate-800 text-sm w-full text-right">
                             {item.subtotal.toLocaleString()} MMK
                           </p>
                         </div>
-                        <button
-                          onClick={() => handleRemoveItem(item.inventoryId)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

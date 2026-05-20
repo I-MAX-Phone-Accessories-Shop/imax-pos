@@ -247,6 +247,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                         <th className="p-3 text-center font-medium text-slate-600">
                           Qty
                         </th>
+                        <th className="p-3 text-center font-medium text-slate-600">
+                          Unit
+                        </th>
                         <th className="p-3 text-right font-medium text-slate-600">
                           Unit Price
                         </th>
@@ -270,6 +273,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                           </td>
                           <td className="p-3 text-center font-medium">
                             {item.quantity}
+                          </td>
+                          <td className="p-3 text-center text-slate-600 text-sm">
+                            {item.unit || "—"}
                           </td>
                           <td className="p-3 text-right text-slate-600">
                             {item.unitPrice?.toLocaleString()} MMK

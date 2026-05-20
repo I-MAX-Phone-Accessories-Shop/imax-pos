@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Product } from "../../types";
+import { UomConversion } from "../../types/uom";
 import { useLanguage } from "../../context/LanguageContext";
+import { UomConversionsEditor } from "./UomConversionsEditor";
 
 // const UNIT_OF_MEASURE_OPTIONS = [
 //   "piece",
@@ -30,6 +32,7 @@ export interface ProductFormData {
   buyingPrice: number;
   sellingPrice: number;
   unitOfMeasure: string;
+  uomConversions: UomConversion[];
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;
@@ -53,6 +56,7 @@ export interface ApiProduct {
   buyingPrice: number;
   sellingPrice: number;
   unitOfMeasure: string;
+  uomConversions: UomConversion[];
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;
@@ -308,25 +312,26 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          {/* <div>
+          <div>
             <label className="block text-xs font-bold text-slate-500">
               {t("inventory.unitOfMeasure")}{" "}
               <span className="text-red-500">*</span>
             </label>
-            <select
+            <input
               className="w-full border rounded p-2"
               value={formData.unitOfMeasure}
               onChange={(e) =>
                 updateFormData({ unitOfMeasure: e.target.value })
               }
-            >
-              {UNIT_OF_MEASURE_OPTIONS.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-          </div> */}
+              placeholder={t("inventory.unitOfMeasurePlaceholder")}
+            />
+          </div>
+
+          <UomConversionsEditor
+            baseUnit={formData.unitOfMeasure}
+            conversions={formData.uomConversions}
+            onChange={(uomConversions) => updateFormData({ uomConversions })}
+          />
 
           {/* <div className="col-span-2">
             <label className="block text-xs font-bold text-slate-500">

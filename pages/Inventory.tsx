@@ -34,6 +34,7 @@ import {
 } from "../services/Inventory/importExcel";
 import { useRef } from "react";
 import { ImportResultModal } from "../components/Inventory/ImportResultModal";
+import { validateUomConversions } from "../utils/uom";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -95,6 +96,7 @@ export const Inventory: React.FC = () => {
     buyingPrice: 0,
     sellingPrice: 0,
     unitOfMeasure: "piece",
+    uomConversions: [],
     reorderPoint: 0,
     reorderQuantity: 0,
     taxRate: 0,
@@ -214,6 +216,7 @@ export const Inventory: React.FC = () => {
       buyingPrice: 0,
       sellingPrice: 0,
       unitOfMeasure: "piece",
+      uomConversions: [],
       reorderPoint: 0,
       reorderQuantity: 0,
       taxRate: 0,
@@ -278,6 +281,23 @@ export const Inventory: React.FC = () => {
       return;
     }
 
+    if (!formData.unitOfMeasure?.trim()) {
+      const errorMsg = t("inventory.unitOfMeasureRequired");
+      toast.error(errorMsg);
+      setError(errorMsg);
+      return;
+    }
+
+    const uomError = validateUomConversions(
+      formData.unitOfMeasure,
+      formData.uomConversions,
+    );
+    if (uomError) {
+      toast.error(uomError);
+      setError(uomError);
+      return;
+    }
+
     if (editingId) {
       // Update existing product via API
       setIsLoading(true);
@@ -292,7 +312,8 @@ export const Inventory: React.FC = () => {
           category: formData.category || "Unknown",
           buyingPrice: formData.buyingPrice,
           sellingPrice: formData.sellingPrice,
-          unitOfMeasure: formData.unitOfMeasure || "piece",
+          unitOfMeasure: formData.unitOfMeasure.trim(),
+          uomConversions: formData.uomConversions,
         };
 
         // Add optional fields only if they have values
@@ -350,7 +371,8 @@ export const Inventory: React.FC = () => {
         category: formData.category || "Unknown",
         buyingPrice: formData.buyingPrice,
         sellingPrice: formData.sellingPrice,
-        unitOfMeasure: formData.unitOfMeasure || "piece",
+        unitOfMeasure: formData.unitOfMeasure.trim(),
+        uomConversions: formData.uomConversions,
       };
 
       // Add SKU only if it has a value, otherwise provide a default
@@ -416,6 +438,7 @@ export const Inventory: React.FC = () => {
       buyingPrice: p.costPrice,
       sellingPrice: p.sellingPrice,
       unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
+      uomConversions: apiProduct?.uomConversions || [],
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,
       taxRate: apiProduct?.taxRate || 0,

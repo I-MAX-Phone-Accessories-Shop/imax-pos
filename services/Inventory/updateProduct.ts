@@ -1,4 +1,5 @@
 import axios from "../axios";
+import { UomConversion } from "../../types/uom";
 
 export interface UpdateProductPayload {
   productName: string;
@@ -13,6 +14,7 @@ export interface UpdateProductPayload {
   buyingPrice: number;
   sellingPrice: number;
   unitOfMeasure: string;
+  uomConversions?: UomConversion[];
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;

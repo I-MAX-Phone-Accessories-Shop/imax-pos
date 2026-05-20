@@ -11,7 +11,9 @@ export interface OrderProduct {
     id: string;
   };
   quantity: number;
+  unit?: string;
   unitPrice: number;
+  baseQuantity?: number;
   _id: string;
 }
 

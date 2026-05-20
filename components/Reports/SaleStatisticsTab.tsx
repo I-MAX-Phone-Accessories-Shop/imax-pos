@@ -284,6 +284,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                           <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Order #</th>
                           <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Customer</th>
                           <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Qty</th>
+                          <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Unit</th>
                           <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Price</th>
                           <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Total</th>
                           <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Action</th>
@@ -310,6 +311,16 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                               </td>
                               <td className="px-8 py-6 text-right font-black text-blue-600">
                                 {orderProduct?.quantity || 0}
+                                {orderProduct?.baseQuantity != null &&
+                                  orderProduct.baseQuantity !==
+                                    orderProduct.quantity && (
+                                    <span className="block text-[10px] text-slate-400 font-normal">
+                                      ({orderProduct.baseQuantity} base)
+                                    </span>
+                                  )}
+                              </td>
+                              <td className="px-8 py-6 text-center text-slate-600 text-sm">
+                                {orderProduct?.unit || selectedProduct.unitOfMeasure}
                               </td>
                               <td className="px-8 py-6 text-right text-slate-600">
                                 {orderProduct?.unitPrice.toLocaleString()}

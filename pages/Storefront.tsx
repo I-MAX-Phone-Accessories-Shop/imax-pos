@@ -28,6 +28,7 @@ import {
 } from "../services/Storefront/fetchStorefrontStock";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
+import { QuantityByUnitDisplay } from "../components/UOM/QuantityByUnitDisplay";
 
 interface StorefrontProfileFormData {
   storefrontCode: string;
@@ -483,7 +484,10 @@ export const Storefront: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
-                            {item.quantity}
+                            <QuantityByUnitDisplay
+                              quantity={item.quantity}
+                              quantityByUnit={item.quantityByUnit}
+                            />
                           </td>
                           <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
                             {item.availableQuantity}

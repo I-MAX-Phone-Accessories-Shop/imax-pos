@@ -4,6 +4,7 @@ import { Order } from "./fetchOrders";
 export interface AddItemToOrderRequest {
   inventoryId: string;
   quantity: number;
+  unit?: string;
 }
 
 export interface AddItemsToOrderPayload {
