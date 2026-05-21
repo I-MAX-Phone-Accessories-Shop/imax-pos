@@ -4,6 +4,7 @@ import {
   Eye,
   CheckCircle,
   Warehouse,
+  Store,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -24,6 +25,7 @@ interface GRNListProps {
   onViewGRN?: (grn: GRNData) => void;
   onStatusChange?: (page?: number, limit?: number) => void;
   onTransferGRN?: (grn: GRNData) => void;
+  onTransferGRNToStorefront?: (grn: GRNData) => void;
   pagination: PaginationData;
 }
 
@@ -33,6 +35,7 @@ export const GRNList: React.FC<GRNListProps> = ({
   onViewGRN,
   onStatusChange,
   onTransferGRN,
+  onTransferGRNToStorefront,
   pagination,
 }) => {
   const [grnFilter, setGrnFilter] = useState<"pending" | "completed">(
@@ -288,12 +291,34 @@ export const GRNList: React.FC<GRNListProps> = ({
                           grn.lineItems.some(
                             (item) => item.availableQuantity > 0
                           ) && (
-                            <button
-                              onClick={() => onTransferGRN?.(grn)}
-                              className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                            >
-                              <Warehouse className="w-3 h-3" /> Transfer
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTransferGRN?.(grn);
+                                }}
+                                className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <Warehouse className="w-3 h-3" /> To Warehouse
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onTransferGRNToStorefront) {
+                                    onTransferGRNToStorefront(grn);
+                                  } else {
+                                    toast.error(
+                                      "Transfer to storefront is not available"
+                                    );
+                                  }
+                                }}
+                                className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded hover:bg-orange-100 border border-orange-200 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <Store className="w-3 h-3" /> To Storefront
+                              </button>
+                            </>
                           )}
                       </div>
                     </td>

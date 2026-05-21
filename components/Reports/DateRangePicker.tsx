@@ -134,19 +134,23 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-primary outline-none"
+        className="w-full flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-primary outline-none"
       >
         <CalendarIcon className="w-4 h-4 text-slate-600" />
         <span className="text-sm text-slate-700">
           {singleDate
-            ? (startDate ? formatDate(startDate) : "Select date")
-            : (startDate && endDate
+            ? startDate
+              ? formatDate(startDate)
+              : "Select date"
+            : startDate && endDate
               ? `${formatDate(startDate)} - ${formatDate(endDate)}`
-              : "Select date range")
-          }
+              : "Select date range"}
         </span>
         {fixedStartDate && startDate && !singleDate && (
-          <Lock className="w-3 h-3 text-slate-400" title="Start date is fixed" />
+          <Lock
+            className="w-3 h-3 text-slate-400"
+            aria-label="Start date is fixed"
+          />
         )}
         {(startDate || endDate) && !fixedStartDate && (
           <X
@@ -170,7 +174,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           ) : fixedStartDate ? (
             <div className="flex flex-col gap-2">
               <div className="text-sm text-slate-500 mb-2">
-                Start Date (Fixed): <span className="font-medium text-slate-700">{formatDate(startDate)}</span>
+                Start Date (Fixed):{" "}
+                <span className="font-medium text-slate-700">
+                  {formatDate(startDate)}
+                </span>
                 <div className="mt-1">Select End Date:</div>
               </div>
               <Calendar
@@ -212,4 +219,3 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     </div>
   );
 };
-

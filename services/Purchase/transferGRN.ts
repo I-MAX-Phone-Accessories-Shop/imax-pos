@@ -6,6 +6,7 @@ interface TransferLineItem {
 }
 
 interface TransferGRNRequest {
+  sourceType: "GRN";
   grnId: string;
   destinationWarehouseId: string;
   lineItems: TransferLineItem[];

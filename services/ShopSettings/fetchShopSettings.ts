@@ -54,20 +54,47 @@ interface FetchShopSettingsResponse {
   data: ShopSettings | null;
 }
 
+/** API returns 404 or this message when settings were never created — not a load failure. */
+export const isNoShopSettingsMessage = (message?: string): boolean => {
+  if (!message) return false;
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("no shop settings") ||
+    lower.includes("create shop settings") ||
+    lower.includes("shop settings not found")
+  );
+};
+
 export const fetchShopSettings =
   async (): Promise<FetchShopSettingsResponse> => {
     try {
       const response = await axios.get("/shop-settings");
-      return response.data;
+      const body = response.data as FetchShopSettingsResponse;
+      if (!body.success && isNoShopSettingsMessage(body.message)) {
+        return { success: true, message: body.message, data: null };
+      }
+      if (body.success && !body.data && isNoShopSettingsMessage(body.message)) {
+        return { success: true, message: body.message, data: null };
+      }
+      return body;
     } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response?.data as { message?: string })?.message ||
+          "Failed to fetch shop settings";
+        if (
+          error.response?.status === 404 ||
+          isNoShopSettingsMessage(message)
+        ) {
+          return { success: true, message, data: null };
+        }
+        console.error("Error fetching shop settings:", error);
+        return { success: false, message, data: null };
+      }
       console.error("Error fetching shop settings:", error);
-      const message =
-        axios.isAxiosError(error) && error.response?.data?.message
-          ? error.response.data.message
-          : "Failed to fetch shop settings";
       return {
         success: false,
-        message,
+        message: "Failed to fetch shop settings",
         data: null,
       };
     }

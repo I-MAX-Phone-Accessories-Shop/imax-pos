@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Store, RefreshCw, Loader2, AlertTriangle, Edit } from "lucide-react";
+import { Store, RefreshCw, Loader2, Info, Edit } from "lucide-react";
 import { toast } from "sonner";
 import {
   fetchShopSettings,
+  isNoShopSettingsMessage,
   ShopSettings,
 } from "../../services/ShopSettings/fetchShopSettings";
 import { ShopInfoCard } from "./ShopInfoCard";
@@ -16,6 +17,7 @@ export const ShopSettingsTab: React.FC = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
 
   const loadShopSettings = useCallback(async () => {
     setLoading(true);
@@ -23,17 +25,30 @@ export const ShopSettingsTab: React.FC = () => {
       const response = await fetchShopSettings();
       if (response.success && response.data) {
         setSettings(response.data);
+        setEmptyMessage(null);
         setIsEditing(false);
+      } else if (
+        response.success &&
+        !response.data &&
+        (isNoShopSettingsMessage(response.message) || !response.message)
+      ) {
+        setSettings(null);
+        setEmptyMessage(
+          response.message ||
+            "No shop settings found. Please create shop settings using the form below.",
+        );
       } else {
         setSettings(null);
-        if (!response.success) {
+        setEmptyMessage(null);
+        if (!response.success && !isNoShopSettingsMessage(response.message)) {
           toast.error(response.message || "Failed to load shop settings");
         }
       }
     } catch (error) {
       console.error("Error loading shop settings:", error);
-      toast.error("Failed to load shop settings");
       setSettings(null);
+      setEmptyMessage(null);
+      toast.error("Failed to load shop settings");
     } finally {
       setLoading(false);
     }
@@ -84,9 +99,18 @@ export const ShopSettingsTab: React.FC = () => {
       ) : isEditing || !settings ? (
         <div className="space-y-6">
           {!settings && (
-            <div className="p-6 text-center text-slate-500 border border-dashed border-slate-200 rounded-xl">
-              <AlertTriangle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm">No shop settings yet. Create one below.</p>
+            <div
+              role="status"
+              className="p-4 sm:p-5 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 flex gap-3 items-start"
+            >
+              <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">No shop settings yet</p>
+                <p className="text-sm text-blue-800/90 mt-1">
+                  {emptyMessage ||
+                    "Create your shop profile below so receipts and vouchers show the correct shop name, address, and phone number."}
+                </p>
+              </div>
             </div>
           )}
           <ShopSettingsForm

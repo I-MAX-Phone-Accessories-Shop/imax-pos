@@ -15,6 +15,7 @@ import { CreateGRNModal } from "../components/Purchasing/CreateGRNModal";
 import { GRNDetailModal } from "../components/Purchasing/GRNDetailModal";
 import { PODetailModal } from "../components/Purchasing/PODetailModal";
 import { TransferWarehouseModal } from "../components/Purchasing/TransferWarehouseModal";
+import { TransferStorefrontModal } from "../components/Purchasing/TransferStorefrontModal";
 
 type TabType = "po" | "grn";
 
@@ -57,7 +58,9 @@ export const Purchasing: React.FC = () => {
   const [isCreateGRNModalOpen, setIsCreateGRNModalOpen] = useState(false);
   const [selectedGRNId, setSelectedGRNId] = useState<string | null>(null);
   const [isGRNDetailModalOpen, setIsGRNDetailModalOpen] = useState(false);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferModalType, setTransferModalType] = useState<
+    "warehouse" | "storefront" | null
+  >(null);
   const [transferGRNId, setTransferGRNId] = useState<string | null>(null);
 
   // Fetch Suppliers and Products
@@ -170,9 +173,21 @@ export const Purchasing: React.FC = () => {
     setIsGRNDetailModalOpen(true);
   };
 
+  const getGRNId = (grn: GRNData) => grn._id || grn.id;
+
   const handleTransferGRN = (grn: GRNData) => {
-    setTransferGRNId(grn._id);
-    setIsTransferModalOpen(true);
+    setTransferGRNId(getGRNId(grn));
+    setTransferModalType("warehouse");
+  };
+
+  const handleTransferGRNToStorefront = (grn: GRNData) => {
+    setTransferGRNId(getGRNId(grn));
+    setTransferModalType("storefront");
+  };
+
+  const handleCloseTransferModal = () => {
+    setTransferModalType(null);
+    setTransferGRNId(null);
   };
 
   return (
@@ -253,6 +268,7 @@ export const Purchasing: React.FC = () => {
             onStatusChange={loadGRNs}
             onViewGRN={handleViewGRN}
             onTransferGRN={handleTransferGRN}
+            onTransferGRNToStorefront={handleTransferGRNToStorefront}
             pagination={grnPagination}
           />
         </>
@@ -274,8 +290,14 @@ export const Purchasing: React.FC = () => {
         onGRNUpdate={loadGRNs}
       />
       <TransferWarehouseModal
-        isOpen={isTransferModalOpen}
-        onClose={() => setIsTransferModalOpen(false)}
+        isOpen={transferModalType === "warehouse"}
+        onClose={handleCloseTransferModal}
+        grnId={transferGRNId}
+        onSuccess={handleGRNSuccess}
+      />
+      <TransferStorefrontModal
+        isOpen={transferModalType === "storefront"}
+        onClose={handleCloseTransferModal}
         grnId={transferGRNId}
         onSuccess={handleGRNSuccess}
       />

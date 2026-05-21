@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Store,
+  History,
 } from "lucide-react";
 import {
   fetchStockAuditLogs,
@@ -26,6 +27,7 @@ import { toast } from "sonner";
 import { TransferList } from "../components/Purchasing/TransferList";
 import { TransferDetailModal } from "../components/Purchasing/TransferDetailModal";
 import { ShopSettingsTab } from "../components/Settings/ShopSettingsTab";
+import { ActivityLogTab } from "../components/Settings/ActivityLogTab";
 
 export const Settings: React.FC = () => {
   const { currentUser, setUserRole, logs } = useApp();
@@ -41,9 +43,9 @@ export const Settings: React.FC = () => {
   );
   const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] =
     useState(false);
-  const [activeTab, setActiveTab] = useState<"audit" | "transfer" | "shop">(
-    "shop",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "audit" | "transfer" | "shop" | "activity"
+  >("shop");
 
   const loadStockAuditLogs = async (page: number = 1) => {
     setLoading(true);
@@ -139,6 +141,18 @@ export const Settings: React.FC = () => {
           <Truck className="w-3 h-3 sm:w-4 sm:h-4" />{" "}
           <span className="hidden sm:inline">Transfer Management</span>
           <span className="sm:hidden">Transfers</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("activity")}
+          className={`px-3 sm:px-4 py-2 sm:py-2 font-semibold flex items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
+            activeTab === "activity"
+              ? "border-b-2 border-blue-800 text-blue-800"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <History className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline">Activity Log</span>
+          <span className="sm:hidden">Activity</span>
         </button>
       </div>
 
@@ -446,6 +460,9 @@ export const Settings: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Activity Log Tab */}
+      {activeTab === "activity" && <ActivityLogTab />}
 
       {/* Transfer Management Tab */}
       {activeTab === "transfer" && (
