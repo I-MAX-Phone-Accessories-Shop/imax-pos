@@ -37,7 +37,7 @@ const InfoRow: React.FC<{
 export const ShopInfoCard: React.FC<ShopInfoCardProps> = ({ settings }) => {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleString();
-  console.log(settings);
+  // console.log(settings);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">

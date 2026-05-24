@@ -104,7 +104,7 @@ export const Orders: React.FC = () => {
       // console.log("All orders response:", response);
 
       if (response.success && response.data) {
-        let filteredOrders = response.data;
+        let filteredOrders = response.data.reverse();
 
         // If a specific storefront is selected, filter the results
         if (selectedStorefrontId !== "all") {

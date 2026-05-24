@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronDown,
   Users,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -188,6 +189,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         label: t("sidebar.groupSystem"),
         icon: Shield,
         children: [
+          {
+            path: "/ai-chat",
+            label: t("sidebar.aiAssistant"),
+            icon: MessageSquare,
+          },
           {
             path: "/accounts",
             label: t("sidebar.accountManagement"),

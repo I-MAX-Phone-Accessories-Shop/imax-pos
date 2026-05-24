@@ -49,10 +49,11 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
 
         // Fetch product details for each line item
         const productPromises = res.data.lineItems.map(async (item) => {
+          console.log("item", item);
           if (item.inventoryId) {
-            const productRes = await fetchProductById(item.inventoryId);
+            const productRes = await fetchProductById(item.inventoryId._id);
             if (productRes.success && productRes.data) {
-              return { [item.inventoryId]: productRes.data };
+              return { [item.inventoryId._id]: productRes.data };
             }
           }
           return null;
@@ -349,7 +350,7 @@ export const TransferDetailModal: React.FC<TransferDetailModalProps> = ({
                     <tr key={item._id} className="hover:bg-slate-50">
                       <td className="p-3 text-slate-500">{index + 1}</td>
                       <td className="p-3 font-mono text-xs truncate max-w-xs">
-                        {productDetails[item.inventoryId]?.productName || "-"}
+                        {item.inventoryId?.productName || "-"}
                       </td>
                       <td className="p-3 text-center">
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">

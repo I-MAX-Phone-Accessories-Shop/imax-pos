@@ -1,7 +1,10 @@
 import axios from "../axios";
 
 export interface TransferLineItem {
-  inventoryId: string;
+  inventoryId: {
+    _id: string;
+    productName: string;
+  };
   quantity: number;
   grnLineItemId: string;
   notes: string | null;
