@@ -316,6 +316,13 @@ export const en = {
     itemsRemovedSuccess: "Items removed successfully",
     failedToRemoveItems: "Failed to remove items",
     removingItems: "Removing Items...",
+    confirmPaidAmountTitle: "Confirm Paid Amount",
+    confirmPaidAmountMessage:
+      "Please confirm the paid amount is correct before removing items:",
+    confirmPaidAmountMessageAdd:
+      "Please confirm the paid amount is correct before adding items:",
+    confirmRemoveItems: "Yes, Remove Items",
+    confirmAddItems: "Yes, Add Items",
     currentQuantity: "Current Qty",
     itemsToRemoveSubtotal: "Items to Remove Subtotal",
     noItemsInOrder: "No items in this order",

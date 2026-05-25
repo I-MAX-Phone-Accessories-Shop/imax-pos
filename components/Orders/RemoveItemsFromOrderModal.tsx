@@ -11,6 +11,7 @@ import {
 import { useLanguage } from "../../context/LanguageContext";
 import { UomConversion } from "../../types/uom";
 import { CartUnitSelector } from "../UOM/CartUnitSelector";
+import { ConfirmModal } from "../Common/ConfirmModal";
 import { buildOrderProductLine, normalizeUnit } from "../../utils/uom";
 
 interface SelectedItemToRemove {
@@ -50,6 +51,7 @@ export const RemoveItemsFromOrderModal: React.FC<
   const [submitting, setSubmitting] = useState(false);
   const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
   const [useMarkup, setUseMarkup] = useState(false); // Add useMarkup state
+  const [showPaidAmountConfirm, setShowPaidAmountConfirm] = useState(false);
 
   const loadOrderLineItems = async (currentOrder: Order) => {
     let stockByInventoryId: Record<
@@ -67,8 +69,7 @@ export const RemoveItemsFromOrderModal: React.FC<
           )
           .forEach((item: StorefrontStockItem) => {
             stockByInventoryId[item.inventoryId._id] = {
-              unitOfMeasure:
-                item.inventoryId.unitOfMeasure?.trim() || "piece",
+              unitOfMeasure: item.inventoryId.unitOfMeasure?.trim() || "piece",
               uomConversions: item.inventoryId.uomConversions,
             };
           });
@@ -81,9 +82,7 @@ export const RemoveItemsFromOrderModal: React.FC<
       currentOrder.ordersProducts?.map((item) => {
         const stock = stockByInventoryId[item.inventoryId._id];
         const baseUnit = stock?.unitOfMeasure || "piece";
-        const soldUnit = item.unit
-          ? normalizeUnit(item.unit)
-          : baseUnit;
+        const soldUnit = item.unit ? normalizeUnit(item.unit) : baseUnit;
         return {
           orderLineId: item._id,
           inventoryId: item.inventoryId._id,
@@ -267,8 +266,7 @@ export const RemoveItemsFromOrderModal: React.FC<
     };
   };
 
-  const handleSubmitRemoveItems = async () => {
-    // Filter items where removeQuantity > 0
+  const handleSubmitRemoveItems = () => {
     const itemsToRemove = selectedItems.filter(
       (item) => item.removeQuantity > 0,
     );
@@ -281,6 +279,17 @@ export const RemoveItemsFromOrderModal: React.FC<
     }
 
     if (!order) return;
+
+    setShowPaidAmountConfirm(true);
+  };
+
+  const confirmPaidAmountAndRemove = async () => {
+    if (!order) return;
+
+    const itemsToRemove = selectedItems.filter(
+      (item) => item.removeQuantity > 0,
+    );
+    if (itemsToRemove.length === 0) return;
 
     setSubmitting(true);
     try {
@@ -306,6 +315,7 @@ export const RemoveItemsFromOrderModal: React.FC<
       const response = await removeItemsFromOrder(order._id, payload);
 
       if (response.success) {
+        setShowPaidAmountConfirm(false);
         toast.success(
           t("orders.itemsRemovedSuccess") || "Items removed successfully",
         );
@@ -336,6 +346,19 @@ export const RemoveItemsFromOrderModal: React.FC<
   if (!isOpen || !order) return null;
 
   const itemsToRemove = selectedItems.filter((item) => item.removeQuantity > 0);
+  const confirmTotals = calculateTotals();
+  const paidAmountConfirmMessage = [
+    t("orders.confirmPaidAmountMessage") ||
+      "Please confirm the paid amount is correct before removing items:",
+    "",
+    `${t("orders.paidAmount") || "Paid Amount"}: ${paidAmount.toLocaleString()} MMK`,
+    `${t("orders.finalAmount") || "Final Amount"}: ${confirmTotals.finalAmount.toLocaleString()} MMK`,
+    confirmTotals.extraChange > 0
+      ? `${t("orders.change") || "Change"}: ${confirmTotals.extraChange.toLocaleString()} MMK`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/10 backdrop-blur-sm">
@@ -641,7 +664,7 @@ export const RemoveItemsFromOrderModal: React.FC<
                   onChange={(e) =>
                     setPaidAmount(parseFloat(e.target.value) || 0)
                   }
-                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  className="w-full border-2 border-slate-900 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                 />
               </div>
               <div className="bg-slate-50 p-3 rounded-lg space-y-1.5 text-xs mb-3">
@@ -745,6 +768,19 @@ export const RemoveItemsFromOrderModal: React.FC<
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showPaidAmountConfirm}
+        title={
+          t("orders.confirmPaidAmountTitle") || "Confirm Paid Amount"
+        }
+        message={paidAmountConfirmMessage}
+        confirmText={t("orders.confirmRemoveItems") || "Yes, Remove Items"}
+        confirmButtonColor="red"
+        onConfirm={confirmPaidAmountAndRemove}
+        onCancel={() => setShowPaidAmountConfirm(false)}
+        isLoading={submitting}
+      />
     </div>
   );
 };

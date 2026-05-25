@@ -81,211 +81,35 @@ const AppLayout: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden">
         <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Navigate to="/pos" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/pos"
-            element={
-              <ProtectedRoute>
-                <POS />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/direct-sale"
-            element={
-              <ProtectedRoute>
-                <DirectSale />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/inventory"
-            element={
-              <ProtectedRoute>
-                <Inventory />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/warehouse"
-            element={
-              <ProtectedRoute>
-                <Warehouse />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/warehouse/:id"
-            element={
-              <ProtectedRoute>
-                <WarehouseDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/storefront"
-            element={
-              <ProtectedRoute>
-                <Storefront />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/storefront/:id"
-            element={
-              <ProtectedRoute>
-                <StorefrontDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/suppliers"
-            element={
-              <ProtectedRoute>
-                <Suppliers />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/purchasing"
-            element={
-              <ProtectedRoute>
-                <Purchasing />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <Orders />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/direct-sale-orders"
-            element={
-              <ProtectedRoute>
-                <DirectSaleOrders />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/credit-orders"
-            element={
-              <ProtectedRoute>
-                <CreditOrders />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quotations"
-            element={
-              <ProtectedRoute>
-                <QuotationList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quotations/create"
-            element={
-              <ProtectedRoute>
-                <QuotationCreate />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/" element={<Navigate to="/pos" replace />} />
+          <Route path="/pos" element={<POS />} />
+          <Route path="/direct-sale" element={<DirectSale />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/warehouse" element={<Warehouse />} />
+          <Route path="/warehouse/:id" element={<WarehouseDetail />} />
+          <Route path="/storefront" element={<Storefront />} />
+          <Route path="/storefront/:id" element={<StorefrontDetail />} />
+          <Route path="/suppliers" element={<Suppliers />} />
+          <Route path="/purchasing" element={<Purchasing />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/direct-sale-orders" element={<DirectSaleOrders />} />
+          <Route path="/credit-orders" element={<CreditOrders />} />
+          <Route path="/quotations" element={<QuotationList />} />
+          <Route path="/quotations/create" element={<QuotationCreate />} />
           <Route
             path="/quotations/new"
             element={<Navigate to="/quotations/create" replace />}
           />
-          <Route
-            path="/quotations/:id/edit"
-            element={
-              <ProtectedRoute>
-                <QuotationCreate />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quotations/:id"
-            element={
-              <ProtectedRoute>
-                <QuotationDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/credits"
-            element={
-              <ProtectedRoute>
-                <Credits />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/credits/:id"
-            element={
-              <ProtectedRoute>
-                <CreditDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/expenses"
-            element={
-              <ProtectedRoute>
-                <Expenses />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/purchase-report"
-            element={
-              <ProtectedRoute>
-                <PurchaseReport />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/accounts"
-            element={
-              <ProtectedRoute>
-                <AccountManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ai-chat"
-            element={
-              <ProtectedRoute>
-                <AIChat />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/quotations/:id/edit" element={<QuotationCreate />} />
+          <Route path="/quotations/:id" element={<QuotationDetail />} />
+          <Route path="/credits" element={<Credits />} />
+          <Route path="/credits/:id" element={<CreditDetail />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/purchase-report" element={<PurchaseReport />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/accounts" element={<AccountManagement />} />
+          <Route path="/ai-chat" element={<AIChat />} />
           <Route path="/print-receipt/:orderId" element={<PrintReceipt />} />
         </Routes>
       </main>
@@ -301,7 +125,9 @@ const App: React.FC = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="*" element={<AppLayout />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="*" element={<AppLayout />} />
+            </Route>
           </Routes>
         </BrowserRouter>
       </AppProvider>

@@ -13,6 +13,7 @@ import {
 import { useLanguage } from "../../context/LanguageContext";
 import { UomConversion } from "../../types/uom";
 import { CartUnitSelector } from "../UOM/CartUnitSelector";
+import { ConfirmModal } from "../Common/ConfirmModal";
 import {
   buildOrderProductLine,
   cartLineKey,
@@ -119,6 +120,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   const [discountManuallyChanged, setDiscountManuallyChanged] = useState(false);
   const [taxManuallyChanged, setTaxManuallyChanged] = useState(false);
   const [useMarkup, setUseMarkup] = useState(false); // Add useMarkup state
+  const [showPaidAmountConfirm, setShowPaidAmountConfirm] = useState(false);
 
   useEffect(() => {
     if (isOpen && order) {
@@ -453,7 +455,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
     };
   };
 
-  const handleSubmitAddItems = async () => {
+  const handleSubmitAddItems = () => {
     if (selectedItems.length === 0) {
       toast.error(
         t("orders.noItemsSelected") || "Please select at least one item",
@@ -462,6 +464,12 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
     }
 
     if (!order) return;
+
+    setShowPaidAmountConfirm(true);
+  };
+
+  const confirmPaidAmountAndAdd = async () => {
+    if (!order || selectedItems.length === 0) return;
 
     setSubmitting(true);
     try {
@@ -487,6 +495,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       const response = await addItemsToOrder(order._id, payload);
 
       if (response.success) {
+        setShowPaidAmountConfirm(false);
         toast.success(
           t("orders.itemsAddedSuccess") || "Items added successfully",
         );
@@ -513,6 +522,20 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
   };
 
   if (!isOpen || !order) return null;
+
+  const confirmTotals = calculateTotals();
+  const paidAmountConfirmMessage = [
+    t("orders.confirmPaidAmountMessageAdd") ||
+      "Please confirm the paid amount is correct before adding items:",
+    "",
+    `${t("orders.paidAmount") || "Paid Amount"}: ${paidAmount.toLocaleString()} MMK`,
+    `${t("orders.finalAmount") || "Final Amount"}: ${confirmTotals.finalAmount.toLocaleString()} MMK`,
+    confirmTotals.extraChange > 0
+      ? `${t("orders.change") || "Change"}: ${confirmTotals.extraChange.toLocaleString()} MMK`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/10 backdrop-blur-sm">
@@ -1003,6 +1026,19 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showPaidAmountConfirm}
+        title={
+          t("orders.confirmPaidAmountTitle") || "Confirm Paid Amount"
+        }
+        message={paidAmountConfirmMessage}
+        confirmText={t("orders.confirmAddItems") || "Yes, Add Items"}
+        confirmButtonColor="primary"
+        onConfirm={confirmPaidAmountAndAdd}
+        onCancel={() => setShowPaidAmountConfirm(false)}
+        isLoading={submitting}
+      />
     </div>
   );
 };

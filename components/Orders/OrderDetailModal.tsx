@@ -64,6 +64,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           name: item.inventoryId?.productName || "Unknown Product",
           code: item.inventoryId?.productCode,
           qty: item.quantity,
+          unit: item.unit?.trim() || undefined,
           price: item.unitPrice || 0,
         })) || [],
       subtotal: order.subTotal || 0,

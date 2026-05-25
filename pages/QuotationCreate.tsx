@@ -399,6 +399,7 @@ export const QuotationCreate: React.FC = () => {
               name: i.stockItem.inventoryId.productName,
               code: i.stockItem.inventoryId.productCode,
               qty: i.qty,
+              unit: i.selectedUnit,
               price: getCartLineUnitPrice(i),
             })),
             subtotal,

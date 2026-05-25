@@ -1,49 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import axios from "../services/axios";
-import { removeAuthToken } from "../services/axios";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { removeAuthToken } from "../services/axios";
+import { validateSession } from "../services/Auth/validateSession";
+import {
+  clearSessionValidation,
+  isSessionValidated,
+  markSessionValidated,
+} from "../utils/authSession";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+/**
+ * Wraps all authenticated routes once (use with <Route element={<ProtectedRoute />}>).
+ * Validates the token at most once per browser tab session (30 min TTL).
+ */
+export const ProtectedRoute: React.FC = () => {
   const token = localStorage.getItem("authToken");
-  const [isValidating, setIsValidating] = useState(true);
+  const [isValidating, setIsValidating] = useState(!!token);
   const [isValid, setIsValid] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const validateToken = async () => {
+    const runValidation = async () => {
       if (!token) {
         setIsValidating(false);
         setIsValid(false);
         return;
       }
 
+      if (isSessionValidated(token)) {
+        setIsValid(true);
+        setIsValidating(false);
+        return;
+      }
+
+      setIsValidating(true);
       try {
-        // Use fetchExpenses API endpoint to validate token
-        // This will throw an error if token is invalid/expired
-        const response = await axios.get("/expense");
-        
-        // If successful, token is valid
-        if (response.status === 200) {
-          setIsValid(true);
-        } else {
-          // Unexpected status, logout for safety
-          handleLogout();
-        }
-      } catch (error: any) {
-        // Check for 500 or 401 status codes (token expired/invalid)
-        const status = error?.response?.status;
-        if (status === 500 || status === 401 || status === 403) {
-          // Token expired or invalid
+        await validateSession();
+        markSessionValidated(token);
+        setIsValid(true);
+      } catch (error: unknown) {
+        const status = (error as { response?: { status?: number } })?.response
+          ?.status;
+        if (status === 401 || status === 403) {
           handleLogout();
         } else {
-          // Other errors (network issues, etc.), still allow access
-          // Token might be valid but API might be down
+          // Network issues or rate limit — keep user signed in if token exists
           setIsValid(true);
         }
       } finally {
@@ -51,11 +53,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       }
     };
 
-    validateToken();
+    runValidation();
   }, [token]);
 
   const handleLogout = () => {
     removeAuthToken();
+    clearSessionValidation();
     localStorage.removeItem("adminData");
     toast.error("Session expired. Please login again.");
     setIsValid(false);
@@ -81,6 +84,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
-

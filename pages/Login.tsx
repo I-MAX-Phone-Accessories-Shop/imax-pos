@@ -4,6 +4,7 @@ import { LogIn, Loader2, Shield, User, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { login } from "../services/Auth/login";
 import { setAuthToken } from "../services/axios";
+import { clearSessionValidation } from "../utils/authSession";
 import { useLanguage } from "../context/LanguageContext";
 
 export const Login: React.FC = () => {
@@ -41,7 +42,7 @@ export const Login: React.FC = () => {
       });
 
       if (response.success && response.data) {
-        // Store token
+        clearSessionValidation();
         setAuthToken(response.data.token);
 
         // Store admin info in localStorage for context

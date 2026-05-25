@@ -6,8 +6,21 @@ export interface VoucherReceiptItem {
   name: string;
   code?: string;
   qty: number;
+  /** Unit of measure, e.g. ကျင်း, မူး */
+  unit?: string;
   price: number;
 }
+
+function formatReceiptQty(item: VoucherReceiptItem): string {
+  return Number.isInteger(item.qty) ? String(item.qty) : String(item.qty);
+}
+
+function formatReceiptUnit(item: VoucherReceiptItem): string {
+  return item.unit?.trim() || "—";
+}
+
+/** Item names longer than this get underline + 2-line wrap on 80mm thermal. */
+const THERMAL_ITEM_LONG_CHARS = 12;
 
 export type VoucherDocumentType = "invoice" | "quotation";
 
@@ -59,9 +72,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             className="voucher-logo mx-auto object-contain"
           />
         ) : (
-          <div
-            className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold"
-          >
+          <div className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
             {shopBranding.shopName.charAt(0)}
           </div>
         )}
@@ -80,12 +91,12 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           isThermal ? "flex-col gap-1" : ""
         }`}
       >
-        <div>
+        {/* <div>
           <p className="font-bold mb-0.5">
             {isQuotation ? "QUOTATION TO :" : "INVOICE TO :"}
           </p>
           <p>{receiptData.storefrontName}</p>
-        </div>
+        </div> */}
         <div className={isThermal ? "" : "text-right"}>
           <p className="font-bold mb-0.5">
             {isQuotation ? "QUOTATION NO" : "INVOICE NO"} :{" "}
@@ -96,25 +107,34 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
       </div>
 
       {isThermal ? (
-        <div className="mb-4">
+        <div className="mb-4 voucher-thermal-table">
           <div className="voucher-thermal-header">
             <div>NO</div>
             <div>ITEM</div>
-            <div>PRICE</div>
-            <div>QTY</div>
-            <div className="text-right">TOTAL</div>
+            <div className="voucher-thermal-col-price">PRICE</div>
+            <div className="voucher-thermal-col-qty">QTY</div>
+            <div>UNIT</div>
+            <div className="voucher-thermal-col-total">TOTAL</div>
           </div>
           {receiptData.items.map((item, index) => (
             <div key={index} className="voucher-thermal-item">
               <div>{index + 1}</div>
-              <div className="break-words">
-                {item.name.length > 28
-                  ? `${item.name.substring(0, 28)}...`
-                  : item.name}
+              <div
+                className={`voucher-thermal-col-item ${
+                  item.name.length > THERMAL_ITEM_LONG_CHARS ? "is-long" : ""
+                }`}
+                title={item.name}
+              >
+                {item.name}
               </div>
-              <div>{item.price.toLocaleString()}</div>
-              <div>{item.qty}</div>
-              <div className="text-right font-semibold">
+              <div className="voucher-thermal-col-price">
+                {item.price.toLocaleString()}
+              </div>
+              <div className="voucher-thermal-col-qty">
+                {formatReceiptQty(item)}
+              </div>
+              <div className="break-words">{formatReceiptUnit(item)}</div>
+              <div className="voucher-thermal-col-total">
                 {(item.price * item.qty).toLocaleString()}
               </div>
             </div>
@@ -125,11 +145,12 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <table className="voucher-table">
             <thead>
               <tr>
-                <th style={{ width: "10%" }}>NO</th>
-                <th style={{ width: "45%" }}>ITEM DESCRIPTION</th>
-                <th style={{ width: "15%" }}>PRICE</th>
-                <th style={{ width: "15%" }}>QTY.</th>
-                <th style={{ width: "15%" }}>TOTAL</th>
+                <th style={{ width: "8%" }}>NO</th>
+                <th style={{ width: "38%" }}>ITEM DESCRIPTION</th>
+                <th style={{ width: "12%" }}>PRICE</th>
+                <th style={{ width: "10%" }}>QTY.</th>
+                <th style={{ width: "12%" }}>UNIT</th>
+                <th style={{ width: "12%" }}>TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -138,7 +159,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
                   <td>{index + 1}</td>
                   <td>{item.name}</td>
                   <td>{item.price.toLocaleString()}</td>
-                  <td>{item.qty}</td>
+                  <td>{formatReceiptQty(item)}</td>
+                  <td>{formatReceiptUnit(item)}</td>
                   <td>{(item.price * item.qty).toLocaleString()}</td>
                 </tr>
               ))}
@@ -181,7 +203,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               </>
             )}
           </div>
-          {receiptData.note && <p className="italic">Note: {receiptData.note}</p>}
+          {receiptData.note && (
+            <p className="italic">Note: {receiptData.note}</p>
+          )}
         </div>
 
         <div>

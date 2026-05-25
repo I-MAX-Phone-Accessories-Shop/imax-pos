@@ -61,6 +61,7 @@ const PrintReceipt: React.FC = () => {
     const fromUrl = parsePrintPaperSize(searchParams.get("size"));
     return fromUrl ?? getSavedPrintPaperSize();
   });
+  console.log(paperSize);
   const [loadingMessage, setLoadingMessage] = useState("Loading receipt...");
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);

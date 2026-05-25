@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import axios from "axios";
+import { clearSessionValidation } from "../utils/authSession";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -20,6 +21,7 @@ export const setAuthToken = (token: string) => {
 // Remove token from localStorage
 export const removeAuthToken = () => {
   localStorage.removeItem("authToken");
+  clearSessionValidation();
   delete axios.defaults.headers.common["Authorization"];
 };
 
@@ -50,7 +52,6 @@ axios.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
       removeAuthToken();
       // Redirect to login if not already there
       if (window.location.pathname !== "/login") {

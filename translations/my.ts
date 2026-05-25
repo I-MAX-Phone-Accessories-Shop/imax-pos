@@ -353,6 +353,13 @@ export const my = {
     itemsRemovedSuccess: "ပစ္စည်းများ အောင်မြင်စွာ ဖယ်ရှားပြီးပါပြီ",
     failedToRemoveItems: "အော်ဒါမှ ပစ္စည်းများ ဖယ်ရှားရန် မအောင်မြင်ပါ",
     removingItems: "ပစ္စည်းများ ဖယ်ရှားနေသည်...",
+    confirmPaidAmountTitle: "ပေးချေပမာဏ အတည်ပြုပါ",
+    confirmPaidAmountMessage:
+      "ပစ္စည်းများ မဖယ်ရှားမီ ပေးချေပမာဏ မှန်ကန်ကြောင်း အတည်ပြုပါ:",
+    confirmPaidAmountMessageAdd:
+      "ပစ္စည်းများ မထည့်မီ ပေးချေပမာဏ မှန်ကန်ကြောင်း အတည်ပြုပါ:",
+    confirmRemoveItems: "ဟုတ်ကဲ့၊ ပစ္စည်းများ ဖယ်ရှားမည်",
+    confirmAddItems: "ဟုတ်ကဲ့၊ ပစ္စည်းများ ထည့်မည်",
     currentQuantity: "လက်ရှိအရေအတွက်",
     itemsToRemoveSubtotal: "ဖယ်ရှားရန် ပစ္စည်းများ စုစုပေါင်းခွဲ",
     noItemsInOrder: "ဤအော်ဒါတွင် ပစ္စည်းများ မရှိပါ",
