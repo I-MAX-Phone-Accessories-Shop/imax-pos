@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, Receipt } from "lucide-react";
 import { toast } from "sonner";
-import { fetchOrders, Order } from "../services/Order/fetchOrders";
+import {
+  fetchOrders,
+  Order,
+  OrderPagination,
+} from "../services/Order/fetchOrders";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
 import { fetchOrdersByStorefront } from "../services/Order/fetchOrdersByStorefront";
 import {
@@ -47,15 +51,29 @@ export const Orders: React.FC = () => {
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [pagination, setPagination] = useState<OrderPagination | null>(null);
 
   useEffect(() => {
     loadInitialData();
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStorefrontId, startDate, endDate, paymentMethodFilter]);
+
+  useEffect(() => {
     loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStorefrontId, startDate, endDate]);
+  }, [
+    selectedStorefrontId,
+    startDate,
+    endDate,
+    currentPage,
+    itemsPerPage,
+    paymentMethodFilter,
+  ]);
 
   const loadInitialData = async () => {
     // Load storefronts
@@ -99,25 +117,31 @@ export const Orders: React.FC = () => {
       //   selectedStorefrontId,
       // });
 
-      // Always fetch only paid orders with date filtering
-      const response = await fetchOrders(startDateStr, endDateStr, "paid");
-      // console.log("All orders response:", response);
+      const response = await fetchOrders(startDateStr, endDateStr, "paid", {
+        page: currentPage,
+        limit: itemsPerPage,
+        storefrontId:
+          selectedStorefrontId !== "all" ? selectedStorefrontId : null,
+        paymentMethod:
+          paymentMethodFilter !== "all" ? paymentMethodFilter : null,
+        saleType: "storefront",
+      });
 
       if (response.success && response.data) {
-        let filteredOrders = response.data.reverse();
-
-        // If a specific storefront is selected, filter the results
-        if (selectedStorefrontId !== "all") {
-          filteredOrders = response.data.filter(
-            (order) =>
-              order.storefrontId?._id === selectedStorefrontId ||
-              order.storefrontId?.id === selectedStorefrontId,
-          );
+        setOrders(response.data);
+        if (response.pagination) {
+          setPagination(response.pagination);
+        } else {
+          setPagination({
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: response.data.length,
+            itemsPerPage: response.data.length,
+          });
         }
-
-        // console.log("Filtered orders count:", filteredOrders.length);
-        setOrders(filteredOrders);
       } else {
+        setOrders([]);
+        setPagination(null);
         toast.error(response.message || t("orders.failedToLoad"));
       }
     } catch (error) {
@@ -271,13 +295,16 @@ export const Orders: React.FC = () => {
         onSearchChange={setSearch}
         storefronts={storefronts}
         selectedStorefrontId={selectedStorefrontId}
-        onStorefrontChange={setSelectedStorefrontId}
+        onStorefrontChange={(id) => {
+          setSelectedStorefrontId(id);
+        }}
         paymentTypeFilter={paymentTypeFilter}
         onPaymentTypeChange={setPaymentTypeFilter}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodChange={setPaymentMethodFilter}
         orders={orders}
         filteredOrders={filteredOrders}
+        totalItems={pagination?.totalItems}
       />
 
       {/* Orders Table */}
@@ -288,6 +315,12 @@ export const Orders: React.FC = () => {
         onOpenCreditPersonModal={handleOpenCreditPersonModal}
         onOrderDeleted={async () => {
           await loadOrders();
+        }}
+        pagination={pagination}
+        onPageChange={setCurrentPage}
+        onLimitChange={(limit) => {
+          setItemsPerPage(limit);
+          setCurrentPage(1);
         }}
       />
 

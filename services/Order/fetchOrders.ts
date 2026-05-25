@@ -8,11 +8,12 @@ export interface OrderProduct {
     SKU: string;
     profitMargin: number | null;
     profitAmount: number | null;
-    id: string;
+    id?: string;
   };
   quantity: number;
   unit?: string;
   unitPrice: number;
+  factor?: number;
   baseQuantity?: number;
   _id: string;
 }
@@ -41,7 +42,11 @@ export interface CreditPerson {
 export interface Order {
   _id: string;
   orderNumber: string;
-  storefrontId: OrderStorefront;
+  saleType?: "storefront" | "direct-sale";
+  customerName?: string | null;
+  customerPhone?: string | null;
+  note?: string | null;
+  storefrontId: OrderStorefront | null;
   ordersProducts: OrderProduct[];
   creditPersonId: CreditPerson | string | null;
   soldBy?: SoldBy;
@@ -63,24 +68,56 @@ export interface Order {
   id?: string;
 }
 
-interface FetchOrdersResponse {
+export interface OrderPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
+
+export interface FetchOrdersQueryOptions {
+  page?: number;
+  limit?: number;
+  storefrontId?: string | null;
+  paymentMethod?: string | null;
+  saleType?: "storefront" | "direct-sale";
+  /** Server-side search (e.g. product name) — GET /order?search=... */
+  search?: string | null;
+}
+
+export interface FetchOrdersResponse {
   success: boolean;
   message: string;
   data: Order[];
+  pagination?: OrderPagination;
 }
 
 export const fetchOrders = async (
   startDate?: string | null,
   endDate?: string | null,
   paymentType?: string | null,
+  query?: FetchOrdersQueryOptions,
 ): Promise<FetchOrdersResponse> => {
   try {
-    let url = "/order";
     const params = new URLSearchParams();
+    params.append("saleType", query?.saleType ?? "storefront");
+    params.append("page", String(query?.page ?? 1));
+    params.append("limit", String(query?.limit ?? 100));
 
-    // Add paymentType filter if provided
     if (paymentType && paymentType !== "all") {
       params.append("paymentType", paymentType);
+    }
+
+    if (query?.paymentMethod && query.paymentMethod !== "all") {
+      params.append("paymentMethod", query.paymentMethod);
+    }
+
+    if (query?.storefrontId) {
+      params.append("storefrontId", query.storefrontId);
+    }
+
+    if (query?.search) {
+      params.append("search", query.search);
     }
 
     if (startDate) {
@@ -90,10 +127,7 @@ export const fetchOrders = async (
       params.append("endDate", endDate);
     }
 
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
-
+    const url = `/order?${params.toString()}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error: any) {

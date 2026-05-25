@@ -1,10 +1,18 @@
 import axios from "../axios";
-import { Order } from "./fetchOrders";
+import { Order, OrderPagination } from "./fetchOrders";
 
-interface FetchDirectSaleOrdersResponse {
+export interface FetchDirectSaleOrdersQueryOptions {
+  page?: number;
+  limit?: number;
+  paymentType?: string | null;
+  paymentMethod?: string | null;
+}
+
+export interface FetchDirectSaleOrdersResponse {
   success: boolean;
   message: string;
   data: Order[];
+  pagination?: OrderPagination;
 }
 
 export const fetchDirectSaleOrders = async (
@@ -12,10 +20,13 @@ export const fetchDirectSaleOrders = async (
   endDate?: string | null,
   paymentType?: string | null,
   paymentMethod?: string | null,
+  query?: FetchDirectSaleOrdersQueryOptions,
 ): Promise<FetchDirectSaleOrdersResponse> => {
   try {
     const params = new URLSearchParams();
     params.append("saleType", "direct-sale");
+    params.append("page", String(query?.page ?? 1));
+    params.append("limit", String(query?.limit ?? 100));
 
     if (paymentType && paymentType !== "all") {
       params.append("paymentType", paymentType);

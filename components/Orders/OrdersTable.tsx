@@ -11,7 +11,8 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { Order } from "../../services/Order/fetchOrders";
+import { Order, OrderPagination } from "../../services/Order/fetchOrders";
+import { OrdersPagination as OrdersPaginationBar } from "./OrdersPagination";
 import { deleteOrder } from "../../services/Order/deleteOrder";
 import {
   getStatusColor,
@@ -29,6 +30,9 @@ interface OrdersTableProps {
   onViewOrder: (orderId: string) => void;
   onOpenCreditPersonModal: (order: Order) => void;
   onOrderDeleted?: () => void; // Callback to refresh orders after deletion
+  pagination?: OrderPagination | null;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -37,6 +41,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onViewOrder,
   onOpenCreditPersonModal,
   onOrderDeleted,
+  pagination,
+  onPageChange,
+  onLimitChange,
 }) => {
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
@@ -262,6 +269,13 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
           </tbody>
         </table>
       </div>
+      {pagination && onPageChange && pagination.totalPages > 1 && (
+        <OrdersPaginationBar
+          pagination={pagination}
+          onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
+        />
+      )}
     </div>
   );
 };

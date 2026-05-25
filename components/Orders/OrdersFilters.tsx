@@ -17,8 +17,11 @@ interface OrdersFiltersProps {
   onPaymentMethodChange: (value: string) => void;
   orders: Order[];
   filteredOrders: Order[];
+  totalItems?: number;
   /** When true, show payment type (paid / credit) filter for API-backed lists */
   showPaymentTypeFilter?: boolean;
+  /** Hide storefront dropdown (e.g. direct-sale orders) */
+  hideStorefrontFilter?: boolean;
 }
 
 export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
@@ -33,7 +36,9 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
   onPaymentMethodChange,
   orders,
   filteredOrders,
+  totalItems,
   showPaymentTypeFilter = false,
+  hideStorefrontFilter = false,
 }) => {
   const { t } = useLanguage();
   const uniquePaymentMethods = Array.from(
@@ -57,20 +62,22 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
 
         <div className="flex items-center gap-2">
           {/* Storefront Filter */}
-          <div className="flex items-center gap-2">
-            <select
-              className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
-              value={selectedStorefrontId}
-              onChange={(e) => onStorefrontChange(e.target.value)}
-            >
-              <option value="all">{t("creditOrders.allstorefront")}</option>
-              {storefronts.map((sf) => (
-                <option key={sf._id} value={sf._id}>
-                  {sf.locationName}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!hideStorefrontFilter && (
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base"
+                value={selectedStorefrontId}
+                onChange={(e) => onStorefrontChange(e.target.value)}
+              >
+                <option value="all">{t("creditOrders.allstorefront")}</option>
+                {storefronts.map((sf) => (
+                  <option key={sf._id} value={sf._id}>
+                    {sf.locationName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Payment Type Filter (optional; e.g. Direct Sale Orders) */}
           {showPaymentTypeFilter && (
@@ -106,10 +113,17 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
           {/* Results count */}
           <div className="text-sm text-slate-500 whitespace-nowrap">
             <span className="hidden sm:inline">
-              Showing {filteredOrders.length} of {orders.length} orders
+              {totalItems != null
+                ? t("orders.showingOnPage")
+                    .replace("{filtered}", String(filteredOrders.length))
+                    .replace("{total}", String(totalItems))
+                : t("orders.showing")
+                    .replace("{filtered}", String(filteredOrders.length))
+                    .replace("{total}", String(orders.length))}
             </span>
             <span className="sm:hidden">
-              {filteredOrders.length}/{orders.length}
+              {filteredOrders.length}/
+              {totalItems ?? orders.length}
             </span>
           </div>
         </div>

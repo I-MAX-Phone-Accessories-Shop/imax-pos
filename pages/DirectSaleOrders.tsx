@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, Receipt } from "lucide-react";
 import { toast } from "sonner";
-import { Order } from "../services/Order/fetchOrders";
+import { Order, OrderPagination } from "../services/Order/fetchOrders";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
 import { fetchDirectSaleOrders } from "../services/Order/fetchDirectSaleOrders";
-import {
-  fetchStorefrontProfiles,
-  StorefrontProfile,
-} from "../services/Storefront/fetchStorefrontProfiles";
 import {
   fetchCreditPersonas,
   CreditPersona,
@@ -34,9 +30,6 @@ export const DirectSaleOrders: React.FC = () => {
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
-  const [selectedStorefrontId, setSelectedStorefrontId] =
-    useState<string>("all");
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
@@ -47,33 +40,24 @@ export const DirectSaleOrders: React.FC = () => {
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [pagination, setPagination] = useState<OrderPagination | null>(null);
 
   useEffect(() => {
     loadInitialData();
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [startDate, endDate, paymentTypeFilter, paymentMethodFilter]);
+
+  useEffect(() => {
     loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    selectedStorefrontId,
-    startDate,
-    endDate,
-    paymentTypeFilter,
-    paymentMethodFilter,
-  ]);
+  }, [startDate, endDate, currentPage, itemsPerPage, paymentTypeFilter, paymentMethodFilter]);
 
   const loadInitialData = async () => {
-    // Load storefronts
-    try {
-      const sfResponse = await fetchStorefrontProfiles();
-      if (sfResponse.success && sfResponse.data) {
-        setStorefronts(sfResponse.data.reverse());
-      }
-    } catch (error) {
-      console.error("Error loading storefronts:", error);
-    }
-
     // Load credit personas
     try {
       const cpResponse = await fetchCreditPersonas();
@@ -110,23 +94,24 @@ export const DirectSaleOrders: React.FC = () => {
         endDateStr,
         paymentTypeFilter === "all" ? null : paymentTypeFilter,
         paymentMethodFilter === "all" ? null : paymentMethodFilter,
+        { page: currentPage, limit: itemsPerPage },
       );
 
       if (response.success && response.data) {
-        let filteredOrders = response.data.reverse();
-
-        // If a specific storefront is selected, filter the results
-        if (selectedStorefrontId !== "all") {
-          filteredOrders = response.data.filter(
-            (order) =>
-              order.storefrontId?._id === selectedStorefrontId ||
-              order.storefrontId?.id === selectedStorefrontId,
-          );
+        setOrders(response.data);
+        if (response.pagination) {
+          setPagination(response.pagination);
+        } else {
+          setPagination({
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: response.data.length,
+            itemsPerPage: response.data.length,
+          });
         }
-
-        // console.log("Filtered orders count:", filteredOrders.length);
-        setOrders(filteredOrders);
       } else {
+        setOrders([]);
+        setPagination(null);
         toast.error(response.message || t("orders.failedToLoad"));
       }
     } catch (error) {
@@ -145,8 +130,11 @@ export const DirectSaleOrders: React.FC = () => {
       ?.toLowerCase()
       .includes(searchLower);
 
-    // Check if search matches storefront location
-    const matchesStorefront = order.storefrontId?.locationName
+    const matchesCustomerName = order.customerName
+      ?.toLowerCase()
+      .includes(searchLower);
+
+    const matchesCustomerPhone = order.customerPhone
       ?.toLowerCase()
       .includes(searchLower);
 
@@ -164,17 +152,12 @@ export const DirectSaleOrders: React.FC = () => {
 
     const matchesSearch =
       matchesOrderNumber ||
-      matchesStorefront ||
+      matchesCustomerName ||
+      matchesCustomerPhone ||
       matchesProductName ||
       matchesProductCode;
 
-    const matchesPaymentType =
-      paymentTypeFilter === "all" ||
-      order.paymentType?.toLowerCase() === paymentTypeFilter.toLowerCase();
-    const matchesPaymentMethod =
-      paymentMethodFilter === "all" ||
-      order.paymentMethod?.toLowerCase() === paymentMethodFilter.toLowerCase();
-    return matchesSearch && matchesPaymentType && matchesPaymentMethod;
+    return matchesSearch;
   });
 
   const handleViewOrder = async (orderId: string) => {
@@ -280,16 +263,18 @@ export const DirectSaleOrders: React.FC = () => {
       <OrdersFilters
         search={search}
         onSearchChange={setSearch}
-        storefronts={storefronts}
-        selectedStorefrontId={selectedStorefrontId}
-        onStorefrontChange={setSelectedStorefrontId}
+        storefronts={[]}
+        selectedStorefrontId="all"
+        onStorefrontChange={() => {}}
         paymentTypeFilter={paymentTypeFilter}
         onPaymentTypeChange={setPaymentTypeFilter}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodChange={setPaymentMethodFilter}
         orders={orders}
         filteredOrders={filteredOrders}
+        totalItems={pagination?.totalItems}
         showPaymentTypeFilter
+        hideStorefrontFilter
       />
 
       {/* Orders Table */}
@@ -300,6 +285,12 @@ export const DirectSaleOrders: React.FC = () => {
         onOpenCreditPersonModal={handleOpenCreditPersonModal}
         onOrderDeleted={async () => {
           await loadOrders();
+        }}
+        pagination={pagination}
+        onPageChange={setCurrentPage}
+        onLimitChange={(limit) => {
+          setItemsPerPage(limit);
+          setCurrentPage(1);
         }}
       />
 

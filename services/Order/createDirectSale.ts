@@ -1,14 +1,18 @@
 import axios from "../axios";
 
-interface OrderProduct {
+export interface DirectSaleOrderProduct {
   inventoryId: string;
   quantity: number;
   unit?: string;
+  unitPrice: number;
 }
 
 export interface CreateDirectSaleRequest {
   saleType: "direct-sale";
-  ordersProducts: OrderProduct[];
+  customerName?: string;
+  customerPhone?: string;
+  note?: string;
+  ordersProducts: DirectSaleOrderProduct[];
   subTotal?: number;
   tax?: number;
   discount?: number;
@@ -17,6 +21,7 @@ export interface CreateDirectSaleRequest {
   extraChange: number;
   paymentType: "credit" | "paid";
   paymentMethod: string;
+  orderDate?: string;
 }
 
 interface CreateDirectSaleResponse {

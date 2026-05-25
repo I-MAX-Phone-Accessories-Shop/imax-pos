@@ -75,7 +75,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       paymentMethod: getPaymentMethodLabel(order.paymentMethod),
       paidAmount: order.paidAmount,
       change: order.extraChange,
-      note: (order as any).notes,
+      note: order.note || undefined,
     };
 
     // Save receipt data to localStorage for A4 printing
@@ -89,6 +89,20 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  const isDirectSale =
+    order?.saleType === "direct-sale" || order?.storefrontId == null;
+  const customerName = order?.customerName?.trim();
+  const customerPhone = order?.customerPhone?.trim();
+  const hasCustomer = !!(customerName || customerPhone);
+  const storefrontLabel =
+    order?.storefrontId?.locationName ||
+    order?.storefrontId?.storefrontName ||
+    (isDirectSale ? t("quotation.saleTypeDirectSale") : "-");
+  const storefrontCode =
+    order?.storefrontId?.locationCode ||
+    order?.storefrontId?.storefrontCode ||
+    null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -175,25 +189,46 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {/* Store & Date Info */}
               <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
-                  <Store className="w-4 h-4" />
-                  <span>
-                    {order.storefrontId?.locationName ||
-                      order.storefrontId?.storefrontName ||
-                      "-"}
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    (
-                    {order.storefrontId?.locationCode ||
-                      order.storefrontId?.storefrontCode ||
-                      "-"}
-                    )
-                  </span>
+                  <Store className="w-4 h-4 shrink-0" />
+                  <span>{storefrontLabel}</span>
+                  {storefrontCode && (
+                    <span className="text-xs text-slate-400">
+                      ({storefrontCode})
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4 shrink-0" />
                   <span>{formatDate(order.createdAt)}</span>
                 </div>
               </div>
+
+              {/* Customer (direct sale) */}
+              {hasCustomer && (
+                <div className="mb-6 bg-teal-50 p-4 rounded-lg border border-teal-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-teal-600" />
+                    <p className="text-xs text-teal-600 font-medium">
+                      {t("orders.customer") || "Customer"}
+                    </p>
+                  </div>
+                  {customerName && (
+                    <p className="font-bold text-teal-800">{customerName}</p>
+                  )}
+                  {customerPhone && (
+                    <p className="text-sm text-teal-700 mt-1">{customerPhone}</p>
+                  )}
+                </div>
+              )}
+
+              {order.note?.trim() && (
+                <div className="mb-6 text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <span className="font-medium text-slate-700">
+                    {t("pos.note")}:{" "}
+                  </span>
+                  <span>{order.note}</span>
+                </div>
+              )}
 
               {/* Sold By & Credit Person Info */}
               <div className="grid grid-cols-2 gap-4 mb-6">

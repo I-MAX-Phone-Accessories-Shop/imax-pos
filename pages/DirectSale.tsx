@@ -36,14 +36,14 @@ import {
 import { deviceDetect } from "react-device-detect";
 import { CartUnitSelector } from "../components/UOM/CartUnitSelector";
 import {
-  UomCartItem,
-  cartLineToOrderProduct,
-  cartLineSubtotal,
-  createCartLine,
-  getCartLineId,
-  getCartLineUnitPrice,
-  getInventoryUomFromStock,
-} from "../utils/posCartUom";
+  applyCatalogUnitPrice,
+  createDirectSaleCartLine,
+  directSaleCartSubtotal,
+  directSaleLineToOrderProduct,
+  DirectSaleCartItem,
+  getCatalogUnitPrice,
+} from "../utils/directSaleCart";
+import { getCartLineId, getInventoryUomFromStock } from "../utils/posCartUom";
 
 // Payment methods
 enum PaymentMethod {
@@ -59,7 +59,7 @@ enum PaymentMethod {
   FOC = "FOC",
 }
 
-type CartItem = UomCartItem;
+type CartItem = DirectSaleCartItem;
 
 export const DirectSale: React.FC = () => {
   const { t } = useLanguage();
@@ -94,6 +94,8 @@ export const DirectSale: React.FC = () => {
   const [markup, setMarkup] = useState(0);
   const [markupAmount, setMarkupAmount] = useState(0);
   const [note, setNote] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
   const [useMarkup, setUseMarkup] = useState(false); // Toggle between discount and markup
@@ -208,7 +210,7 @@ export const DirectSale: React.FC = () => {
   // (Categories are now fetched from API and stored in categories state)
 
   const addToCart = (stockItem: StorefrontStockItem) => {
-    const newLine = createCartLine(stockItem, 1);
+    const newLine = createDirectSaleCartLine(stockItem, 1);
     const lineId = getCartLineId(newLine);
 
     setCart((prev) => {
@@ -255,8 +257,17 @@ export const DirectSale: React.FC = () => {
     setCart((prev) =>
       prev.map((item) => {
         if (getCartLineId(item) !== lineId) return item;
-        return { ...item, selectedUnit: unit };
+        return applyCatalogUnitPrice({ ...item, selectedUnit: unit });
       }),
+    );
+  };
+
+  const setCartLineUnitPrice = (lineId: string, raw: string) => {
+    const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0);
+    setCart((prev) =>
+      prev.map((item) =>
+        getCartLineId(item) === lineId ? { ...item, unitPrice: value } : item,
+      ),
     );
   };
 
@@ -304,7 +315,7 @@ export const DirectSale: React.FC = () => {
   };
 
   // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + cartLineSubtotal(item), 0);
+  const subtotal = cart.reduce((sum, item) => sum + directSaleCartSubtotal(item), 0);
 
   const totalAfterDiscount = Math.round(
     subtotal * (1 - (Number(discount) || 0) / 100),
@@ -375,7 +386,12 @@ export const DirectSale: React.FC = () => {
 
       const orderPayload = {
         saleType: "direct-sale" as const,
-        ordersProducts: cart.map(cartLineToOrderProduct),
+        ...(customerName.trim() ? { customerName: customerName.trim() } : {}),
+        ...(customerPhone.trim()
+          ? { customerPhone: customerPhone.trim() }
+          : {}),
+        ...(note.trim() ? { note: note.trim() } : {}),
+        ordersProducts: cart.map(directSaleLineToOrderProduct),
         subTotal: subtotal,
         tax: 0,
         discount: discountAmount,
@@ -384,6 +400,7 @@ export const DirectSale: React.FC = () => {
         extraChange,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
+        orderDate: new Date(createdAt).toISOString(),
       };
 
       const result = await createDirectSale(orderPayload);
@@ -402,7 +419,7 @@ export const DirectSale: React.FC = () => {
             code: i.stockItem.inventoryId.productCode,
             qty: i.qty,
             unit: i.selectedUnit,
-            price: getCartLineUnitPrice(i),
+            price: i.unitPrice,
           })),
           subtotal,
           discountPercent: discount,
@@ -429,6 +446,8 @@ export const DirectSale: React.FC = () => {
         setMarkup(0);
         setMarkupAmount(0);
         setNote("");
+        setCustomerName("");
+        setCustomerPhone("");
         setPaidAmount(0);
         setPaymentMethod(
           paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
@@ -782,7 +801,9 @@ export const DirectSale: React.FC = () => {
               const { baseUnit, conversions } = getInventoryUomFromStock(
                 item.stockItem,
               );
-              const unitPrice = getCartLineUnitPrice(item);
+              const catalogPrice = getCatalogUnitPrice(item);
+              const lineTotal = directSaleCartSubtotal(item);
+              const priceEdited = item.unitPrice !== catalogPrice;
               return (
                 <div
                   key={lineId}
@@ -794,8 +815,12 @@ export const DirectSale: React.FC = () => {
                         {item.stockItem.inventoryId.productName}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {unitPrice.toLocaleString()} MMK / {item.selectedUnit} ·{" "}
-                        {(unitPrice * item.qty).toLocaleString()} MMK
+                        {lineTotal.toLocaleString()} MMK
+                        {priceEdited && (
+                          <span className="text-amber-600 ml-1">
+                            ({t("directSale.customPrice")})
+                          </span>
+                        )}
                       </p>
                     </div>
                     <button
@@ -803,6 +828,37 @@ export const DirectSale: React.FC = () => {
                       className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-500 shrink-0">
+                      {t("directSale.unitPrice")} (MMK)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={item.unitPrice}
+                      onChange={(e) =>
+                        setCartLineUnitPrice(lineId, e.target.value)
+                      }
+                      className="flex-1 min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCart((prev) =>
+                          prev.map((row) =>
+                            getCartLineId(row) === lineId
+                              ? applyCatalogUnitPrice(row)
+                              : row,
+                          ),
+                        )
+                      }
+                      className="text-xs text-primary hover:underline shrink-0"
+                      title={t("directSale.resetToListPrice")}
+                    >
+                      {catalogPrice.toLocaleString()}
                     </button>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -928,6 +984,31 @@ export const DirectSale: React.FC = () => {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("quotation.customerName")} ({t("common.optional")})
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder={t("quotation.customerName")}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("quotation.customerPhone")} ({t("common.optional")})
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder={t("quotation.customerPhone")}
+                />
+              </div>
+
               {/* Payment Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
