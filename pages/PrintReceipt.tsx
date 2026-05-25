@@ -107,7 +107,7 @@ const PrintReceipt: React.FC = () => {
 
       if (!cancelled) setShopBranding(branding);
 
-      console.log(branding);
+      // console.log(branding);
 
       if (branding.logo) {
         setLoadingMessage("Loading shop logo...");
