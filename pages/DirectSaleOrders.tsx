@@ -105,7 +105,7 @@ export const DirectSaleOrders: React.FC = () => {
       );
 
       if (response.success && response.data) {
-        setOrders(response.data.reverse());
+        setOrders(response.data);
         if (response.pagination) {
           setPagination(response.pagination);
         } else {
