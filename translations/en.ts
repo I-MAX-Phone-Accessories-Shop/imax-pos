@@ -149,6 +149,7 @@ export const en = {
     refreshProducts: "Refresh Products",
     outOfStock: "Out of stock!",
     cannotExceedStock: "Cannot exceed available stock",
+    mixedUnitHint: "Enter quantity per unit (e.g. 5 ကျင်း 6 မူး)",
     paidAmountError: "Paid amount must be at least equal to total amount",
     saleCompleted: "Sale completed!",
     failedToProcessSale: "Failed to process sale",

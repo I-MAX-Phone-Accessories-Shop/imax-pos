@@ -35,16 +35,22 @@ import {
 } from "../services/Credit/fetchCreditPersonas";
 import { deviceDetect } from "react-device-detect";
 import { CartUnitSelector } from "../components/UOM/CartUnitSelector";
+import { MixedUnitInput } from "../components/UOM/MixedUnitInput";
 import {
   UomCartItem,
-  cartLineToOrderProduct,
   cartLineSubtotal,
+  cartLineToOrderProduct,
   createCartLine,
+  getCartLineBaseQuantity,
   getCartLineId,
+  getCartLineMaxBaseQuantity,
   getCartLineMaxQty,
   getCartLineUnitPrice,
   getInventoryUomFromStock,
+  isMixedCartLine,
+  usesMixedUnitInput,
 } from "../utils/posCartUom";
+import { getDefaultSellingUnit } from "../utils/uom";
 
 // Payment methods
 enum PaymentMethod {
@@ -216,11 +222,34 @@ export const POS: React.FC = () => {
 
     const newLine = createCartLine(stockItem, 1);
     const lineId = getCartLineId(newLine);
-    const maxQty = getCartLineMaxQty(newLine);
+    const useMixed = usesMixedUnitInput(stockItem);
 
     setCart((prev) => {
       const existing = prev.find((item) => getCartLineId(item) === lineId);
       if (existing) {
+        if (useMixed && existing.mixedQuantities) {
+          const { baseUnit, conversions } =
+            getInventoryUomFromStock(stockItem);
+          const defaultUnit = getDefaultSellingUnit(baseUnit, conversions);
+          const nextMixed = {
+            ...existing.mixedQuantities,
+            [defaultUnit]: (existing.mixedQuantities[defaultUnit] || 0) + 1,
+          };
+          const nextBase = getCartLineBaseQuantity({
+            ...existing,
+            mixedQuantities: nextMixed,
+          });
+          if (nextBase > getCartLineMaxBaseQuantity(existing)) {
+            toast.error(t("pos.cannotExceedStock"));
+            return prev;
+          }
+          return prev.map((item) =>
+            getCartLineId(item) === lineId
+              ? { ...item, mixedQuantities: nextMixed, qty: nextBase }
+              : item,
+          );
+        }
+        const maxQty = getCartLineMaxQty(existing);
         if (existing.qty + 1 > maxQty) {
           toast.error(t("pos.cannotExceedStock"));
           return prev;
@@ -280,6 +309,20 @@ export const POS: React.FC = () => {
           ...updated,
           qty: Math.min(updated.qty, maxQty) || 1,
         };
+      }),
+    );
+  };
+
+  const setCartLineMixed = (
+    lineId: string,
+    mixed: Record<string, number>,
+  ) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (getCartLineId(item) !== lineId) return item;
+        const updated = { ...item, mixedQuantities: mixed };
+        const baseQty = getCartLineBaseQuantity(updated);
+        return { ...updated, qty: baseQty };
       }),
     );
   };
@@ -363,6 +406,14 @@ export const POS: React.FC = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
+    const cartWithStock = cart.filter(
+      (item) => getCartLineBaseQuantity(item) > 0,
+    );
+    if (cartWithStock.length === 0) {
+      toast.error(t("pos.emptyCart"));
+      return;
+    }
+
     // Only validate paid amount for "paid" payment type, not for "credit" or "FOC"
     if (
       paymentType === "paid" &&
@@ -398,7 +449,7 @@ export const POS: React.FC = () => {
 
       const orderPayload = {
         storefrontId: selectedStorefrontId,
-        ordersProducts: cart.map(cartLineToOrderProduct),
+        ordersProducts: cartWithStock.map(cartLineToOrderProduct),
         subTotal: subtotal,
         discount: discountAmount,
         finalAmount: total,
@@ -422,12 +473,19 @@ export const POS: React.FC = () => {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
           storefrontName: "HONGCHI Myanmar",
-          items: cart.map((i) => ({
+          items: cartWithStock.map((i) => ({
             name: i.stockItem.inventoryId.productName,
             code: i.stockItem.inventoryId.productCode,
-            qty: i.qty,
-            unit: i.selectedUnit,
+            qty: isMixedCartLine(i)
+              ? getCartLineBaseQuantity(i)
+              : i.qty,
+            unit: isMixedCartLine(i)
+              ? getInventoryUomFromStock(i.stockItem).baseUnit
+              : i.selectedUnit,
             price: getCartLineUnitPrice(i),
+            displayQty: isMixedCartLine(i)
+              ? i.mixedQuantities
+              : undefined,
           })),
           subtotal,
           discountPercent: discount,
@@ -807,6 +865,12 @@ export const POS: React.FC = () => {
                 getInventoryUomFromStock(item.stockItem);
               const unitPrice = getCartLineUnitPrice(item);
               const maxQty = getCartLineMaxQty(item);
+              const lineSubtotal = cartLineSubtotal(item);
+              const useMixed = usesMixedUnitInput(item.stockItem);
+              const mixed =
+                item.mixedQuantities ??
+                ({} as Record<string, number>);
+
               return (
                 <div
                   key={lineId}
@@ -818,8 +882,18 @@ export const POS: React.FC = () => {
                         {item.stockItem.inventoryId.productName}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {unitPrice.toLocaleString()} MMK / {item.selectedUnit}{" "}
-                        · {(unitPrice * item.qty).toLocaleString()} MMK
+                        {useMixed ? (
+                          <>
+                            {unitPrice.toLocaleString()} MMK / {baseUnit} ·{" "}
+                            {lineSubtotal.toLocaleString()} MMK
+                          </>
+                        ) : (
+                          <>
+                            {unitPrice.toLocaleString()} MMK /{" "}
+                            {item.selectedUnit} · {lineSubtotal.toLocaleString()}{" "}
+                            MMK
+                          </>
+                        )}
                       </p>
                     </div>
                     <button
@@ -829,46 +903,59 @@ export const POS: React.FC = () => {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <CartUnitSelector
+                  {useMixed ? (
+                    <MixedUnitInput
                       baseUnit={baseUnit}
                       conversions={conversions}
-                      selectedUnit={item.selectedUnit}
-                      onUnitChange={(unit) => setCartLineUnit(lineId, unit)}
+                      value={mixed}
+                      onChange={(next) => setCartLineMixed(lineId, next)}
+                      maxBaseQuantity={getCartLineMaxBaseQuantity(item)}
+                      onExceedStock={() =>
+                        toast.error(t("pos.cannotExceedStock"))
+                      }
                     />
-                    <div className="cart-item-controls flex items-center gap-2 ml-auto">
-                      <button
-                        onClick={() => updateQty(lineId, -1)}
-                        className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        max={maxQty}
-                        value={item.qty}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 1;
-                          setQty(lineId, value);
-                        }}
-                        onBlur={(e) => {
-                          const value = parseInt(e.target.value) || 1;
-                          if (value < 1) setQty(lineId, 1);
-                        }}
-                        className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  ) : (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CartUnitSelector
+                        baseUnit={baseUnit}
+                        conversions={conversions}
+                        selectedUnit={item.selectedUnit}
+                        onUnitChange={(unit) => setCartLineUnit(lineId, unit)}
                       />
-                      <span className="text-xs text-gray-500">
-                        {item.selectedUnit}
-                      </span>
-                      <button
-                        onClick={() => updateQty(lineId, 1)}
-                        className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
+                      <div className="cart-item-controls flex items-center gap-2 ml-auto">
+                        <button
+                          onClick={() => updateQty(lineId, -1)}
+                          className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          max={maxQty}
+                          value={item.qty}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 1;
+                            setQty(lineId, value);
+                          }}
+                          onBlur={(e) => {
+                            const value = parseInt(e.target.value) || 1;
+                            if (value < 1) setQty(lineId, 1);
+                          }}
+                          className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-xs text-gray-500">
+                          {item.selectedUnit}
+                        </span>
+                        <button
+                          onClick={() => updateQty(lineId, 1)}
+                          className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })
@@ -881,7 +968,10 @@ export const POS: React.FC = () => {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{t("pos.items")}</span>
               <span>
-                {cart.reduce((sum, item) => sum + item.qty, 0)}{" "}
+                {cart.reduce(
+                  (sum, item) => sum + getCartLineBaseQuantity(item),
+                  0,
+                )}{" "}
                 {t("pos.itemsLower")}
               </span>
             </div>
@@ -946,7 +1036,10 @@ export const POS: React.FC = () => {
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                {cart.reduce((sum, item) => sum + item.qty, 0)}{" "}
+                {cart.reduce(
+                  (sum, item) => sum + getCartLineBaseQuantity(item),
+                  0,
+                )}{" "}
                 {t("pos.itemsLower")} • {subtotal.toLocaleString()} MMK
               </p>
             </div>
