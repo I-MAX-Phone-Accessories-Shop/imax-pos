@@ -55,7 +55,14 @@ export const DirectSaleOrders: React.FC = () => {
   useEffect(() => {
     loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, currentPage, itemsPerPage, paymentTypeFilter, paymentMethodFilter]);
+  }, [
+    startDate,
+    endDate,
+    currentPage,
+    itemsPerPage,
+    paymentTypeFilter,
+    paymentMethodFilter,
+  ]);
 
   const loadInitialData = async () => {
     // Load credit personas
@@ -98,7 +105,7 @@ export const DirectSaleOrders: React.FC = () => {
       );
 
       if (response.success && response.data) {
-        setOrders(response.data);
+        setOrders(response.data.reverse());
         if (response.pagination) {
           setPagination(response.pagination);
         } else {

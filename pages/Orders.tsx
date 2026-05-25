@@ -128,7 +128,7 @@ export const Orders: React.FC = () => {
       });
 
       if (response.success && response.data) {
-        setOrders(response.data);
+        setOrders(response.data.reverse());
         if (response.pagination) {
           setPagination(response.pagination);
         } else {
