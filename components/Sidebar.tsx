@@ -114,7 +114,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: t("sidebar.creditOrder"),
             icon: CreditCard,
           },
-          { path: "/quotations", label: t("sidebar.quotations"), icon: FileText },
+          {
+            path: "/quotations",
+            label: t("sidebar.quotations"),
+            icon: FileText,
+          },
         ],
       },
       {
@@ -214,8 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const isChildActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return (
-      location.pathname === path ||
-      location.pathname.startsWith(`${path}/`)
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
     );
   };
 
@@ -274,7 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="px-4 py-4 flex items-center justify-between border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
             <img
-              src="/pyitawtar.jpg"
+              src="/pyi-taw-tar.jpg"
               alt="Pyi-Taw-Tar POS Logo"
               className="w-10 h-10 object-contain rounded-lg"
             />

@@ -1,128 +1,130 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" href="/pyitawtar.jpg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pyi-Taw-Tar POS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            // Brand - Primary Green
-            brand: {
-              DEFAULT: "#4CAF50",
-              hover: "#43A047",
-              light: "#E8F5E9",
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/pyi-taw-tar.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pyi-Taw-Tar POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              // Brand - Primary Green
+              brand: {
+                DEFAULT: "#4CAF50",
+                hover: "#43A047",
+                light: "#E8F5E9",
+              },
+              // Primary - Green palette
+              primary: {
+                50: "#E8F5E9",
+                100: "#C8E6C9",
+                200: "#A5D6A7",
+                300: "#81C784",
+                400: "#66BB6A",
+                500: "#4CAF50",
+                600: "#43A047",
+                700: "#388E3C",
+                800: "#2E7D32",
+                900: "#1B5E20",
+                950: "#0D3B0F",
+                DEFAULT: "#4CAF50",
+              },
+              // Dark - Slate Gray
+              dark: {
+                50: "#F8F9FA",
+                100: "#F1F3F5",
+                200: "#E9ECEF",
+                300: "#DEE2E6",
+                400: "#CED4DA",
+                500: "#ADB5BD",
+                600: "#6C757D",
+                700: "#495057",
+                800: "#343A40",
+                900: "#212529",
+                950: "#0D1117",
+                DEFAULT: "#212529",
+              },
+              // Button colors
+              btn: {
+                primary: "#4CAF50",
+                "primary-hover": "#43A047",
+                secondary: "#1E2937",
+                "secondary-hover": "#334155",
+                danger: "#E52320",
+                "danger-hover": "#C41E1A",
+                success: "#4CAF50",
+                "success-hover": "#43A047",
+              },
+              // Status colors
+              status: {
+                success: "#4CAF50",
+                warning: "#FFCC00",
+                error: "#E52320",
+                info: "#4CAF50",
+              },
             },
-            // Primary - Green palette
-            primary: {
-              50: "#E8F5E9",
-              100: "#C8E6C9",
-              200: "#A5D6A7",
-              300: "#81C784",
-              400: "#66BB6A",
-              500: "#4CAF50",
-              600: "#43A047",
-              700: "#388E3C",
-              800: "#2E7D32",
-              900: "#1B5E20",
-              950: "#0D3B0F",
-              DEFAULT: "#4CAF50",
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
             },
-            // Dark - Slate Gray
-            dark: {
-              50: "#F8F9FA",
-              100: "#F1F3F5",
-              200: "#E9ECEF",
-              300: "#DEE2E6",
-              400: "#CED4DA",
-              500: "#ADB5BD",
-              600: "#6C757D",
-              700: "#495057",
-              800: "#343A40",
-              900: "#212529",
-              950: "#0D1117",
-              DEFAULT: "#212529",
+            boxShadow: {
+              glow: "0 0 20px rgba(76, 175, 80, 0.3)",
+              "glow-sm": "0 0 10px rgba(76, 175, 80, 0.2)",
             },
-            // Button colors
-            btn: {
-              primary: "#4CAF50",
-              "primary-hover": "#43A047",
-              secondary: "#1E2937",
-              "secondary-hover": "#334155",
-              danger: "#E52320",
-              "danger-hover": "#C41E1A",
-              success: "#4CAF50",
-              "success-hover": "#43A047",
-            },
-            // Status colors
-            status: {
-              success: "#4CAF50",
-              warning: "#FFCC00",
-              error: "#E52320",
-              info: "#4CAF50",
-            },
-          },
-          fontFamily: {
-            sans: ["Inter", "system-ui", "sans-serif"],
-          },
-          boxShadow: {
-            glow: "0 0 20px rgba(76, 175, 80, 0.3)",
-            "glow-sm": "0 0 10px rgba(76, 175, 80, 0.2)",
           },
         },
-      },
-    };
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: "Inter", sans-serif;
-    }
+      };
+    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
 
-    /* Print styles for receipt */
-    @media print {
-      .no-print {
-        display: none !important;
+      /* Print styles for receipt */
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+
+        .print-only {
+          display: block !important;
+        }
+
+        body {
+          background: white;
+        }
       }
 
       .print-only {
-        display: block !important;
+        display: none;
       }
 
-      body {
-        background: white;
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
       }
-    }
 
-    .print-only {
-      display: none;
-    }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
 
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
+      ::-webkit-scrollbar-thumb {
+        background: #a5d6a7;
+        border-radius: 3px;
+      }
 
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #A5D6A7;
-      border-radius: 3px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #81C784;
-    }
-  </style>
-  <script type="importmap">
+      ::-webkit-scrollbar-thumb:hover {
+        background: #81c784;
+      }
+    </style>
+    <script type="importmap">
       {
         "imports": {
           "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
@@ -134,11 +136,10 @@
         }
       }
     </script>
-</head>
+  </head>
 
-<body class="bg-[#F8F9FA] text-[#212529] antialiased">
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
-
+  <body class="bg-[#F8F9FA] text-[#212529] antialiased">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>
