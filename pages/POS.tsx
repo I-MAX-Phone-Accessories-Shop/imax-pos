@@ -82,6 +82,7 @@ export const POS: React.FC = () => {
   // Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState<"paid" | "credit">("paid");
@@ -109,6 +110,12 @@ export const POS: React.FC = () => {
   );
   const devices = detectDevice();
 
+  // Debounce search input — wait 400ms before fetching
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // Load storefronts and stock on mount
   useEffect(() => {
     loadInitialData();
@@ -117,37 +124,40 @@ export const POS: React.FC = () => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      // Load storefronts
-      const sfResponse = await fetchStorefrontProfiles();
+      // Load storefronts and categories in parallel
+      const [sfResponse, catResponse] = await Promise.all([
+        fetchStorefrontProfiles(),
+        fetchCategories(),
+      ]);
+
       if (sfResponse.success && sfResponse.data) {
         const activeStorefronts = sfResponse.data.filter(
           (sf) => sf.status === "active",
         );
         setStorefronts(activeStorefronts);
 
-        // Auto-select first storefront
+        // Auto-select first storefront — triggers second useEffect → loadStockItems
         if (activeStorefronts.length > 0) {
           setSelectedStorefrontId(activeStorefronts[0]._id);
+        } else {
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
 
-      // Load categories
-      const catResponse = await fetchCategories();
       if (catResponse.success && catResponse.data) {
         setCategories(catResponse.data);
       }
-
-      // Load stock items
-      await loadStockItems();
     } catch (error) {
       // console.error("Error loading initial data:", error);
       toast.error(t("pos.failedToLoadData"));
+      setLoading(false);
     } finally {
       setIsProcessing(false);
-      setLoading(false);
     }
 
-    // Load credit personas separately
+    // Load credit personas separately (don't await)
     loadCreditPersonas();
   };
 
@@ -166,10 +176,12 @@ export const POS: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!selectedStorefrontId) return;
     loadStockItems();
-  }, [selectedStorefrontId, search, selectedCategory, currentPage]);
+  }, [selectedStorefrontId, debouncedSearch, selectedCategory, currentPage]);
 
   const loadStockItems = async () => {
+    setLoading(true);
     try {
       const response = await fetchStorefrontStock(
         selectedStorefrontId,
@@ -178,7 +190,6 @@ export const POS: React.FC = () => {
         selectedCategory === "All" ? undefined : selectedCategory,
         search,
       );
-      // console.log("response", response);
       if (response.success && response.data) {
         setAllStockItems(response.data);
         if (response.pagination) {
@@ -189,6 +200,8 @@ export const POS: React.FC = () => {
     } catch (error) {
       console.error("Error loading stock items:", error);
       toast.error(t("pos.failedToLoadProducts"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -512,7 +525,7 @@ export const POS: React.FC = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
+    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-[#F8F9FA]">
       {/* Product Grid */}
       <div className="flex-1 flex flex-col px-6 py-4 overflow-hidden">
         {/* Search Bar with Storefront Badge */}
@@ -543,14 +556,6 @@ export const POS: React.FC = () => {
                     // If not found, continue with regular search (filtering happens automatically)
                   }
                 }}
-                onBlur={() => {
-                  // Auto-process barcode when input loses focus (useful for barcode scanners that auto-tab)
-                  // Only if search value exists and looks like it could be a barcode (length >= 3)
-                  // This helps with barcode scanners that send data on blur
-                  if (search.trim() && search.trim().length >= 3) {
-                    handleBarcodeScan(search);
-                  }
-                }}
                 autoFocus
               />
             </div>
@@ -573,7 +578,7 @@ export const POS: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
-                className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
+                className="flex items-center gap-2 px-3 py-2.5 bg-[#1E2937] text-white rounded-xl hover:bg-[#334155] transition-all shadow-sm"
               >
                 <Store className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium max-w-[120px] truncate">
@@ -770,9 +775,8 @@ export const POS: React.FC = () => {
                   </p>
                 </div>
                 <div className="mt-4 flex justify-between items-end">
-                  <span className="font-bold text-primary-600">
-                    {(stockItem.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
-                    MMK
+                  <span className="font-bold text-[#212529]">
+                    {stockItem.inventoryId.sellingPrice.toLocaleString()} MMK
                   </span>
                 </div>
               </div>
@@ -782,7 +786,7 @@ export const POS: React.FC = () => {
       </div>
 
       {/* Cart Sidebar */}
-      <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
+      <div className="w-96 bg-white flex flex-col border-l border-[#E9ECEF] shadow-xl h-[calc(100vh-60px)] sticky top-0">
         <div className="p-4 border-b">
           <h2 className="font-bold text-lg">{t("pos.currentSale")}</h2>
           {selectedStorefrontId && (
@@ -876,7 +880,7 @@ export const POS: React.FC = () => {
         </div>
 
         {/* Cart Summary & Checkout Button */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
+        <div className="p-4 border-t border-[#E9ECEF] bg-[#F8F9FA] space-y-3">
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{t("pos.items")}</span>
@@ -1203,7 +1207,7 @@ export const POS: React.FC = () => {
               </div>
 
               {/* Order Summary */}
-              <div className="bg-gray-50 p-4 rounded-lg border space-y-2">
+              <div className="bg-[#F8F9FA] p-4 rounded-lg border border-[#E9ECEF] space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">{t("common.subtotal")}</span>
                   <span>{subtotal.toLocaleString()} MMK</span>
@@ -1226,19 +1230,19 @@ export const POS: React.FC = () => {
                   <span>{t("common.total")}</span>
                   <span>{total.toLocaleString()} MMK</span>
                 </div>
-                {paidAmount > 0 &&
-                  paidAmount >= total &&
-                  paymentType === "paid" && (
-                    <div className="change-display-row flex justify-between text-sm text-green-600 font-medium">
-                      <span>{t("common.change")}</span>
-                      <span>{(paidAmount - total).toLocaleString()} MMK</span>
-                    </div>
-                  )}
+                  {paidAmount > 0 &&
+                    paidAmount >= total &&
+                    paymentType === "paid" && (
+                      <div className="change-display-row flex justify-between text-sm text-[#4CAF50] font-medium">
+                        <span>{t("common.change")}</span>
+                        <span>{(paidAmount - total).toLocaleString()} MMK</span>
+                      </div>
+                    )}
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t bg-gray-50 space-y-2">
+            <div className="p-4 border-t bg-[#F8F9FA] space-y-2">
               <button
                 onClick={() => {
                   handleCheckout();
@@ -1318,7 +1322,7 @@ export const POS: React.FC = () => {
               </div>
               {/* Calculated Percentage */}
               {markupAmount && Number(markupAmount) > 0 && (
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <div className="bg-[#E8F5E9] border border-[#A5D6A7] p-4 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-slate-600">
                       Markup Amount:
@@ -1420,7 +1424,7 @@ export const POS: React.FC = () => {
 
               {/* Calculated Percentage */}
               {discountAmount && Number(discountAmount) > 0 && (
-                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <div className="bg-[#E8F5E9] border border-[#A5D6A7] p-4 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-slate-600">
                       Discount Amount:
@@ -1488,7 +1492,7 @@ export const POS: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             {/* Success Icon and Header */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 text-center">
+            <div className="bg-gradient-to-br from-[#4CAF50] to-[#388E3C] p-8 text-center">
               <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-4">
                 <svg
                   className="w-12 h-12 text-green-500"

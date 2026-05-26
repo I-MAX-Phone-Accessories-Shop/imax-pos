@@ -169,7 +169,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <Calendar
               date={dateRange.startDate}
               onChange={handleSingleDateSelect}
-              color="#3b82f6"
+              color="#4CAF50"
             />
           ) : fixedStartDate ? (
             <div className="flex flex-col gap-2">
@@ -183,7 +183,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               <Calendar
                 date={dateRange.endDate}
                 onChange={handleFixedStartSelect}
-                color="#3b82f6"
+                color="#4CAF50"
                 minDate={startDate || undefined}
               />
             </div>
@@ -194,7 +194,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               moveRangeOnFirstSelection={false}
               months={2}
               direction="horizontal"
-              rangeColors={["#3b82f6"]}
+              rangeColors={["#4CAF50"]}
             />
           )}
 

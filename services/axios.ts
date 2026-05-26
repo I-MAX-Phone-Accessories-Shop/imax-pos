@@ -50,7 +50,20 @@ axios.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
+    const config = error.config;
+
+    // 429 Too Many Requests — retry up to 2 times with delay
+    if (error.response?.status === 429 && !config._retryCount) {
+      config._retryCount = config._retryCount || 0;
+      if (config._retryCount < 2) {
+        config._retryCount += 1;
+        const delay = config._retryCount * 2000; // 2s, then 4s
+        await new Promise((r) => setTimeout(r, delay));
+        return axios(config);
+      }
+    }
+
     if (error.response?.status === 401) {
       removeAuthToken();
       // Redirect to login if not already there

@@ -1,19 +1,19 @@
 export const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#8884d8",
-  "#82ca9d",
+  "#4CAF50",
+  "#2196F3",
+  "#FFCC00",
+  "#E52320",
+  "#9C27B0",
+  "#FF9800",
 ];
 
 export const PAYMENT_METHOD_COLORS: Record<string, string> = {
-  cash: "#10b981", // green
-  kpay: "#3b82f6", // blue
-  kbzpay: "#3b82f6", // blue
-  wavepay: "#8b5cf6", // purple
-  ayapay: "#f59e0b", // amber
-  uabpay: "#ef4444", // red
-  bank_transfer: "#6366f1", // indigo
+  cash: "#4CAF50", // green - brand
+  kpay: "#2196F3", // blue
+  kbzpay: "#2196F3", // blue
+  wavepay: "#9C27B0", // purple
+  ayapay: "#FF9800", // orange
+  uabpay: "#E52320", // red - brand accent
+  bank_transfer: "#607D8B", // blue gray
 };
 

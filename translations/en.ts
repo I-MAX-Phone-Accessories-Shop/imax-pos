@@ -52,7 +52,7 @@ export const en = {
     processing: "Processing...",
   },
   app: {
-    title: "shewpyi-pos",
+    title: "Pyi-Taw-Tar POS",
     subtitle: "POS System",
   },
   login: {
@@ -67,7 +67,7 @@ export const en = {
     loginFailed: "Login failed",
     checkCredentials: "Login failed. Please check your credentials.",
     welcomeBack: "Welcome back, {name}!",
-    copyright: "© 2024 shewpyi-pos All rights reserved.",
+    copyright: "© 2024 Pyi-Taw-Tar POS All rights reserved.",
   },
   sidebar: {
     groupSales: "Sales",
@@ -812,9 +812,9 @@ export const en = {
   },
   aiChat: {
     title: "AI Assistant",
-    subtitle: "Ask questions about your Shwe-Pyi POS business",
+    subtitle: "Ask questions about your Pyi-Taw-Tar POS business",
     placeholder: "Ask about sales, stock, orders, and more...",
-    emptyTitle: "Welcome to Shwe-Pyi POS AI Assistant",
+    emptyTitle: "Welcome to Pyi-Taw-Tar POS AI Assistant",
     emptyDescription:
       "Ask anything about your shop — for example: how much did we sell today?",
     clearChat: "Clear Chat",

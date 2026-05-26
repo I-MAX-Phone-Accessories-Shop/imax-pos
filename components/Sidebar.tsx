@@ -267,19 +267,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       />
 
       <div
-        className={`sidebar w-72 bg-brand text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${
+        className={`sidebar w-72 bg-[#1E2937] text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="px-4 py-4 flex items-center justify-between border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
             <img
-              src="/shewpyi.jpg"
-              alt="shewpyi-pos Logo"
+              src="/pyitawtar.jpg"
+              alt="Pyi-Taw-Tar POS Logo"
               className="w-10 h-10 object-contain rounded-lg"
             />
             <h1 className="text-xl font-bold text-white tracking-tight">
-              shewpyi-pos
+              Pyi-Taw-Tar POS
             </h1>
           </div>
           <button
@@ -341,19 +341,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               onClick={onClose}
                               className={`relative flex items-center gap-2.5 py-2 pr-3 pl-11 text-sm font-medium rounded-lg mx-1 my-0.5 transition-all duration-200 group ${
                                 active
-                                  ? "bg-white text-brand shadow-md shadow-black/10"
+                                  ? "bg-[#4CAF50] text-white shadow-md shadow-black/10"
                                   : "text-white/65 hover:bg-white/10 hover:text-white"
                               }`}
                             >
                               <span
                                 className={`absolute left-4 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full transition-colors ${
-                                  active ? "bg-brand" : "bg-white/25"
+                                  active ? "bg-white" : "bg-white/25"
                                 }`}
                               />
                               <ChildIcon
                                 className={`w-4 h-4 shrink-0 ${
                                   active
-                                    ? "text-brand"
+                                    ? "text-white"
                                     : "text-white/50 group-hover:text-white/80"
                                 }`}
                               />

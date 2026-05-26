@@ -66,14 +66,14 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-900 via-primary-800 to-primary-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#0D3B0F] p-4">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-2xl mb-4 shadow-xl overflow-hidden p-2">
-            <img src="/shewpyi.jpg" alt="shewpyi-pos Logo" className="w-full h-full object-contain" />
+            <img src="/pyitawtar.jpg" alt="Pyi-Taw-Tar POS Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">shewpyi-pos</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Pyi-Taw-Tar POS</h1>
           <p className="text-white/60">{t("login.title")}</p>
         </div>
 
@@ -90,7 +90,7 @@ export const Login: React.FC = () => {
                 <input
                   type="text"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4CAF50] focus:border-[#4CAF50] outline-none transition-all"
                   placeholder={t("login.enterUsername")}
                   value={formData.name}
                   onChange={(e) =>
@@ -111,7 +111,7 @@ export const Login: React.FC = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4CAF50] focus:border-[#4CAF50] outline-none transition-all"
                   placeholder={t("login.enterPassword")}
                   value={formData.password}
                   onChange={(e) =>
@@ -168,7 +168,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+              className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
             >
               {isSubmitting ? (
                 <>

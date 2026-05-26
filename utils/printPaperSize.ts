@@ -145,7 +145,7 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         }
         .voucher-thermal-header {
           align-items: center;
-          background: #1E90FF !important;
+          background: #4CAF50 !important;
           color: white !important;
           padding: 1.2mm 0.4mm;
           font-weight: bold;
@@ -253,7 +253,7 @@ export const getSharedTableStyles = (): string => `
     margin: 16px 0;
   }
   .voucher-table th {
-    background-color: #1E90FF;
+    background-color: #4CAF50;
     color: white;
     text-align: center;
     font-weight: 700;

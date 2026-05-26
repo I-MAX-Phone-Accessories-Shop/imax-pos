@@ -239,7 +239,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           )}
           <div
             className="voucher-total-bar flex justify-between font-bold text-white"
-            style={{ backgroundColor: "#1E90FF" }}
+            style={{ backgroundColor: "#4CAF50" }}
           >
             <span>TOTAL:</span>
             <span>

@@ -466,7 +466,7 @@ export const QuotationCreate: React.FC = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
+    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-[#F8F9FA]">
       {/* Product grid — same layout as POS */}
       <div className="flex-1 flex flex-col px-4 sm:px-6 py-4 overflow-hidden">
         <div className="mb-3 flex justify-between items-center gap-2">

@@ -52,7 +52,7 @@ export const my = {
     processing: "လုပ်ဆောင်နေသည်...",
   },
   app: {
-    title: "shewpyi-pos",
+    title: "Pyi-Taw-Tar POS",
     subtitle: "POS စနစ်",
   },
   login: {
@@ -68,7 +68,7 @@ export const my = {
     checkCredentials:
       "ဝင်ရောက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ သင့်အထောက်အထားများကို စစ်ဆေးပါ။",
     welcomeBack: "{name} ကို ပြန်လည်ကြိုဆိုပါသည်!",
-    copyright: "© 2024 shewpyi-pos မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
+    copyright: "© 2024 Pyi-Taw-Tar POS မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
   },
   sidebar: {
     groupSales: "ရောင်းချမှု",
@@ -822,9 +822,9 @@ export const my = {
   },
   aiChat: {
     title: "AI လက်ထောက်",
-    subtitle: "Shwe-Pyi POS လုပ်ငန်းအကြောင်း မေးမြန်းနိုင်ပါသည်",
+    subtitle: "Pyi-Taw-Tar POS လုပ်ငန်းအကြောင်း မေးမြန်းနိုင်ပါသည်",
     placeholder: "ရောင်းရငွေ၊ စတော့၊ အော်ဒါ စသည်တို့ကို မေးပါ...",
-    emptyTitle: "Shwe-Pyi POS AI လက်ထောက်မှ ကြိုဆိုပါတယ်",
+    emptyTitle: "Pyi-Taw-Tar POS AI လက်ထောက်မှ ကြိုဆိုပါတယ်",
     emptyDescription:
       "ဒီနေ့ရောင်းရတာဘယ်လောက်လဲ စသည့် မေးခွန်းများကို မေးနိုင်ပါသည်။",
     clearChat: "စကားပြောချက် ရှင်းမည်",

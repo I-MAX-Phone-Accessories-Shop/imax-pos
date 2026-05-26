@@ -529,7 +529,7 @@ export const printThermalReceipt = async (
         .logo-text {
           font-size: 24px;
           font-weight: 900;
-          color: #1E90FF;
+          color: #4CAF50;
           margin-bottom: 1mm;
           letter-spacing: -0.5px;
         }
@@ -552,7 +552,7 @@ export const printThermalReceipt = async (
           text-align: right;
         }
         .table-header {
-          background: #1E90FF !important;
+          background: #4CAF50 !important;
           color: white !important;
           padding: 2mm 1mm;
           display: grid;
@@ -610,7 +610,7 @@ export const printThermalReceipt = async (
           padding: 1mm 0;
         }
         .total-row {
-          background: #1E90FF !important;
+          background: #4CAF50 !important;
           color: white !important;
           padding: 2mm 1mm;
           font-weight: bold;

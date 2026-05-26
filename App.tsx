@@ -38,12 +38,12 @@ const AppLayout: React.FC = () => {
   const token = localStorage.getItem("authToken");
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
       {/* Only show header and sidebar if authenticated */}
       {token && (
         <>
           {/* Header */}
-          <header className="bg-brand border-b border-white/10 sticky top-0 z-30 print:hidden shadow-lg">
+          <header className="bg-[#1E2937] border-b border-white/10 sticky top-0 z-30 print:hidden shadow-lg">
             <div className="flex items-center justify-between h-14 px-4">
               <div className="flex items-center">
                 <button
@@ -54,7 +54,7 @@ const AppLayout: React.FC = () => {
                   <Menu className="w-6 h-6 text-white" />
                 </button>
                 <h1 className="text-lg font-bold text-white tracking-wide">
-                  shewpyi-pos
+                  Pyi-Taw-Tar POS
                 </h1>
               </div>
               <div className="flex items-center gap-2">

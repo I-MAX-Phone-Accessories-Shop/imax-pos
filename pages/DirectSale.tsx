@@ -506,7 +506,7 @@ export const DirectSale: React.FC = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
+    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-[#F8F9FA]">
       {/* Product Grid */}
       <div className="flex-1 flex flex-col px-6 py-4 overflow-hidden">
         {/* Search Bar with Storefront Badge */}

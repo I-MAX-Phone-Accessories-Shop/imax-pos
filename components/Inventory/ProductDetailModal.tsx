@@ -65,7 +65,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             onClick={() => setActiveTab("about")}
             className={`px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === "about"
-                ? "bg-[#FEFEB0] text-slate-800 rounded-2xl"
+                ? "bg-[#E8F5E9] text-slate-800 rounded-2xl"
                 : "text-slate-600 hover:text-slate-800"
             }`}
           >
@@ -75,7 +75,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             onClick={() => setActiveTab("quantity")}
             className={`px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === "quantity"
-                ? "bg-[#FEFEB0] text-slate-800 rounded-2xl"
+                ? "bg-[#E8F5E9] text-slate-800 rounded-2xl"
                 : "text-slate-600 hover:text-slate-800"
             }`}
           >
@@ -313,9 +313,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </div>
 
                   {/* Total Quantity Summary */}
-                  <div className="bg-[#FEFEB0] p-6 rounded-lg border-2 border-[#FEFEB0]">
+                  <div className="bg-[#E8F5E9] p-6 rounded-lg border-2 border-[#E8F5E9]">
                     <div className="flex items-center justify-between">
-                      <p className="text-[16px] font-medium text-[#585800]">
+                      <p className="text-[16px] font-medium text-[#2E7D32]">
                         {t("inventory.productTotalQuantity")}
                       </p>
                       <p className="text-4xl font-bold text-slate-800">
@@ -330,7 +330,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       onClick={() => setStockTab("warehouse")}
                       className={`px-4 py-2 text-sm font-medium transition-colors ${
                         stockTab === "warehouse"
-                          ? "bg-[#FEFEB0] text-slate-800 rounded-2xl"
+                          ? "bg-[#E8F5E9] text-slate-800 rounded-2xl"
                           : "text-slate-600 hover:text-slate-800"
                       }`}
                     >
@@ -340,7 +340,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       onClick={() => setStockTab("storefront")}
                       className={`px-4 py-2 text-sm font-medium transition-colors ${
                         stockTab === "storefront"
-                          ? "bg-[#FEFEB0] text-slate-800 rounded-2xl"
+                          ? "bg-[#E8F5E9] text-slate-800 rounded-2xl"
                           : "text-slate-600 hover:text-slate-800"
                       }`}
                     >
