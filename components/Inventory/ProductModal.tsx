@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { ImagePlus, Layers, Plus, Trash2, Upload, X } from "lucide-react";
+import { toast } from "sonner";
 import { Product } from "../../types";
 import { UomConversion } from "../../types/uom";
 import { useLanguage } from "../../context/LanguageContext";
 import { UomConversionsEditor } from "./UomConversionsEditor";
+
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_SIZE_MB = 5;
 
 // const UNIT_OF_MEASURE_OPTIONS = [
 //   "piece",
@@ -33,6 +38,8 @@ export interface ProductFormData {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions: UomConversion[];
+  wholesalePrices?: Array<{ quantity: number; price: number }>;
+  images?: File[];
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;
@@ -57,6 +64,7 @@ export interface ApiProduct {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions: UomConversion[];
+  wholesalePrices?: Array<{ quantity: number; price: number }>;
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;
@@ -93,6 +101,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onFormDataChange,
 }) => {
   const { t } = useLanguage();
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [isImageDragOver, setIsImageDragOver] = useState(false);
 
   // Combobox states for category and subCategory
   const [categoryInput, setCategoryInput] = useState("");
@@ -143,11 +154,91 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     onFormDataChange({ ...formData, ...updates });
   };
 
+  useEffect(() => {
+    const files = formData.images || [];
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setImagePreviewUrls(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [formData.images]);
+
+  const wholesalePrices = formData.wholesalePrices || [];
+  const productImages = formData.images || [];
+
+  const addWholesaleRow = () => {
+    updateFormData({
+      wholesalePrices: [...wholesalePrices, { quantity: 0, price: 0 }],
+    });
+  };
+
+  const updateWholesaleRow = (
+    index: number,
+    field: "quantity" | "price",
+    value: number,
+  ) => {
+    const next = wholesalePrices.map((row, i) =>
+      i === index ? { ...row, [field]: value } : row,
+    );
+    updateFormData({ wholesalePrices: next });
+  };
+
+  const removeWholesaleRow = (index: number) => {
+    updateFormData({
+      wholesalePrices: wholesalePrices.filter((_, i) => i !== index),
+    });
+  };
+
+  const validateImageFile = (file: File): string | null => {
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      return "Only JPEG, PNG, and WebP images are allowed";
+    }
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      return `Image must be smaller than ${MAX_IMAGE_SIZE_MB}MB`;
+    }
+    return null;
+  };
+
+  const addImageFiles = (incoming: File[]) => {
+    const valid: File[] = [];
+    for (const file of incoming) {
+      const err = validateImageFile(file);
+      if (err) {
+        toast.error(`${file.name}: ${err}`);
+        continue;
+      }
+      valid.push(file);
+    }
+    if (valid.length === 0) return;
+    updateFormData({ images: [...productImages, ...valid] });
+  };
+
+  const handleImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    addImageFiles(files);
+    e.target.value = "";
+  };
+
+  const handleImageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsImageDragOver(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/"),
+    );
+    addImageFiles(files);
+  };
+
+  const removeImageAt = (index: number) => {
+    updateFormData({
+      images: productImages.filter((_, i) => i !== index),
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white p-6 rounded-lg w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-3xl my-8 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">
           {editingId
             ? t("inventory.editProduct")
@@ -281,7 +372,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {subCategoryShowDropdown && (
                 <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   {getFilteredSubCategories(
-                    subCategoryInput || formData.subCategory
+                    subCategoryInput || formData.subCategory,
                   ).map((subCategory) => (
                     <div
                       key={subCategory}
@@ -327,11 +418,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          <UomConversionsEditor
+          {/* <UomConversionsEditor
             baseUnit={formData.unitOfMeasure}
             conversions={formData.uomConversions}
             onChange={(uomConversions) => updateFormData({ uomConversions })}
-          />
+          /> */}
 
           {/* <div className="col-span-2">
             <label className="block text-xs font-bold text-slate-500">
@@ -378,6 +469,226 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               }
             />
           </div>
+
+          {/* Wholesale prices */}
+          <div className="col-span-2">
+            <div className="rounded-xl border border-amber-100 bg-gradient-to-br from-amber-50/80 to-white p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-700">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">
+                      Wholesale prices
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Bulk quantity tiers and unit prices (MMK)
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={addWholesaleRow}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add tier
+                </button>
+              </div>
+
+              {wholesalePrices.length === 0 ? (
+                <div className="rounded-lg border-2 border-dashed border-amber-200/80 bg-white/60 py-8 text-center">
+                  <p className="text-sm text-slate-500 mb-3">
+                    No wholesale tiers yet
+                  </p>
+                  <button
+                    type="button"
+                    onClick={addWholesaleRow}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-amber-800 border border-amber-200 rounded-lg hover:bg-amber-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add first tier
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="hidden sm:grid sm:grid-cols-[1fr_1fr_auto] gap-2 px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <span>Min quantity</span>
+                    <span>Price (MMK)</span>
+                    <span className="w-9" />
+                  </div>
+                  {wholesalePrices.map((wp, idx) => (
+                    <div
+                      key={idx}
+                      className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center bg-white rounded-lg border border-slate-100 p-2 shadow-sm"
+                    >
+                      <div>
+                        <label className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">
+                          Min quantity
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
+                          value={wp.quantity || ""}
+                          onChange={(e) =>
+                            updateWholesaleRow(
+                              idx,
+                              "quantity",
+                              Number(e.target.value),
+                            )
+                          }
+                          placeholder="e.g. 100"
+                        />
+                      </div>
+                      <div>
+                        <label className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">
+                          Price (MMK)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
+                          value={wp.price || ""}
+                          onChange={(e) =>
+                            updateWholesaleRow(
+                              idx,
+                              "price",
+                              Number(e.target.value),
+                            )
+                          }
+                          placeholder="e.g. 65000"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeWholesaleRow(idx)}
+                        className="flex items-center justify-center w-full sm:w-9 h-9 text-red-500 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-100 transition-colors"
+                        aria-label="Remove wholesale tier"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Product images */}
+          <div className="col-span-2">
+            <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
+                  <ImagePlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">
+                    Product images
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    JPEG, PNG, WebP — max {MAX_IMAGE_SIZE_MB}MB each
+                  </p>
+                </div>
+              </div>
+
+              <input
+                ref={imageInputRef}
+                type="file"
+                multiple
+                accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                onChange={handleImageInputChange}
+                className="hidden"
+              />
+
+              <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    imageInputRef.current?.click();
+                  }
+                }}
+                onClick={() => imageInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsImageDragOver(true);
+                }}
+                onDragLeave={() => setIsImageDragOver(false)}
+                onDrop={handleImageDrop}
+                className={`relative rounded-xl border-2 border-dashed transition-all cursor-pointer p-6 text-center ${
+                  isImageDragOver
+                    ? "border-primary bg-primary/5 scale-[1.01]"
+                    : "border-slate-200 bg-white/70 hover:border-primary/50 hover:bg-primary/5"
+                }`}
+              >
+                <div className="flex flex-col items-center gap-2 pointer-events-none">
+                  <div className="p-3 rounded-full bg-slate-100 text-slate-500">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-700">
+                    Drop images here or click to browse
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    You can select multiple files
+                  </p>
+                </div>
+              </div>
+
+              {productImages.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                    Preview ({productImages.length})
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {productImages.map((file, idx) => (
+                      <div
+                        key={`${file.name}-${file.size}-${idx}`}
+                        className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm"
+                      >
+                        <img
+                          src={imagePreviewUrls[idx]}
+                          alt={file.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 pt-6">
+                          <p className="text-[10px] text-white truncate font-medium">
+                            {file.name}
+                          </p>
+                          <p className="text-[9px] text-white/80">
+                            {(file.size / 1024).toFixed(0)} KB
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImageAt(idx);
+                          }}
+                          className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => updateFormData({ images: [] })}
+                    className="mt-3 text-xs font-medium text-red-600 hover:text-red-700 hover:underline"
+                  >
+                    Clear all images
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="col-span-2">
             <label className="block text-xs font-bold text-slate-500">
               {t("pos.note") || "Note"}

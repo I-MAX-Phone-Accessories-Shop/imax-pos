@@ -97,6 +97,8 @@ export const Inventory: React.FC = () => {
     sellingPrice: 0,
     unitOfMeasure: "piece",
     uomConversions: [],
+    wholesalePrices: [],
+    images: [],
     reorderPoint: 0,
     reorderQuantity: 0,
     taxRate: 0,
@@ -217,6 +219,8 @@ export const Inventory: React.FC = () => {
       sellingPrice: 0,
       unitOfMeasure: "piece",
       uomConversions: [],
+      wholesalePrices: [],
+      images: [],
       reorderPoint: 0,
       reorderQuantity: 0,
       taxRate: 0,
@@ -314,6 +318,7 @@ export const Inventory: React.FC = () => {
           sellingPrice: formData.sellingPrice,
           unitOfMeasure: formData.unitOfMeasure.trim(),
           uomConversions: formData.uomConversions,
+          wholesalePrices: formData.wholesalePrices,
         };
 
         // Add optional fields only if they have values
@@ -373,6 +378,7 @@ export const Inventory: React.FC = () => {
         sellingPrice: formData.sellingPrice,
         unitOfMeasure: formData.unitOfMeasure.trim(),
         uomConversions: formData.uomConversions,
+        wholesalePrices: formData.wholesalePrices,
       };
 
       // Add SKU only if it has a value, otherwise provide a default
@@ -402,6 +408,10 @@ export const Inventory: React.FC = () => {
       if (formData.tags && formData.tags.length > 0)
         apiPayload.tags = formData.tags;
       if (formData.note) apiPayload.note = formData.note;
+
+      if (formData.images && formData.images.length > 0) {
+        apiPayload.images = formData.images;
+      }
 
       await createProduct(apiPayload);
 
@@ -439,6 +449,8 @@ export const Inventory: React.FC = () => {
       sellingPrice: p.sellingPrice,
       unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
       uomConversions: apiProduct?.uomConversions || [],
+      wholesalePrices: apiProduct?.wholesalePrices || [],
+      images: [],
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,
       taxRate: apiProduct?.taxRate || 0,

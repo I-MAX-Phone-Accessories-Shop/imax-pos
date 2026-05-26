@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Image as ImageIcon,
   X,
   Package,
   DollarSign,
@@ -26,7 +27,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"about" | "quantity">("about");
   const [stockTab, setStockTab] = useState<"warehouse" | "storefront">(
-    "storefront"
+    "storefront",
   );
 
   if (!isOpen) return null;
@@ -42,9 +43,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     });
   };
 
+  const productImages = product?.images ?? [];
+  const primaryImageUrl =
+    productImages.find((img) => img.isPrimary)?.url ?? productImages[0]?.url;
+  const wholesalePrices = product?.wholesalePrices ?? [];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col overflow-hidden min-h-0">
         {/* Modal Header */}
         <div className="flex justify-between items-center p-4 border-b bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -84,7 +90,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto min-h-[calc(60vh)]">
+        <div className="flex-1 overflow-y-auto min-h-0 p-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3" />
@@ -116,6 +122,53 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     </div>
                   </div>
 
+                  {/* Product Images */}
+                  {productImages.length > 0 && (
+                    <div className="bg-slate-50 p-4 rounded-lg border">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ImageIcon className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs text-slate-500 font-medium">
+                          Product images
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        {primaryImageUrl && (
+                          <img
+                            src={primaryImageUrl}
+                            alt={product.productName}
+                            className="w-64 h-64 object-fit rounded-lg border bg-slate-100"
+                          />
+                        )}
+
+                        {productImages.length > 1 && primaryImageUrl && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {productImages
+                              .filter((img) => img.url !== primaryImageUrl)
+                              .slice(0, 6)
+                              .map((img, idx) => (
+                                <div
+                                  key={
+                                    img.key ||
+                                    img.id ||
+                                    img._id ||
+                                    `${img.url}-${idx}`
+                                  }
+                                  className="rounded-md overflow-hidden border bg-slate-100"
+                                >
+                                  <img
+                                    src={img.url}
+                                    alt={product.productName}
+                                    className="w-full h-20 object-cover"
+                                  />
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Pricing & Profit */}
                   <div className="grid grid-cols-1 gap-4">
                     <div className="bg-slate-50 p-4 rounded-lg border">
@@ -144,6 +197,42 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         </div>
                       </div>
                     </div>
+
+                    {wholesalePrices.length > 0 && (
+                      <div className="bg-slate-50 p-4 rounded-lg border">
+                        <div className="flex items-center gap-2 mb-3">
+                          <DollarSign className="w-4 h-4 text-slate-500" />
+                          <p className="text-xs text-slate-500 font-medium">
+                            Wholesale prices
+                          </p>
+                        </div>
+
+                        <table className="w-full text-sm border rounded-lg overflow-hidden">
+                          <thead className="bg-slate-50">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-xs text-slate-500">
+                                {t("common.quantity")}
+                              </th>
+                              <th className="px-3 py-2 text-right text-xs text-slate-500">
+                                {t("common.price")} (MMK)
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {wholesalePrices.map((wp, idx) => (
+                              <tr key={idx}>
+                                <td className="px-3 py-2">
+                                  {wp.quantity.toLocaleString()}
+                                </td>
+                                <td className="px-3 py-2 text-right font-medium">
+                                  {wp.price.toLocaleString()}{" "}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                     {/* <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                       <div className="flex items-center gap-2 mb-3">
                         <TrendingUp className="w-4 h-4 text-green-600" />
@@ -272,9 +361,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <p className="text-xs text-orange-600 font-medium mb-1">
                         {t("pos.note") || "Note"}
                       </p>
-                      <p className="text-sm text-slate-800">
-                        {product.note}
-                      </p>
+                      <p className="text-sm text-slate-800">{product.note}</p>
                     </div>
                   )}
 
@@ -393,7 +480,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>
@@ -444,7 +531,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>

@@ -26,6 +26,19 @@ export interface StockAvailability {
   totalQuantity: number;
 }
 
+export interface ProductWholesalePrice {
+  quantity: number;
+  price: number;
+}
+
+export interface ProductImage {
+  url: string;
+  key?: string;
+  isPrimary?: boolean;
+  _id?: string;
+  id?: string;
+}
+
 export interface ProductDetail {
   _id: string;
   productName: string;
@@ -39,6 +52,8 @@ export interface ProductDetail {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions?: UomConversion[];
+  wholesalePrices?: ProductWholesalePrice[];
+  images?: ProductImage[];
   reorderPoint: number;
   reorderQuantity: number;
   taxRate: number;

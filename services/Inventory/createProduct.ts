@@ -10,6 +10,8 @@ export interface CreateProductPayload {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions?: UomConversion[];
+  wholesalePrices?: Array<{ quantity: number; price: number }>;
+  images?: File[];
   quantity?: number;
   description?: string;
   saleCode?: string;
@@ -50,6 +52,16 @@ export const createProduct = async (
   try {
     const formData = new FormData();
     Object.entries(productData).forEach(([key, value]) => {
+      if (key === "images") {
+        if (Array.isArray(value)) {
+          (value as unknown[]).forEach((file) => {
+            if (file instanceof File) {
+              formData.append("images", file);
+            }
+          });
+        }
+        return;
+      }
       if (key === "uomConversions") {
         if (value && Array.isArray(value) && value.length > 0) {
           formData.append("uomConversions", JSON.stringify(value));

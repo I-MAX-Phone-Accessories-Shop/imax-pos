@@ -15,6 +15,7 @@ export interface UpdateProductPayload {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions?: UomConversion[];
+  wholesalePrices?: Array<{ quantity: number; price: number }>;
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;
