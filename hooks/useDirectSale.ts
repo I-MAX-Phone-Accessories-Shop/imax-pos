@@ -13,23 +13,23 @@ import {
   StorefrontProfile,
 } from "../services/Storefront/fetchStorefrontProfiles";
 import { fetchCategories } from "../services/Inventory/fetchCategories";
-import { createOrder } from "../services/Order/createOrder";
+import { createDirectSale } from "../services/Order/createDirectSale";
 import {
   fetchCreditPersonas,
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
 import {
-  UomCartItem,
-  cartLineToOrderProduct,
-  cartLineSubtotal,
-  createCartLine,
-  getCartLineId,
-  getCartLineMaxQty,
-  getCartLineUnitPrice,
-} from "../utils/posCartUom";
+  DirectSaleCartItem,
+  createDirectSaleCartLine,
+  directSaleCartSubtotal,
+  directSaleLineToOrderProduct,
+  applyCatalogUnitPrice,
+  getCatalogUnitPrice,
+} from "../utils/directSaleCart";
+import { getCartLineId } from "../utils/posCartUom";
 import { PaymentMethod } from "../types/pos";
 
-export const usePOS = () => {
+export const useDirectSale = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -44,13 +44,14 @@ export const usePOS = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(100);
 
-  const [cart, setCart] = useState<UomCartItem[]>([]);
+  const [cart, setCart] = useState<DirectSaleCartItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState<"paid" | "credit">("paid");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
-  const [selectedCreditPersonId, setSelectedCreditPersonId] = useState<string>("");
+  const [selectedCreditPersonId, setSelectedCreditPersonId] =
+    useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState("");
@@ -58,6 +59,8 @@ export const usePOS = () => {
   const [markup, setMarkup] = useState(0);
   const [markupAmount, setMarkupAmount] = useState(0);
   const [note, setNote] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
   const [useMarkup, setUseMarkup] = useState(false);
@@ -85,7 +88,6 @@ export const usePOS = () => {
           (sf) => sf.status === "active",
         );
         setStorefronts(activeStorefronts);
-
         if (activeStorefronts.length > 0) {
           const firstId = activeStorefronts[0]._id;
           setSelectedStorefrontId(firstId);
@@ -99,7 +101,7 @@ export const usePOS = () => {
 
       await loadStockItems();
     } catch (error) {
-      toast.error(t("pos.failedToLoadData"));
+      toast.error(t("directSale.failedToProcessSale"));
     } finally {
       setIsProcessing(false);
       setLoading(false);
@@ -161,24 +163,16 @@ export const usePOS = () => {
   });
 
   const addToCart = (stockItem: StorefrontStockItem) => {
-    if (stockItem.availableQuantity <= 0) {
-      toast.error(t("pos.outOfStock"));
-      return;
-    }
-
-    const newLine = createCartLine(stockItem, 1);
+    const newLine = createDirectSaleCartLine(stockItem, 1);
     const lineId = getCartLineId(newLine);
-    const maxQty = getCartLineMaxQty(newLine);
 
     setCart((prev) => {
       const existing = prev.find((item) => getCartLineId(item) === lineId);
       if (existing) {
-        if (existing.qty + 1 > maxQty) {
-          toast.error(t("pos.cannotExceedStock"));
-          return prev;
-        }
         return prev.map((item) =>
-          getCartLineId(item) === lineId ? { ...item, qty: item.qty + 1 } : item,
+          getCartLineId(item) === lineId
+            ? { ...item, qty: item.qty + 1 }
+            : item,
         );
       }
       return [...prev, newLine];
@@ -190,11 +184,6 @@ export const usePOS = () => {
       prev.map((item) => {
         if (getCartLineId(item) === lineId) {
           const newQty = item.qty + delta;
-          const maxQty = getCartLineMaxQty(item);
-          if (newQty > maxQty) {
-            toast.error(t("pos.cannotExceedStock"));
-            return item;
-          }
           if (newQty < 1) return item;
           return { ...item, qty: newQty };
         }
@@ -207,13 +196,8 @@ export const usePOS = () => {
     setCart((prev) =>
       prev.map((item) => {
         if (getCartLineId(item) === lineId) {
-          const maxQty = getCartLineMaxQty(item);
           if (newQty < 1) {
             return { ...item, qty: 1 };
-          }
-          if (newQty > maxQty) {
-            toast.error(t("pos.cannotExceedStock"));
-            return { ...item, qty: maxQty };
           }
           return { ...item, qty: newQty };
         }
@@ -226,13 +210,17 @@ export const usePOS = () => {
     setCart((prev) =>
       prev.map((item) => {
         if (getCartLineId(item) !== lineId) return item;
-        const updated = { ...item, selectedUnit: unit };
-        const maxQty = getCartLineMaxQty(updated);
-        return {
-          ...updated,
-          qty: Math.min(updated.qty, maxQty) || 1,
-        };
+        return applyCatalogUnitPrice({ ...item, selectedUnit: unit });
       }),
+    );
+  };
+
+  const setCartLineUnitPrice = (lineId: string, raw: string) => {
+    const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0);
+    setCart((prev) =>
+      prev.map((item) =>
+        getCartLineId(item) === lineId ? { ...item, unitPrice: value } : item,
+      ),
     );
   };
 
@@ -255,16 +243,12 @@ export const usePOS = () => {
       if (response.success && response.data && response.data.length > 0) {
         const matchingProduct = response.data[0];
 
-        if (matchingProduct.availableQuantity <= 0) {
-          toast.error(t("pos.outOfStock"));
-          setSearch("");
-          return;
-        }
-
         addToCart(matchingProduct);
 
         toast.success(
-          `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"}`,
+          `${matchingProduct.inventoryId.productName} ${
+            t("pos.addedToCart") || "added to cart"
+          }`,
         );
 
         setSearch("");
@@ -277,7 +261,10 @@ export const usePOS = () => {
     }
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + cartLineSubtotal(item), 0);
+  const subtotal = cart.reduce(
+    (sum, item) => sum + directSaleCartSubtotal(item),
+    0,
+  );
 
   const totalAfterDiscount = Math.round(
     subtotal * (1 - (Number(discount) || 0) / 100),
@@ -330,30 +317,37 @@ export const usePOS = () => {
         [PaymentMethod.MMQR]: "MMQR",
       };
 
-      const discountAmount = useMarkup ? 0 : Math.round(subtotal - totalAfterDiscount);
+      const discountAmount = useMarkup
+        ? 0
+        : Math.round(subtotal - totalAfterDiscount);
+
+      const extraChange =
+        paymentType === "paid" && finalPaidAmount > total
+          ? finalPaidAmount - total
+          : 0;
 
       const orderPayload = {
-        storefrontId: selectedStorefrontId,
-        ordersProducts: cart.map(cartLineToOrderProduct),
+        saleType: "direct-sale" as const,
+        ...(customerName.trim() ? { customerName: customerName.trim() } : {}),
+        ...(customerPhone.trim()
+          ? { customerPhone: customerPhone.trim() }
+          : {}),
+        ...(note.trim() ? { note: note.trim() } : {}),
+        ordersProducts: cart.map(directSaleLineToOrderProduct),
         subTotal: subtotal,
+        tax: 0,
         discount: discountAmount,
         finalAmount: total,
         paidAmount: finalPaidAmount,
+        extraChange,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
-        ...(paymentType === "credit" && selectedCreditPersonId
-          ? { creditPersonId: selectedCreditPersonId }
-          : {}),
       };
 
-      const result = await createOrder(orderPayload);
+      const result = await createDirectSale(orderPayload);
 
       if (result.success) {
-        const selectedStorefront = storefronts.find(
-          (sf) => sf._id === selectedStorefrontId,
-        );
-
         const receiptData = {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
@@ -363,7 +357,7 @@ export const usePOS = () => {
             code: i.stockItem.inventoryId.productCode,
             qty: i.qty,
             unit: i.selectedUnit,
-            price: getCartLineUnitPrice(i),
+            price: i.unitPrice,
           })),
           subtotal,
           discountPercent: discount,
@@ -377,8 +371,6 @@ export const usePOS = () => {
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
         localStorage.setItem(receiptId, JSON.stringify(receiptData));
 
-        const device = detectDevice();
-
         navigate(
           `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}&autoprint=1`,
         );
@@ -387,24 +379,30 @@ export const usePOS = () => {
         setMarkup(0);
         setMarkupAmount(0);
         setNote("");
+        setCustomerName("");
+        setCustomerPhone("");
         setPaidAmount(0);
         setPaymentMethod(
-          paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
+          paymentType === "credit"
+            ? PaymentMethod.NORMAL
+            : PaymentMethod.CASH,
         );
         setPaymentType("paid");
         setSelectedCreditPersonId("");
         setCreatedAt(new Date().toISOString().split("T")[0]);
 
-        setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
+        setSuccessOrderNumber(
+          result.data?.orderNumber || `INV-${Date.now()}`,
+        );
         setShowSuccessModal(true);
 
         await loadStockItems();
       } else {
-        toast.error(result.message || t("pos.failedToProcessSale"));
+        toast.error(result.message || t("directSale.failedToProcessSale"));
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error(t("pos.failedToProcessSale"));
+      toast.error(t("directSale.failedToProcessSale"));
     } finally {
       setIsProcessing(false);
     }
@@ -426,6 +424,7 @@ export const usePOS = () => {
     totalPages,
     totalItems,
     cart,
+    setCart,
     search,
     setSearch,
     selectedCategory,
@@ -449,6 +448,10 @@ export const usePOS = () => {
     setMarkupAmount,
     note,
     setNote,
+    customerName,
+    setCustomerName,
+    customerPhone,
+    setCustomerPhone,
     isProcessing,
     showStorefrontMenu,
     setShowStorefrontMenu,
@@ -474,6 +477,7 @@ export const usePOS = () => {
     setQty,
     removeFromCart,
     setCartLineUnit,
+    setCartLineUnitPrice,
     handleStorefrontChange,
     handleRefresh,
     handleBarcodeScan,

@@ -212,11 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   );
 
   const isChildActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
-    return (
-      location.pathname === path ||
-      location.pathname.startsWith(`${path}/`)
-    );
+    return location.pathname === path;
   };
 
   const groupContainsActiveRoute = (group: MenuGroup) =>
