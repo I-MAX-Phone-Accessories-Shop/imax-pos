@@ -292,7 +292,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          {/* <div>
+          <div>
             <label className="block text-xs font-bold text-slate-500">
               {t("inventory.sku")}
             </label>
@@ -301,7 +301,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               value={formData.SKU}
               onChange={(e) => updateFormData({ SKU: e.target.value })}
             />
-          </div> */}
+          </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-500">
