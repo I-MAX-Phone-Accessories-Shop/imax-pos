@@ -125,6 +125,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: ShoppingBag,
             roles: ["admin", "owner"],
           },
+          {
+            path: "/customers",
+            label: t("sidebar.customers"),
+            icon: Users,
+            roles: ["admin", "owner"],
+          },
         ],
       },
       {

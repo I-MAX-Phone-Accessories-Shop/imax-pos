@@ -24,6 +24,7 @@ import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
 import { DirectSaleOrders } from "./pages/DirectSaleOrders";
 import { EcommerceOrders } from "./pages/EcommerceOrders";
+import { Customers } from "./pages/Customers";
 import { CreditOrders } from "./pages/CreditOrders";
 import { QuotationList } from "./pages/QuotationList";
 import { QuotationCreate } from "./pages/QuotationCreate";
@@ -98,6 +99,7 @@ const AppLayout: React.FC = () => {
             path="/admin/ecommerce-orders"
             element={<EcommerceOrders />}
           />
+          <Route path="/customers" element={<Customers />} />
           <Route path="/credit-orders" element={<CreditOrders />} />
           <Route path="/quotations" element={<QuotationList />} />
           <Route path="/quotations/create" element={<QuotationCreate />} />
