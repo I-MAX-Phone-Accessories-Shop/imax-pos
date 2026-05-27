@@ -119,6 +119,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: t("sidebar.quotations"),
             icon: FileText,
           },
+          {
+            path: "/admin/ecommerce-orders",
+            label: t("sidebar.ecommerceOrders"),
+            icon: ShoppingBag,
+            roles: ["admin", "owner"],
+          },
         ],
       },
       {

@@ -4,7 +4,6 @@ import {
   X,
   Package,
   DollarSign,
-  TrendingUp,
   Store,
   Warehouse,
 } from "lucide-react";
