@@ -56,7 +56,7 @@ const AppLayout: React.FC = () => {
                   <Menu className="w-6 h-6 text-white" />
                 </button>
                 <h1 className="text-lg font-bold text-white tracking-wide">
-                  Pyi-Taw-Tar POS
+                  {/* Pyi-Taw-Tar POS */} POS
                 </h1>
               </div>
               <div className="flex items-center gap-2">
@@ -95,10 +95,7 @@ const AppLayout: React.FC = () => {
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/direct-sale-orders" element={<DirectSaleOrders />} />
-          <Route
-            path="/admin/ecommerce-orders"
-            element={<EcommerceOrders />}
-          />
+          <Route path="/admin/ecommerce-orders" element={<EcommerceOrders />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/credit-orders" element={<CreditOrders />} />
           <Route path="/quotations" element={<QuotationList />} />
