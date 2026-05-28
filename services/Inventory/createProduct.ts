@@ -7,6 +7,7 @@ export interface CreateProductPayload {
   category?: string;
   buyingPrice: number;
   sellingPrice: number;
+  wholesalePrices?: { quantity: number; price: number }[];
   quantity?: number;
   description?: string;
 }

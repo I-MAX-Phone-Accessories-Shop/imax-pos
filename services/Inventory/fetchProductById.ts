@@ -11,6 +11,13 @@ export interface ProductLocation {
   lastUpdated: string;
 }
 
+export interface WholesalePriceTier {
+  _id?: string;
+  id?: string;
+  quantity: number;
+  price: number;
+}
+
 export interface StockAvailability {
   warehouses: {
     count: number;
@@ -36,6 +43,7 @@ export interface ProductDetail {
   description: string;
   buyingPrice: number;
   sellingPrice: number;
+  wholesalePrices?: WholesalePriceTier[];
   unitOfMeasure: string;
   reorderPoint: number;
   reorderQuantity: number;

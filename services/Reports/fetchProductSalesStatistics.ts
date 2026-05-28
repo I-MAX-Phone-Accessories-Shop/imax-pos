@@ -6,10 +6,15 @@ export interface ProductSalesData {
   orderCount: number;
   minUnitPrice: number;
   maxUnitPrice: number;
+  retailQuantity?: number;
+  wholesaleQuantity?: number;
+  totalIfRetail?: number;
+  wholesaleDiscount?: number;
+  wholesalePercentage?: string;
   inventoryId: string;
   productName: string;
   productCode: string;
-  SKU: string;
+  SKU: string | null;
   category: string;
   subCategory: string;
   brand: string;
@@ -33,6 +38,10 @@ export interface ProductSalesStatisticsResponse {
     totals: {
       totalQuantity: number;
       totalRevenue: number;
+      totalIfRetail?: number;
+      totalWholesaleDiscount?: number;
+      totalRetailQuantity?: number;
+      totalWholesaleQuantity?: number;
       totalUniqueProducts: number;
     };
     products: ProductSalesData[];

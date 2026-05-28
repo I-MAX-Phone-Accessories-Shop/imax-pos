@@ -9,6 +9,11 @@ export interface StorefrontStockInventory {
   profitMargin: number | null;
   profitAmount: number | null;
   sellingPrice?: number;
+  wholesalePrices?: {
+    _id?: string;
+    quantity: number;
+    price: number;
+  }[];
 }
 
 export interface StorefrontStockStorefront {

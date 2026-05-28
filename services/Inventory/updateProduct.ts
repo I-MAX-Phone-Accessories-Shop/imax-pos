@@ -12,6 +12,7 @@ export interface UpdateProductPayload {
   description?: string;
   buyingPrice: number;
   sellingPrice: number;
+  wholesalePrices?: { quantity: number; price: number }[];
   unitOfMeasure: string;
   reorderPoint?: number;
   reorderQuantity?: number;

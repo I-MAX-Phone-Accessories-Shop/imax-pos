@@ -26,7 +26,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"about" | "quantity">("about");
   const [stockTab, setStockTab] = useState<"warehouse" | "storefront">(
-    "storefront"
+    "storefront",
   );
 
   if (!isOpen) return null;
@@ -44,7 +44,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
         <div className="flex justify-between items-center p-4 border-b bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -84,7 +84,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto min-h-[calc(60vh)]">
+        <div className="p-6 overflow-y-auto min-h-[calc(50vh)]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3" />
@@ -144,6 +144,45 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         </div>
                       </div>
                     </div>
+                    {product.wholesalePrices &&
+                      product.wholesalePrices.length > 0 && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <DollarSign className="w-4 h-4 text-slate-500" />
+                            <p className="text-sm text-slate-600 font-semibold">
+                              Wholesale prices
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-2 text-sm font-semibold text-slate-600 pb-2">
+                            <span>Quantity</span>
+                            <span className="text-right">Price (MMK)</span>
+                          </div>
+
+                          <div className="border-t border-slate-200">
+                            {product.wholesalePrices
+                              .slice()
+                              .sort((a, b) => a.quantity - b.quantity)
+                              .map((tier) => (
+                                <div
+                                  key={
+                                    tier.id ||
+                                    tier._id ||
+                                    `${tier.quantity}-${tier.price}`
+                                  }
+                                  className="grid grid-cols-2 py-2 border-b border-slate-200 last:border-b-0"
+                                >
+                                  <span className="text-slate-800">
+                                    {tier.quantity}
+                                  </span>
+                                  <span className="text-right text-slate-800 font-medium">
+                                    {tier.price.toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
                     {/* <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                       <div className="flex items-center gap-2 mb-3">
                         <TrendingUp className="w-4 h-4 text-green-600" />
@@ -236,9 +275,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <p className="text-xs text-orange-600 font-medium mb-1">
                         {t("pos.note") || "Note"}
                       </p>
-                      <p className="text-sm text-slate-800">
-                        {product.note}
-                      </p>
+                      <p className="text-sm text-slate-800">{product.note}</p>
                     </div>
                   )}
 
@@ -357,7 +394,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>
@@ -408,7 +445,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </>

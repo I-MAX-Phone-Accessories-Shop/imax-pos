@@ -94,6 +94,7 @@ export const Inventory: React.FC = () => {
     description: "",
     buyingPrice: 0,
     sellingPrice: 0,
+    wholesalePrices: [],
     unitOfMeasure: "piece",
     reorderPoint: 0,
     reorderQuantity: 0,
@@ -213,6 +214,7 @@ export const Inventory: React.FC = () => {
       description: "",
       buyingPrice: 0,
       sellingPrice: 0,
+      wholesalePrices: [],
       unitOfMeasure: "piece",
       reorderPoint: 0,
       reorderQuantity: 0,
@@ -314,6 +316,9 @@ export const Inventory: React.FC = () => {
         if (formData.tags && formData.tags.length > 0)
           apiPayload.tags = formData.tags;
         if (formData.note) apiPayload.note = formData.note;
+        if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
+          apiPayload.wholesalePrices = formData.wholesalePrices;
+        }
 
         await updateProduct(editingId, apiPayload);
 
@@ -380,6 +385,9 @@ export const Inventory: React.FC = () => {
       if (formData.tags && formData.tags.length > 0)
         apiPayload.tags = formData.tags;
       if (formData.note) apiPayload.note = formData.note;
+      if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
+        apiPayload.wholesalePrices = formData.wholesalePrices;
+      }
 
       await createProduct(apiPayload);
 
@@ -415,6 +423,7 @@ export const Inventory: React.FC = () => {
       description: apiProduct?.description || "",
       buyingPrice: p.costPrice,
       sellingPrice: p.sellingPrice,
+      wholesalePrices: apiProduct?.wholesalePrices || [],
       unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,

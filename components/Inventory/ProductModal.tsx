@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { Product } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -29,6 +30,7 @@ export interface ProductFormData {
   description?: string;
   buyingPrice: number;
   sellingPrice: number;
+  wholesalePrices?: WholesalePriceTier[];
   unitOfMeasure: string;
   reorderPoint?: number;
   reorderQuantity?: number;
@@ -36,6 +38,11 @@ export interface ProductFormData {
   status?: string;
   tags?: string[];
   note?: string;
+}
+
+export interface WholesalePriceTier {
+  quantity: number;
+  price: number;
 }
 
 export interface ApiProduct {
@@ -52,6 +59,7 @@ export interface ApiProduct {
   description?: string;
   buyingPrice: number;
   sellingPrice: number;
+  wholesalePrices?: WholesalePriceTier[];
   unitOfMeasure: string;
   reorderPoint?: number;
   reorderQuantity?: number;
@@ -137,6 +145,39 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const updateFormData = (updates: Partial<ProductFormData>) => {
     onFormDataChange({ ...formData, ...updates });
+  };
+
+  const wholesalePrices = formData.wholesalePrices || [];
+
+  const addWholesaleTier = () => {
+    const nextQuantity =
+      wholesalePrices.length > 0
+        ? Math.max(...wholesalePrices.map((t) => t.quantity || 0)) + 1
+        : 1;
+
+    updateFormData({
+      wholesalePrices: [
+        ...wholesalePrices,
+        { quantity: nextQuantity, price: formData.sellingPrice || 0 },
+      ],
+    });
+  };
+
+  const removeWholesaleTier = (idx: number) => {
+    updateFormData({
+      wholesalePrices: wholesalePrices.filter((_, i) => i !== idx),
+    });
+  };
+
+  const updateWholesaleTier = (
+    idx: number,
+    updates: Partial<WholesalePriceTier>,
+  ) => {
+    updateFormData({
+      wholesalePrices: wholesalePrices.map((tier, i) =>
+        i === idx ? { ...tier, ...updates } : tier,
+      ),
+    });
   };
 
   if (!isOpen) return null;
@@ -384,6 +425,105 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               onChange={(e) => updateFormData({ note: e.target.value })}
               placeholder={t("pos.notePlaceholder") || "Enter product note..."}
             />
+          </div>
+
+          {/* Wholesale prices */}
+          <div className="col-span-2">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-slate-800">
+                    Wholesale prices
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    Bulk quantity tiers and unit prices (MMK)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={addWholesaleTier}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-100 text-amber-900 hover:bg-amber-200 text-sm font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add tier
+                </button>
+              </div>
+
+              {wholesalePrices.length === 0 ? (
+                <div className="mt-4 border-2 border-dashed border-amber-200 rounded-xl bg-amber-50/40 p-8 text-center">
+                  <div className="text-slate-500 text-sm mb-3">
+                    No wholesale tiers yet
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addWholesaleTier}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-200 bg-white hover:bg-amber-50 text-amber-900 text-sm font-semibold"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add first tier
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-2">
+                  {wholesalePrices.map((tier, idx) => (
+                    <div
+                      key={`${tier.quantity}-${idx}`}
+                      className="flex flex-col sm:flex-row sm:items-end gap-2 bg-white border border-amber-200 rounded-xl p-3"
+                    >
+                      <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-500">
+                            Quantity
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            className="w-full border rounded p-2"
+                            value={tier.quantity ?? 0}
+                            onChange={(e) =>
+                              updateWholesaleTier(idx, {
+                                quantity: Math.max(
+                                  1,
+                                  Number(e.target.value) || 1,
+                                ),
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-500">
+                            Price (MMK)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            className="w-full border rounded p-2"
+                            value={tier.price ?? 0}
+                            onChange={(e) =>
+                              updateWholesaleTier(idx, {
+                                price: Math.max(0, Number(e.target.value) || 0),
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => removeWholesaleTier(idx)}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-red-700 hover:bg-red-50 border border-transparent hover:border-red-100"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="text-sm">Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex justify-end gap-2">

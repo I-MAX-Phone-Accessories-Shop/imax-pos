@@ -95,6 +95,9 @@ export const POS: React.FC = () => {
   );
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
+  const [activeWholesalePopoverId, setActiveWholesalePopoverId] = useState<
+    string | null
+  >(null);
   const [discountAmount, setDiscountAmount] = useState("");
   const [createdAt, setCreatedAt] = useState<string>(
     new Date().toISOString().split("T")[0],
@@ -161,6 +164,40 @@ export const POS: React.FC = () => {
     loadStockItems();
   }, [selectedStorefrontId, search, selectedCategory, currentPage]);
 
+  useEffect(() => {
+    const handleClickOutsideWholesalePopover = (event: MouseEvent) => {
+      if (!activeWholesalePopoverId) return;
+
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const container = target.closest(
+        `[data-wholesale-container="${activeWholesalePopoverId}"]`,
+      );
+
+      if (!container) {
+        setActiveWholesalePopoverId(null);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveWholesalePopoverId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutsideWholesalePopover);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutsideWholesalePopover,
+      );
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [activeWholesalePopoverId]);
+
   const loadStockItems = async () => {
     try {
       const response = await fetchStorefrontStock(
@@ -222,6 +259,45 @@ export const POS: React.FC = () => {
         );
       }
       return [...prev, { stockItem, qty: 1 }];
+    });
+  };
+
+  const applyWholesaleTierQuantity = (
+    stockItem: StorefrontStockItem,
+    tierQuantity: number,
+  ) => {
+    const availableQty = Number(stockItem.availableQuantity ?? stockItem.quantity);
+    const parsedTierQty = Number(tierQuantity);
+
+    if (!Number.isFinite(availableQty) || availableQty <= 0) {
+      toast.error(t("pos.outOfStock"));
+      return;
+    }
+
+    if (!Number.isFinite(parsedTierQty) || parsedTierQty <= 0) {
+      toast.error("Invalid wholesale quantity");
+      return;
+    }
+
+    const requestedQty = Math.max(1, Math.floor(parsedTierQty));
+    const finalQty = Math.min(requestedQty, availableQty);
+
+    if (requestedQty > availableQty) {
+      toast.error(t("pos.cannotExceedStock"));
+    }
+
+    setCart((prev) => {
+      const existing = prev.find((item) => item.stockItem._id === stockItem._id);
+
+      if (existing) {
+        return prev.map((item) =>
+          item.stockItem._id === stockItem._id
+            ? { ...item, qty: finalQty }
+            : item,
+        );
+      }
+
+      return [...prev, { stockItem, qty: finalQty }];
     });
   };
 
@@ -311,14 +387,35 @@ export const POS: React.FC = () => {
     }
   };
 
-  // Calculate totals
-  const getItemPrice = (item: StorefrontStockItem) => {
-    // Use sellingPrice from inventory if available, otherwise use placeholder
-    return item.inventoryId.sellingPrice; // Default to 10000 MMK if not available
+  // Calculate unit price with wholesale tiers (if eligible)
+  const getItemPrice = (item: StorefrontStockItem, qty: number = 1) => {
+    const basePrice = item.inventoryId.sellingPrice || 0;
+    const wholesaleTiers = item.inventoryId.wholesalePrices || [];
+
+    if (wholesaleTiers.length === 0) return basePrice;
+
+    const eligibleTier = wholesaleTiers
+      .slice()
+      .sort((a, b) => a.quantity - b.quantity)
+      .filter((tier) => qty >= tier.quantity)
+      .pop();
+
+    return eligibleTier?.price ?? basePrice;
   };
 
+  const getSortedWholesaleTiers = (item: StorefrontStockItem) =>
+    (item.inventoryId.wholesalePrices || [])
+      .slice()
+      .sort((a, b) => a.quantity - b.quantity);
+
+  const getSafeQty = (qty: number) =>
+    Number.isFinite(qty) && qty > 0 ? Math.floor(qty) : 0;
+
   const subtotal = cart.reduce(
-    (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
+    (sum, item) => {
+      const qty = getSafeQty(item.qty);
+      return sum + getItemPrice(item.stockItem, qty || 1) * qty;
+    },
     0,
   );
 
@@ -415,7 +512,7 @@ export const POS: React.FC = () => {
             name: i.stockItem.inventoryId.productName,
             code: i.stockItem.inventoryId.productCode,
             qty: i.qty,
-            price: getItemPrice(i.stockItem),
+            price: getItemPrice(i.stockItem, i.qty),
           })),
           subtotal,
           discountPercent: discount,
@@ -761,6 +858,65 @@ export const POS: React.FC = () => {
                   <span className="font-bold text-primary-600">
                     {getItemPrice(stockItem).toLocaleString()} MMK
                   </span>
+                  {stockItem.inventoryId.wholesalePrices &&
+                    stockItem.inventoryId.wholesalePrices.length > 0 && (
+                      <div
+                        className="relative"
+                        data-wholesale-container={stockItem._id}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveWholesalePopoverId((prev) =>
+                              prev === stockItem._id ? null : stockItem._id,
+                            );
+                          }}
+                          className="text-[10px] text-amber-700 font-semibold bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 hover:bg-amber-100 transition-colors"
+                        >
+                          Wholesale
+                        </button>
+
+                        {activeWholesalePopoverId === stockItem._id && (
+                          <div
+                            className="absolute right-0 top-7 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-xl p-3"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="text-[11px] font-semibold text-slate-600 mb-2">
+                              Wholesale prices
+                            </div>
+                            <div className="grid grid-cols-2 text-[11px] font-semibold text-slate-500 pb-1">
+                              <span>Quantity</span>
+                              <span className="text-right">Price</span>
+                            </div>
+                            <div className="border-t border-slate-200">
+                              {getSortedWholesaleTiers(stockItem).map((tier) => (
+                                <button
+                                  type="button"
+                                  key={tier._id || `${tier.quantity}-${tier.price}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    applyWholesaleTierQuantity(
+                                      stockItem,
+                                      Number(tier.quantity),
+                                    );
+                                    setActiveWholesalePopoverId(null);
+                                  }}
+                                  className="w-full grid grid-cols-2 py-1.5 px-1 border-b border-slate-100 last:border-b-0 text-[11px] rounded hover:bg-amber-50 hover:text-amber-900 transition-colors cursor-pointer"
+                                >
+                                  <span className="text-slate-700">
+                                    {tier.quantity}+
+                                  </span>
+                                  <span className="text-right text-slate-800 font-medium">
+                                    {tier.price.toLocaleString()}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                 </div>
               </div>
             ))
@@ -798,7 +954,12 @@ export const POS: React.FC = () => {
                     {item.stockItem.inventoryId.productName}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {(getItemPrice(item.stockItem) * item.qty).toLocaleString()}{" "}
+                    {getItemPrice(item.stockItem, getSafeQty(item.qty) || 1).toLocaleString()} MMK x{" "}
+                    {getSafeQty(item.qty)} ={" "}
+                    {(
+                      getItemPrice(item.stockItem, getSafeQty(item.qty) || 1) *
+                      getSafeQty(item.qty)
+                    ).toLocaleString()}{" "}
                     MMK
                   </p>
                 </div>
@@ -851,7 +1012,7 @@ export const POS: React.FC = () => {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{t("pos.items")}</span>
               <span>
-                {cart.reduce((sum, item) => sum + item.qty, 0)}{" "}
+                {cart.reduce((sum, item) => sum + getSafeQty(item.qty), 0)}{" "}
                 {t("pos.itemsLower")}
               </span>
             </div>
@@ -916,7 +1077,7 @@ export const POS: React.FC = () => {
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                {cart.reduce((sum, item) => sum + item.qty, 0)}{" "}
+                {cart.reduce((sum, item) => sum + getSafeQty(item.qty), 0)}{" "}
                 {t("pos.itemsLower")} • {subtotal.toLocaleString()} MMK
               </p>
             </div>
