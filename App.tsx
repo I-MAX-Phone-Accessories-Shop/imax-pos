@@ -56,7 +56,7 @@ const AppLayout: React.FC = () => {
                   <Menu className="w-6 h-6 text-white" />
                 </button>
                 <h1 className="text-lg font-bold text-white tracking-wide">
-                  {/* Pyi-Taw-Tar POS */} POS
+                  Pyi-Taw-Tar POS
                 </h1>
               </div>
               <div className="flex items-center gap-2">
