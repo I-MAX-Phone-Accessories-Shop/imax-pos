@@ -91,6 +91,9 @@ export const WarehouseDetail: React.FC = () => {
   );
   const [transferNotes, setTransferNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [transferQtyDrafts, setTransferQtyDrafts] = useState<
+    Record<number, string>
+  >({});
 
   // Stock Adjustment Modal State
   const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
@@ -111,6 +114,12 @@ export const WarehouseDetail: React.FC = () => {
   useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (!isTransferModalOpen) {
+      setTransferQtyDrafts({});
+    }
+  }, [isTransferModalOpen]);
 
   const loadCategories = async () => {
     try {
@@ -205,15 +214,47 @@ export const WarehouseDetail: React.FC = () => {
   }, 0);
 
   // Transfer Modal Functions
+  const getTransferMaxQuantity = (item: WarehouseStockItem) =>
+    Math.max(item.availableQuantity || 0, item.quantity || 0);
+
+  const getTransferQtyValue = (index: number, item: TransferFormItem) =>
+    transferQtyDrafts[index] ?? String(item.quantity || 1);
+
+  const commitTransferQuantity = (index: number) => {
+    const item = transferItems[index];
+    if (!item) return;
+
+    const raw = transferQtyDrafts[index] ?? String(item.quantity || 1);
+    const maxQuantity = item.maxQuantity || 0;
+    const qty =
+      maxQuantity > 0
+        ? Math.max(1, Math.min(parseInt(raw, 10) || 1, maxQuantity))
+        : 0;
+
+    setTransferItems((prev) =>
+      prev.map((row, i) => (i === index ? { ...row, quantity: qty } : row)),
+    );
+    setTransferQtyDrafts((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
   const openTransferModal = (item?: WarehouseStockItem) => {
     if (item) {
-      // Pre-populate with clicked item
+      const maxQuantity = getTransferMaxQuantity(item);
+      if (maxQuantity <= 0) {
+        toast.error("This product has no available stock to transfer");
+        return;
+      }
+
       setTransferItems([
         {
           productCode: item.inventoryId.productCode,
           productName: item.inventoryId.productName,
           quantity: 1,
-          maxQuantity: item.availableQuantity,
+          maxQuantity,
           notes: "",
         },
       ]);
@@ -235,7 +276,7 @@ export const WarehouseDetail: React.FC = () => {
     const availableProducts = stockItems.filter(
       (item) =>
         !usedCodes.includes(item.inventoryId.productCode) &&
-        (item.availableQuantity > 0 || item.quantity > 0), // Check both availableQuantity and quantity
+        getTransferMaxQuantity(item) > 0,
     );
 
     console.log("availableProducts", availableProducts);
@@ -248,10 +289,7 @@ export const WarehouseDetail: React.FC = () => {
     }
 
     const firstAvailable = availableProducts[0];
-    const maxQuantity = Math.max(
-      firstAvailable.availableQuantity || 0,
-      firstAvailable.quantity || 0,
-    );
+    const maxQuantity = getTransferMaxQuantity(firstAvailable);
 
     setTransferItems([
       ...transferItems,
@@ -282,23 +320,29 @@ export const WarehouseDetail: React.FC = () => {
         (item) => item.inventoryId.productCode === value,
       );
       if (stockItem) {
-        const maxQuantity = Math.max(
-          stockItem.availableQuantity || 0,
-          stockItem.quantity || 0,
-        );
+        const maxQuantity = getTransferMaxQuantity(stockItem);
         updated[index] = {
           ...updated[index],
           productCode: value as string,
           productName: stockItem.inventoryId.productName,
-          maxQuantity: maxQuantity,
-          quantity: Math.min(updated[index].quantity, maxQuantity),
+          maxQuantity,
+          quantity:
+            maxQuantity > 0
+              ? Math.min(updated[index].quantity || 1, maxQuantity)
+              : 0,
         };
+        setTransferQtyDrafts((prev) => {
+          const next = { ...prev };
+          delete next[index];
+          return next;
+        });
       }
     } else if (field === "quantity") {
-      const qty = Math.max(
-        1,
-        Math.min(Number(value), updated[index].maxQuantity),
-      );
+      const maxQuantity = updated[index].maxQuantity || 0;
+      const qty =
+        maxQuantity > 0
+          ? Math.max(1, Math.min(Number(value) || 1, maxQuantity))
+          : 0;
       updated[index] = { ...updated[index], quantity: qty };
     } else {
       updated[index] = { ...updated[index], [field]: value };
@@ -318,8 +362,23 @@ export const WarehouseDetail: React.FC = () => {
       return;
     }
 
+    const itemsToSubmit = transferItems.map((item, index) => {
+      if (transferQtyDrafts[index] === undefined) {
+        return item;
+      }
+
+      const raw = transferQtyDrafts[index];
+      const maxQuantity = item.maxQuantity || 0;
+      const qty =
+        maxQuantity > 0
+          ? Math.max(1, Math.min(parseInt(raw, 10) || 1, maxQuantity))
+          : 0;
+
+      return { ...item, quantity: qty };
+    });
+
     // Validate quantities
-    for (const item of transferItems) {
+    for (const item of itemsToSubmit) {
       if (item.quantity <= 0) {
         toast.error(`Quantity for ${item.productName} must be greater than 0`);
         return;
@@ -334,7 +393,7 @@ export const WarehouseDetail: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const lineItems: TransferLineItem[] = transferItems.map((item) => ({
+      const lineItems: TransferLineItem[] = itemsToSubmit.map((item) => ({
         productCode: item.productCode,
         quantity: item.quantity,
         ...(item.notes && { notes: item.notes }),
@@ -351,6 +410,7 @@ export const WarehouseDetail: React.FC = () => {
 
       if (result.success) {
         toast.success("Transfer created successfully!");
+        setTransferQtyDrafts({});
         setIsTransferModalOpen(false);
         loadWarehouseStock(); // Refresh stock
       } else {
@@ -371,7 +431,7 @@ export const WarehouseDetail: React.FC = () => {
     return stockItems.filter(
       (item) =>
         !usedCodes.includes(item.inventoryId.productCode) &&
-        (item.availableQuantity > 0 || item.quantity > 0), // Check both availableQuantity and quantity
+        getTransferMaxQuantity(item) > 0,
     );
   };
 
@@ -971,21 +1031,22 @@ export const WarehouseDetail: React.FC = () => {
                           </div>
                           <div className="col-span-2">
                             <label className="block text-xs text-slate-500 mb-1">
-                              Qty (max: {item.maxQuantity})
+                              Qty (max: {item.maxQuantity || 0})
                             </label>
                             <input
                               type="number"
                               min="1"
-                              max={item.maxQuantity}
-                              className="w-full border rounded p-2 text-sm"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateTransferItem(
-                                  index,
-                                  "quantity",
-                                  e.target.value,
-                                )
-                              }
+                              max={item.maxQuantity || 0}
+                              disabled={!item.maxQuantity}
+                              className="w-full border rounded p-2 text-sm disabled:bg-slate-100 disabled:cursor-not-allowed"
+                              value={getTransferQtyValue(index, item)}
+                              onChange={(e) => {
+                                setTransferQtyDrafts((prev) => ({
+                                  ...prev,
+                                  [index]: e.target.value,
+                                }));
+                              }}
+                              onBlur={() => commitTransferQuantity(index)}
                             />
                           </div>
                           <div className="col-span-4">

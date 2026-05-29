@@ -317,7 +317,9 @@ export const Inventory: React.FC = () => {
           apiPayload.tags = formData.tags;
         if (formData.note) apiPayload.note = formData.note;
         if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
-          apiPayload.wholesalePrices = formData.wholesalePrices;
+          apiPayload.wholesalePrices = formData.wholesalePrices.map(
+            ({ quantity, price }) => ({ quantity, price }),
+          );
         }
 
         await updateProduct(editingId, apiPayload);
@@ -386,7 +388,9 @@ export const Inventory: React.FC = () => {
         apiPayload.tags = formData.tags;
       if (formData.note) apiPayload.note = formData.note;
       if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
-        apiPayload.wholesalePrices = formData.wholesalePrices;
+        apiPayload.wholesalePrices = formData.wholesalePrices.map(
+          ({ quantity, price }) => ({ quantity, price }),
+        );
       }
 
       await createProduct(apiPayload);
@@ -423,7 +427,13 @@ export const Inventory: React.FC = () => {
       description: apiProduct?.description || "",
       buyingPrice: p.costPrice,
       sellingPrice: p.sellingPrice,
-      wholesalePrices: apiProduct?.wholesalePrices || [],
+      wholesalePrices: (apiProduct?.wholesalePrices || []).map((tier, i) => ({
+        id: (tier as { _id?: string; id?: string })._id ||
+          (tier as { _id?: string; id?: string }).id ||
+          `tier-${i}`,
+        quantity: tier.quantity,
+        price: tier.price,
+      })),
       unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,

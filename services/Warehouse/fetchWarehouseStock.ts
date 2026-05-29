@@ -32,7 +32,7 @@ export interface WarehouseStockItem {
   lastUpdated: string;
   createdAt: string;
   updatedAt: string;
-  availableQuantity: number;
+  availableQuantity?: number;
 }
 
 interface FetchWarehouseStockResponse {

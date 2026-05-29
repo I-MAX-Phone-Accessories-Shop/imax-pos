@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Product } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
@@ -41,6 +41,7 @@ export interface ProductFormData {
 }
 
 export interface WholesalePriceTier {
+  id?: string;
   quantity: number;
   price: number;
 }
@@ -101,6 +102,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // Combobox states for category and subCategory
   const [categoryInput, setCategoryInput] = useState("");
   const [categoryShowDropdown, setCategoryShowDropdown] = useState(false);
+  const [tierDrafts, setTierDrafts] = useState<
+    Record<string, Partial<{ quantity: string; price: string }>>
+  >({});
   // const [subCategoryInput, setSubCategoryInput] = useState("");
   // const [subCategoryShowDropdown, setSubCategoryShowDropdown] = useState(false);
 
@@ -149,6 +153,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const wholesalePrices = formData.wholesalePrices || [];
 
+  useEffect(() => {
+    if (!isOpen) {
+      setTierDrafts({});
+      setCategoryInput("");
+      setCategoryShowDropdown(false);
+    }
+  }, [isOpen]);
+
+  const getTierKey = (tier: WholesalePriceTier, idx: number) =>
+    tier.id ?? `tier-${idx}`;
+
+  const getTierQuantityValue = (key: string, tier: WholesalePriceTier) =>
+    tierDrafts[key]?.quantity ?? String(tier.quantity ?? "");
+
+  const getTierPriceValue = (key: string, tier: WholesalePriceTier) =>
+    tierDrafts[key]?.price ?? String(tier.price ?? "");
+
   const addWholesaleTier = () => {
     const nextQuantity =
       wholesalePrices.length > 0
@@ -158,7 +179,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     updateFormData({
       wholesalePrices: [
         ...wholesalePrices,
-        { quantity: nextQuantity, price: formData.sellingPrice || 0 },
+        {
+          id: `tier-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          quantity: nextQuantity,
+          price: formData.sellingPrice || 0,
+        },
       ],
     });
   };
@@ -465,9 +490,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
               ) : (
                 <div className="mt-4 space-y-2">
-                  {wholesalePrices.map((tier, idx) => (
+                  {wholesalePrices.map((tier, idx) => {
+                    const tierKey = getTierKey(tier, idx);
+                    return (
                     <div
-                      key={`${tier.quantity}-${idx}`}
+                      key={tierKey}
                       className="flex flex-col sm:flex-row sm:items-end gap-2 bg-white border border-amber-200 rounded-xl p-3"
                     >
                       <div className="flex-1 grid grid-cols-2 gap-2">
@@ -479,15 +506,34 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                             type="number"
                             min="1"
                             className="w-full border rounded p-2"
-                            value={tier.quantity ?? 0}
-                            onChange={(e) =>
+                            value={getTierQuantityValue(tierKey, tier)}
+                            onChange={(e) => {
+                              setTierDrafts((prev) => ({
+                                ...prev,
+                                [tierKey]: {
+                                  ...prev[tierKey],
+                                  quantity: e.target.value,
+                                },
+                              }));
+                            }}
+                            onBlur={() => {
+                              const raw =
+                                tierDrafts[tierKey]?.quantity ??
+                                String(tier.quantity ?? "");
                               updateWholesaleTier(idx, {
-                                quantity: Math.max(
-                                  1,
-                                  Number(e.target.value) || 1,
-                                ),
-                              })
-                            }
+                                quantity: Math.max(1, parseInt(raw, 10) || 1),
+                              });
+                              setTierDrafts((prev) => {
+                                const next = { ...prev };
+                                if (next[tierKey]) {
+                                  delete next[tierKey].quantity;
+                                  if (Object.keys(next[tierKey]).length === 0) {
+                                    delete next[tierKey];
+                                  }
+                                }
+                                return next;
+                              });
+                            }}
                           />
                         </div>
                         <div>
@@ -499,12 +545,34 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                             min="0"
                             step="1"
                             className="w-full border rounded p-2"
-                            value={tier.price ?? 0}
-                            onChange={(e) =>
+                            value={getTierPriceValue(tierKey, tier)}
+                            onChange={(e) => {
+                              setTierDrafts((prev) => ({
+                                ...prev,
+                                [tierKey]: {
+                                  ...prev[tierKey],
+                                  price: e.target.value,
+                                },
+                              }));
+                            }}
+                            onBlur={() => {
+                              const raw =
+                                tierDrafts[tierKey]?.price ??
+                                String(tier.price ?? "");
                               updateWholesaleTier(idx, {
-                                price: Math.max(0, Number(e.target.value) || 0),
-                              })
-                            }
+                                price: Math.max(0, Number(raw) || 0),
+                              });
+                              setTierDrafts((prev) => {
+                                const next = { ...prev };
+                                if (next[tierKey]) {
+                                  delete next[tierKey].price;
+                                  if (Object.keys(next[tierKey]).length === 0) {
+                                    delete next[tierKey];
+                                  }
+                                }
+                                return next;
+                              });
+                            }}
                           />
                         </div>
                       </div>
@@ -520,7 +588,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         </button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
