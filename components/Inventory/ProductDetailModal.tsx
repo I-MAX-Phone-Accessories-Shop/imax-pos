@@ -210,6 +210,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           <thead className="bg-slate-50">
                             <tr>
                               <th className="px-3 py-2 text-left text-xs text-slate-500">
+                                Unit
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs text-slate-500">
                                 {t("common.quantity")}
                               </th>
                               <th className="px-3 py-2 text-right text-xs text-slate-500">
@@ -220,6 +223,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           <tbody className="divide-y">
                             {wholesalePrices.map((wp, idx) => (
                               <tr key={idx}>
+                                <td className="px-3 py-2 text-slate-600">
+                                  {wp.unit?.trim() ? wp.unit : "—"}
+                                </td>
                                 <td className="px-3 py-2">
                                   {wp.quantity.toLocaleString()}
                                 </td>

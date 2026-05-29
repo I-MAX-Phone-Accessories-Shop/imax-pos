@@ -24,6 +24,28 @@ const MAX_IMAGE_SIZE_MB = 5;
 //   "pair",
 // ];
 
+export interface WholesalePriceTier {
+  quantity: number;
+  price: number;
+  unit?: string;
+}
+
+export const sanitizeWholesalePricesForApi = (
+  tiers?: WholesalePriceTier[],
+): Array<{ quantity: number; price: number; unit?: string }> | undefined => {
+  if (!tiers?.length) return undefined;
+
+  const result = tiers
+    .filter((t) => t.quantity > 0 && t.price >= 0)
+    .map(({ quantity, price, unit }) => ({
+      quantity,
+      price,
+      ...(unit?.trim() ? { unit: unit.trim() } : {}),
+    }));
+
+  return result.length > 0 ? result : undefined;
+};
+
 export interface ProductFormData {
   productName: string;
   productCode: string;
@@ -38,7 +60,7 @@ export interface ProductFormData {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions: UomConversion[];
-  wholesalePrices?: Array<{ quantity: number; price: number }>;
+  wholesalePrices?: WholesalePriceTier[];
   images?: File[];
   reorderPoint?: number;
   reorderQuantity?: number;
@@ -64,7 +86,7 @@ export interface ApiProduct {
   sellingPrice: number;
   unitOfMeasure: string;
   uomConversions: UomConversion[];
-  wholesalePrices?: Array<{ quantity: number; price: number }>;
+  wholesalePrices?: WholesalePriceTier[];
   reorderPoint?: number;
   reorderQuantity?: number;
   taxRate?: number;
@@ -168,14 +190,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const addWholesaleRow = () => {
     updateFormData({
-      wholesalePrices: [...wholesalePrices, { quantity: 0, price: 0 }],
+      wholesalePrices: [...wholesalePrices, { quantity: 0, price: 0, unit: "" }],
     });
   };
 
   const updateWholesaleRow = (
     index: number,
-    field: "quantity" | "price",
-    value: number,
+    field: "unit" | "quantity" | "price",
+    value: string | number,
   ) => {
     const next = wholesalePrices.map((row, i) =>
       i === index ? { ...row, [field]: value } : row,
@@ -513,7 +535,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="hidden sm:grid sm:grid-cols-[1fr_1fr_auto] gap-2 px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <div className="hidden sm:grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <span>Unit (optional)</span>
                     <span>Min quantity</span>
                     <span>Price (MMK)</span>
                     <span className="w-9" />
@@ -521,8 +544,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   {wholesalePrices.map((wp, idx) => (
                     <div
                       key={idx}
-                      className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center bg-white rounded-lg border border-slate-100 p-2 shadow-sm"
+                      className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center bg-white rounded-lg border border-slate-100 p-2 shadow-sm"
                     >
+                      <div>
+                        <label className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">
+                          Unit (optional)
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
+                          value={wp.unit ?? ""}
+                          onChange={(e) =>
+                            updateWholesaleRow(idx, "unit", e.target.value)
+                          }
+                          placeholder="e.g. ပုံး"
+                        />
+                      </div>
                       <div>
                         <label className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">
                           Min quantity

@@ -29,6 +29,7 @@ export interface StockAvailability {
 export interface ProductWholesalePrice {
   quantity: number;
   price: number;
+  unit?: string;
 }
 
 export interface ProductImage {

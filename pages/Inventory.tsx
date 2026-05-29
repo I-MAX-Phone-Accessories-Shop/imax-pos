@@ -19,6 +19,7 @@ import {
   ProductModal,
   ProductFormData,
   ApiProduct,
+  sanitizeWholesalePricesForApi,
 } from "../components/Inventory/ProductModal";
 import { ProductDetailModal } from "../components/Inventory/ProductDetailModal";
 import {
@@ -318,8 +319,14 @@ export const Inventory: React.FC = () => {
           sellingPrice: formData.sellingPrice,
           unitOfMeasure: formData.unitOfMeasure.trim(),
           uomConversions: formData.uomConversions,
-          wholesalePrices: formData.wholesalePrices,
         };
+
+        const sanitizedWholesale = sanitizeWholesalePricesForApi(
+          formData.wholesalePrices,
+        );
+        if (sanitizedWholesale) {
+          apiPayload.wholesalePrices = sanitizedWholesale;
+        }
 
         // Add optional fields only if they have values
         if (formData.saleCode) apiPayload.saleCode = formData.saleCode;
@@ -378,8 +385,14 @@ export const Inventory: React.FC = () => {
         sellingPrice: formData.sellingPrice,
         unitOfMeasure: formData.unitOfMeasure.trim(),
         uomConversions: formData.uomConversions,
-        wholesalePrices: formData.wholesalePrices,
       };
+
+      const sanitizedWholesaleCreate = sanitizeWholesalePricesForApi(
+        formData.wholesalePrices,
+      );
+      if (sanitizedWholesaleCreate) {
+        apiPayload.wholesalePrices = sanitizedWholesaleCreate;
+      }
 
       // Add SKU only if it has a value, otherwise provide a default
       if (formData.SKU) {
@@ -449,7 +462,11 @@ export const Inventory: React.FC = () => {
       sellingPrice: p.sellingPrice,
       unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
       uomConversions: apiProduct?.uomConversions || [],
-      wholesalePrices: apiProduct?.wholesalePrices || [],
+      wholesalePrices: (apiProduct?.wholesalePrices || []).map((t) => ({
+        quantity: t.quantity,
+        price: t.price,
+        unit: t.unit ?? "",
+      })),
       images: [],
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,
