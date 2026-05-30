@@ -453,7 +453,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
 
           {/* Wholesale prices */}
-          <div className="col-span-2">
+          {/* <div className="col-span-2">
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -593,7 +593,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="flex justify-end gap-2">
           <button

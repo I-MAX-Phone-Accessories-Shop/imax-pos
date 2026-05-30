@@ -109,17 +109,17 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
 
   const { data } = productSalesStatistics;
   const { totals, products } = data;
-  const totalRetailQuantity = totals.totalRetailQuantity ?? 0;
-  const totalWholesaleQuantity = totals.totalWholesaleQuantity ?? 0;
-  const totalIfRetail = totals.totalIfRetail ?? totals.totalRevenue;
-  const totalWholesaleDiscount =
-    totals.totalWholesaleDiscount ??
-    Math.max(0, totalIfRetail - totals.totalRevenue);
+  // const totalRetailQuantity = totals.totalRetailQuantity ?? 0;
+  // const totalWholesaleQuantity = totals.totalWholesaleQuantity ?? 0;
+  // const totalIfRetail = totals.totalIfRetail ?? totals.totalRevenue;
+  // const totalWholesaleDiscount =
+  //   totals.totalWholesaleDiscount ??
+  //   Math.max(0, totalIfRetail - totals.totalRevenue);
 
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl shadow border border-blue-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -152,7 +152,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow border border-cyan-100">
+        {/* <div className="bg-white p-4 rounded-xl shadow border border-cyan-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-cyan-100 rounded-lg">
               <ShoppingCart className="w-5 h-5 text-cyan-600" />
@@ -166,9 +166,9 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded-xl shadow border border-amber-100">
+        {/* <div className="bg-white p-4 rounded-xl shadow border border-amber-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
               <Package className="w-5 h-5 text-amber-600" />
@@ -182,9 +182,9 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded-xl shadow border border-orange-100">
+        {/* <div className="bg-white p-4 rounded-xl shadow border border-orange-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-100 rounded-lg">
               <TrendingUp className="w-5 h-5 text-orange-600" />
@@ -198,7 +198,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* <div className="bg-white p-4 rounded-xl shadow border border-rose-100">
           <div className="flex items-center gap-3">
@@ -260,22 +260,22 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Quantity Sold
                   </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                  {/* <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Retail Qty
                   </th>
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Wholesale Qty
-                  </th>
+                  </th> */}
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Total Revenue
                   </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                  {/* <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Wholesale Discount
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-center">
+                  </th> */}
+                  {/* <th className="px-4 py-3 font-medium text-slate-600 text-center">
                     Wholesale %
-                  </th>
-                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                  </th> */}
+                  {/* <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Avg. Price
                   </th>
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
@@ -283,7 +283,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                   </th>
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Max Price
-                  </th>
+                  </th> */}
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Orders
                   </th>
@@ -322,24 +322,24 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                       {product.totalQuantity.toLocaleString()}{" "}
                       {product.unitOfMeasure}
                     </td>
-                    <td className="px-4 py-3 text-right text-cyan-600 font-semibold">
+                    {/* <td className="px-4 py-3 text-right text-cyan-600 font-semibold">
                       {(product.retailQuantity ?? 0).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-right text-amber-600 font-semibold">
                       {(product.wholesaleQuantity ?? 0).toLocaleString()}
-                    </td>
+                    </td> */}
                     <td className="px-4 py-3 text-right font-bold text-green-600">
                       {product.totalRevenue.toLocaleString()} MMK
                     </td>
-                    <td className="px-4 py-3 text-right text-orange-600 font-semibold">
+                    {/* <td className="px-4 py-3 text-right text-orange-600 font-semibold">
                       {(product.wholesaleDiscount ?? 0).toLocaleString()} MMK
-                    </td>
-                    <td className="px-4 py-3 text-center">
+                    </td> */}
+                    {/* <td className="px-4 py-3 text-center">
                       <span className="px-2 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                         {product.wholesalePercentage || "0%"}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right text-slate-600">
+                    </td> */}
+                    {/* <td className="px-4 py-3 text-right text-slate-600">
                       {product.averageUnitPrice.toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-right text-slate-500 text-xs">
@@ -347,7 +347,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                     </td>
                     <td className="px-4 py-3 text-right text-slate-500 text-xs">
                       {product.maxUnitPrice.toLocaleString()}
-                    </td>
+                    </td> */}
                     <td className="px-4 py-3 text-right text-slate-600">
                       {product.orderCount}
                     </td>
