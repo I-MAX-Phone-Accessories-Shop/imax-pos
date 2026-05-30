@@ -52,9 +52,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             className="voucher-logo mx-auto object-contain"
           />
         ) : (
-          <div
-            className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold"
-          >
+          <div className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
             {shopBranding.shopName.charAt(0)}
           </div>
         )}
@@ -67,7 +65,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           </p>
         )}
       </div>
-
+      {/* 
       <div
         className={`flex justify-between items-start mb-4 sm:mb-6 voucher-invoice-row ${
           isThermal ? "flex-col gap-1" : ""
@@ -83,7 +81,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           </p>
           <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
         </div>
-      </div>
+      </div> */}
 
       {isThermal ? (
         <div className="mb-4">
@@ -159,7 +157,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               </p>
             )}
           </div>
-          {receiptData.note && <p className="italic">Note: {receiptData.note}</p>}
+          {receiptData.note && (
+            <p className="italic">Note: {receiptData.note}</p>
+          )}
         </div>
 
         <div>
