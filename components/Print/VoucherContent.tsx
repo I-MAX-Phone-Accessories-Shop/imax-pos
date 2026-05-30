@@ -65,23 +65,23 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           </p>
         )}
       </div>
-      {/* 
+
       <div
         className={`flex justify-between items-start mb-4 sm:mb-6 voucher-invoice-row ${
           isThermal ? "flex-col gap-1" : ""
         }`}
       >
-        <div>
+        {/* <div>
           <p className="font-bold mb-0.5">INVOICE TO :</p>
           <p>{receiptData.storefrontName}</p>
-        </div>
+        </div> */}
         <div className={isThermal ? "" : "text-right"}>
           <p className="font-bold mb-0.5">
             INVOICE NO : {receiptData.invoiceNumber}
           </p>
           <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
         </div>
-      </div> */}
+      </div>
 
       {isThermal ? (
         <div className="mb-4">
