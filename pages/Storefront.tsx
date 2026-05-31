@@ -126,7 +126,7 @@ export const Storefront: React.FC = () => {
         setStorefrontProfiles(response.data.reverse());
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       console.error("Failed to load storefront profiles:", error);
     } finally {
       setLoading(false);

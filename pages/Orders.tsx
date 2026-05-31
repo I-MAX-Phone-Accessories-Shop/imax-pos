@@ -19,13 +19,11 @@ import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { CreditPersonModal } from "../components/Orders/CreditPersonModal";
 import { useLanguage } from "../context/LanguageContext";
 import { DateRangePicker } from "../components/Reports/DateRangePicker";
-
-// Helper function to get today's date
-const getToday = () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today;
-};
+import {
+  DATE_RANGE_STORAGE_KEYS,
+  createDateRangeInitializer,
+  saveStoredDateRange,
+} from "../utils/dateRangeStorage";
 
 export const Orders: React.FC = () => {
   const { t } = useLanguage();
@@ -44,9 +42,10 @@ export const Orders: React.FC = () => {
   const [selectedOrderForCredit, setSelectedOrderForCredit] =
     useState<Order | null>(null);
   const [assigningCreditPerson, setAssigningCreditPerson] = useState(false);
-  // Initialize dates to today
-  const [startDate, setStartDate] = useState<Date | null>(getToday());
-  const [endDate, setEndDate] = useState<Date | null>(getToday());
+  const [dateRange, setDateRange] = useState(
+    createDateRangeInitializer(DATE_RANGE_STORAGE_KEYS.orders),
+  );
+  const { startDate, endDate } = dateRange;
 
   useEffect(() => {
     loadInitialData();
@@ -249,8 +248,16 @@ export const Orders: React.FC = () => {
             startDate={startDate}
             endDate={endDate}
             onChange={(newStartDate, newEndDate) => {
-              setStartDate(newStartDate);
-              setEndDate(newEndDate);
+              if (!newStartDate || !newEndDate) return;
+              setDateRange({
+                startDate: newStartDate,
+                endDate: newEndDate,
+              });
+              saveStoredDateRange(
+                DATE_RANGE_STORAGE_KEYS.orders,
+                newStartDate,
+                newEndDate,
+              );
             }}
           />
           <button

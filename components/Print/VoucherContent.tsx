@@ -193,7 +193,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
 
       <div className="mt-8 sm:mt-16 text-center">
         <p className="voucher-footer-title font-bold italic mb-1">
-          Thank you for your business!
+          Please Keep Box, Warranty Card & Invoice. <br />
+          Thank you for Your Business!
         </p>
         <div className="voucher-sign border-t border-gray-300 mt-6 sm:mt-8 pt-4">
           <p className="text-xs text-right">

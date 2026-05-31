@@ -21,14 +21,14 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
   paidOrdersReport,
   loading,
 }) => {
-  console.log(paidOrdersReport);
+  // console.log(paidOrdersReport);
   const paymentMethodChartData =
     paidOrdersReport?.success && paidOrdersReport.data.paymentMethods.length > 0
       ? paidOrdersReport.data.paymentMethods.map((pm) => ({
-        name: getPaymentMethodLabel(pm.paymentMethod),
-        value: pm.totalPaidAmount,
-        orderCount: pm.orderCount,
-      }))
+          name: getPaymentMethodLabel(pm.paymentMethod),
+          value: pm.totalPaidAmount,
+          orderCount: pm.orderCount,
+        }))
       : [];
 
   if (loading) {
@@ -48,8 +48,6 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
       </div>
     );
   }
-
-
 
   return (
     <div className="space-y-6">
@@ -136,9 +134,7 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
                 })}
               </Pie>
               <Tooltip
-                formatter={(value: number) =>
-                  `${value.toLocaleString()} MMK`
-                }
+                formatter={(value: number) => `${value.toLocaleString()} MMK`}
               />
               <Legend />
             </PieChart>
@@ -174,8 +170,7 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
               <tbody className="divide-y">
                 {paidOrdersReport.data.paymentMethods.map((pm, index) => {
                   const methodName = pm.paymentMethod.toLowerCase();
-                  const color =
-                    PAYMENT_METHOD_COLORS[methodName] || "#6366f1";
+                  const color = PAYMENT_METHOD_COLORS[methodName] || "#6366f1";
                   return (
                     <tr key={index} className="hover:bg-slate-50">
                       <td className="px-4 py-3">
@@ -225,4 +220,3 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
     </div>
   );
 };
-

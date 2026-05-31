@@ -102,12 +102,12 @@ const PrintReceipt: React.FC = () => {
 
       setLoadingMessage("Loading shop settings...");
       const shopResponse = await fetchShopSettings();
-      console.log(shopResponse);
+      // console.log(shopResponse);
       const branding = getPrintShopBranding(shopResponse.data ?? null);
 
       if (!cancelled) setShopBranding(branding);
 
-      console.log(branding);
+      // console.log(branding);
 
       if (branding.logo) {
         setLoadingMessage("Loading shop logo...");

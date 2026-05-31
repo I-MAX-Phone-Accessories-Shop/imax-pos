@@ -23,13 +23,11 @@ import {
 import { useLanguage } from "../context/LanguageContext";
 import { ConfirmModal } from "../components/Common/ConfirmModal";
 import { DateRangePicker } from "../components/Reports/DateRangePicker";
-
-// Helper function to get today's date
-const getToday = () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today;
-};
+import {
+  DATE_RANGE_STORAGE_KEYS,
+  createDateRangeInitializer,
+  saveStoredDateRange,
+} from "../utils/dateRangeStorage";
 
 export const Expenses: React.FC = () => {
   const { t } = useLanguage();
@@ -37,9 +35,11 @@ export const Expenses: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<LocationProfile[]>([]);
 
-  // Date Filter State
-  const [startDate, setStartDate] = useState<Date | null>(getToday());
-  const [endDate, setEndDate] = useState<Date | null>(getToday());
+  // Date filter — restored from sessionStorage on mount
+  const [dateRange, setDateRange] = useState(
+    createDateRangeInitializer(DATE_RANGE_STORAGE_KEYS.expenses),
+  );
+  const { startDate, endDate } = dateRange;
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -276,8 +276,16 @@ export const Expenses: React.FC = () => {
             startDate={startDate}
             endDate={endDate}
             onChange={(newStartDate, newEndDate) => {
-              setStartDate(newStartDate);
-              setEndDate(newEndDate);
+              if (!newStartDate || !newEndDate) return;
+              setDateRange({
+                startDate: newStartDate,
+                endDate: newEndDate,
+              });
+              saveStoredDateRange(
+                DATE_RANGE_STORAGE_KEYS.expenses,
+                newStartDate,
+                newEndDate,
+              );
             }}
           />
           <div className="flex items-center gap-2">

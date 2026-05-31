@@ -40,7 +40,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 }) => {
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
-  console.log(userRole);
+  // console.log(userRole);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
 
   // Check if user can delete orders (admin or owner only)

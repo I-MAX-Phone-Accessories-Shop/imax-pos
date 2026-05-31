@@ -134,60 +134,56 @@ export const ShopLogoUpload: React.FC<ShopLogoUploadProps> = ({
                 : "Upload a shop logo (JPEG, PNG, WebP — max 5MB). Available after shop settings are created."}
             </p>
 
-            {showUploadControls && (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleFileChange}
-                  disabled={isBusy}
-                  className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
-                />
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileChange}
+                disabled={isBusy}
+                className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleUpload}
+                  disabled={!selectedFile || isBusy}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm font-medium"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  {isUploading ? "Uploading..." : "Upload Logo"}
+                </button>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={handleUpload}
-                    disabled={!selectedFile || isBusy}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm font-medium"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isBusy}
+                    className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors text-sm font-medium"
                   >
-                    {isUploading ? (
+                    {isDeleting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Upload className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     )}
-                    {isUploading ? "Uploading..." : "Upload Logo"}
+                    {isDeleting ? "Deleting..." : "Delete Logo"}
                   </button>
-                  <div className="flex flex-wrap gap-2">
-                    {hasSavedLogo && !preview && (
-                      <button
-                        type="button"
-                        onClick={() => setShowDeleteConfirm(true)}
-                        disabled={isBusy}
-                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors text-sm font-medium"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                        {isDeleting ? "Deleting..." : "Delete Logo"}
-                      </button>
-                    )}
 
-                    {showUploadControls && selectedFile && !isBusy && (
-                      <button
-                        type="button"
-                        onClick={handleClearSelection}
-                        className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors text-sm font-medium"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
+                  {showUploadControls && selectedFile && !isBusy && (
+                    <button
+                      type="button"
+                      onClick={handleClearSelection}
+                      className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors text-sm font-medium"
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
-              </>
-            )}
+              </div>
+            </>
           </div>
         </div>
       </div>
