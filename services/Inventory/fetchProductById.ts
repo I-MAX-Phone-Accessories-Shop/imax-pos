@@ -61,6 +61,9 @@ export interface ProductDetail {
   status: string;
   tags: string[];
   note?: string;
+  ecommerceMaxPerUser?: number;
+  ecommercePurchaseResetMode?: "manual" | "timeline";
+  ecommercePurchaseResetDays?: number;
   createdAt: string;
   updatedAt: string;
   __v: number;

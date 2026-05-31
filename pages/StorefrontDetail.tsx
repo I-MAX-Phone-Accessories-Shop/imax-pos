@@ -16,6 +16,7 @@ import {
   ArrowRightLeft,
   Plus,
   Trash2,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -33,6 +34,12 @@ import {
   StorefrontTransferLineItem,
 } from "../services/Storefront/createStorefrontToWarehouseTransfer";
 import { QuantityByUnitDisplay } from "../components/UOM/QuantityByUnitDisplay";
+import { fetchProductById } from "../services/Inventory/fetchProductById";
+import {
+  updateInventoryEcommerceLimit,
+  EcommercePurchaseResetMode,
+} from "../services/Inventory/updateInventoryEcommerceLimit";
+import type { StorefrontStockInventory } from "../services/Storefront/fetchStorefrontStock";
 
 interface WarehouseProfile {
   _id: string;
@@ -68,6 +75,7 @@ export const StorefrontDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [limitedOnly, setLimitedOnly] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [storefrontName, setStorefrontName] = useState(
     storefrontInfo?.storefrontName || "Storefront",
@@ -101,7 +109,7 @@ export const StorefrontDetail: React.FC = () => {
   useEffect(() => {
     loadStorefrontStock();
     loadWarehouses();
-  }, [id, currentPage, itemsPerPage, selectedCategory, searchTerm]);
+  }, [id, currentPage, itemsPerPage, selectedCategory, searchTerm, limitedOnly]);
 
   useEffect(() => {
     loadCategories();
@@ -148,6 +156,7 @@ export const StorefrontDetail: React.FC = () => {
         itemsPerPage,
         selectedCategory,
         searchTerm,
+        limitedOnly,
       );
       // console.log(response);
       if (response.success) {
@@ -170,13 +179,13 @@ export const StorefrontDetail: React.FC = () => {
           const firstItem = response.data[0];
           setStorefrontName(
             firstItem.storefrontId.locationName ||
-            firstItem.storefrontId.storefrontName ||
-            "Storefront",
+              firstItem.storefrontId.storefrontName ||
+              "Storefront",
           );
           setStorefrontCode(
             firstItem.storefrontId.locationCode ||
-            firstItem.storefrontId.storefrontCode ||
-            "",
+              firstItem.storefrontId.storefrontCode ||
+              "",
           );
         }
       } else {
@@ -400,6 +409,127 @@ export const StorefrontDetail: React.FC = () => {
   const [adjustmentReason, setAdjustmentReason] = useState("");
   const [isAdjusting, setIsAdjusting] = useState(false);
 
+  // Ecommerce purchase limit modal
+  const [isEcommerceLimitModalOpen, setIsEcommerceLimitModalOpen] =
+    useState(false);
+  const [ecommerceMaxPerUser, setEcommerceMaxPerUser] = useState(1);
+  const [resetMode, setResetMode] =
+    useState<EcommercePurchaseResetMode>("manual");
+  const [resetDays, setResetDays] = useState(7);
+  const [loadingEcommerceLimit, setLoadingEcommerceLimit] = useState(false);
+  const [isSavingEcommerceLimit, setIsSavingEcommerceLimit] = useState(false);
+
+  const formatEcommerceLimit = (inv: StorefrontStockInventory) => {
+    if (inv.ecommerceMaxPerUser == null || inv.ecommerceMaxPerUser <= 0) {
+      return "—";
+    }
+    if (
+      inv.ecommercePurchaseResetMode === "timeline" &&
+      inv.ecommercePurchaseResetDays
+    ) {
+      return `${inv.ecommerceMaxPerUser} / ${inv.ecommercePurchaseResetDays}d`;
+    }
+    if (inv.ecommercePurchaseResetMode === "manual") {
+      return `${inv.ecommerceMaxPerUser} / manual`;
+    }
+    return String(inv.ecommerceMaxPerUser);
+  };
+
+  const applyEcommerceLimitForm = (
+    source: Pick<
+      StorefrontStockInventory,
+      | "ecommerceMaxPerUser"
+      | "ecommercePurchaseResetMode"
+      | "ecommercePurchaseResetDays"
+    >,
+  ) => {
+    setEcommerceMaxPerUser(source.ecommerceMaxPerUser ?? 1);
+    setResetMode(source.ecommercePurchaseResetMode ?? "manual");
+    setResetDays(source.ecommercePurchaseResetDays ?? 7);
+  };
+
+  const openEcommerceLimitModal = async (item: StorefrontStockItem) => {
+    setSelectedStockItem(item);
+    setIsEcommerceLimitModalOpen(true);
+
+    const inv = item.inventoryId;
+    if (
+      inv.ecommerceMaxPerUser != null ||
+      inv.ecommercePurchaseResetMode != null
+    ) {
+      applyEcommerceLimitForm(inv);
+      return;
+    }
+
+    setLoadingEcommerceLimit(true);
+    try {
+      const response = await fetchProductById(inv._id);
+      if (response.success && response.data) {
+        applyEcommerceLimitForm(response.data);
+      } else {
+        applyEcommerceLimitForm(inv);
+      }
+    } catch {
+      applyEcommerceLimitForm(inv);
+    } finally {
+      setLoadingEcommerceLimit(false);
+    }
+  };
+
+  const handleSaveEcommerceLimit = async () => {
+    if (!selectedStockItem) return;
+
+    const inventoryId = selectedStockItem.inventoryId._id;
+    if (!inventoryId) {
+      toast.error("Cannot update — missing product id");
+      return;
+    }
+
+    if (ecommerceMaxPerUser <= 0) {
+      toast.error("Max per user must be greater than 0");
+      return;
+    }
+
+    if (resetMode === "timeline" && resetDays < 1) {
+      toast.error("Reset days must be at least 1");
+      return;
+    }
+
+    setIsSavingEcommerceLimit(true);
+    try {
+      const payload =
+        resetMode === "manual"
+          ? {
+              ecommerceMaxPerUser,
+              ecommercePurchaseResetMode: "manual" as const,
+            }
+          : {
+              ecommerceMaxPerUser,
+              ecommercePurchaseResetMode: "timeline" as const,
+              ecommercePurchaseResetDays: resetDays,
+            };
+
+      const result = await updateInventoryEcommerceLimit(inventoryId, payload);
+
+      if (result.success) {
+        toast.success("Ecommerce purchase limit updated");
+        setIsEcommerceLimitModalOpen(false);
+        setSelectedStockItem(null);
+        loadStorefrontStock();
+      } else {
+        toast.error(result.message || "Failed to update ecommerce limit");
+      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to update ecommerce limit";
+      toast.error(message);
+    } finally {
+      setIsSavingEcommerceLimit(false);
+    }
+  };
+
   // Stock Adjustment Functions
   const openAdjustmentModal = (
     item: StorefrontStockItem,
@@ -450,7 +580,8 @@ export const StorefrontDetail: React.FC = () => {
 
       if (result.success) {
         toast.success(
-          `Stock ${adjustmentType === "increase" ? "increased" : "decreased"
+          `Stock ${
+            adjustmentType === "increase" ? "increased" : "decreased"
           } successfully!`,
         );
         setIsAdjustmentModalOpen(false);
@@ -561,12 +692,29 @@ export const StorefrontDetail: React.FC = () => {
             </div>
           </div>
 
+          <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors shrink-0">
+            <input
+              type="checkbox"
+              checked={limitedOnly}
+              onChange={(e) => {
+                setLimitedOnly(e.target.checked);
+                setCurrentPage(1);
+              }}
+              className="rounded border-slate-300 text-primary focus:ring-primary"
+            />
+            <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="text-sm text-slate-700 whitespace-nowrap">
+              Limited only
+            </span>
+          </label>
+
           {/* Clear Filters */}
-          {(searchTerm || selectedCategory !== "all") && (
+          {(searchTerm || selectedCategory !== "all" || limitedOnly) && (
             <button
               onClick={() => {
                 setSearchTerm("");
                 setSelectedCategory("all");
+                setLimitedOnly(false);
                 setCurrentPage(1);
               }}
               className="px-3 py-2 sm:px-4 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
@@ -579,9 +727,10 @@ export const StorefrontDetail: React.FC = () => {
         </div>
 
         {/* Filter Results Summary */}
-        {(searchTerm || selectedCategory !== "all") && (
+        {(searchTerm || selectedCategory !== "all" || limitedOnly) && (
           <div className="mt-3 text-sm text-slate-500">
             Showing {filteredStockItems.length} of {stockItems.length} items
+            {limitedOnly && " (ecommerce limit set)"}
           </div>
         )}
       </div>
@@ -678,7 +827,7 @@ export const StorefrontDetail: React.FC = () => {
           </div>
         ) : filteredStockItems.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
-            {searchTerm || selectedCategory !== "all" ? (
+            {searchTerm || selectedCategory !== "all" || limitedOnly ? (
               <div>
                 <p className="font-medium mb-2">
                   No items found matching your filters
@@ -687,6 +836,7 @@ export const StorefrontDetail: React.FC = () => {
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedCategory("all");
+                    setLimitedOnly(false);
                     setCurrentPage(1);
                   }}
                   className="text-primary hover:text-primary-700 underline"
@@ -740,6 +890,9 @@ export const StorefrontDetail: React.FC = () => {
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
                       <span className="hidden sm:inline">Status</span>
                       <span className="sm:hidden">S</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
+                      E-Limit
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
                       <span className="hidden sm:inline">Updated</span>
@@ -817,6 +970,9 @@ export const StorefrontDetail: React.FC = () => {
                           </span>
                         )}
                       </td>
+                      <td className="px-2 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">
+                        {formatEcommerceLimit(item.inventoryId)}
+                      </td>
                       <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs">
                         <span className="hidden sm:inline">
                           {new Date(item.lastUpdated).toLocaleDateString()}{" "}
@@ -830,41 +986,56 @@ export const StorefrontDetail: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
-                        {userRole === "owner" && (
-                          <div className="flex items-center gap-1 sm:gap-2">
-                            <button
-                              type="button"
-                              onClick={() => openTransferModal(item)}
-                              disabled={item.quantity === 0}
-                              className="text-xs bg-purple-50 text-primary-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <ArrowRightLeft className="w-3 h-3" />
-                              <span className="hidden sm:inline">Transfer</span>
-                              <span className="sm:hidden">T</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openAdjustmentModal(item, "increase")
-                              }
-                              className="text-xs bg-green-50 text-green-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                              title="Increase Stock"
-                            >
-                              <TrendingUp className="w-3 h-3" /> +
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openAdjustmentModal(item, "decrease")
-                              }
-                              disabled={item.quantity === 0}
-                              className="text-xs bg-red-50 text-red-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Decrease Stock"
-                            >
-                              <TrendingDown className="w-3 h-3" /> -
-                            </button>
-                          </div>
-                        )}
+                        {userRole === "owner" &&
+                          id === "6a167599b9e1cd8ad1a15661" && (
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <button
+                                type="button"
+                                onClick={() => openEcommerceLimitModal(item)}
+                                className="text-xs bg-blue-50 text-blue-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                                title="Ecommerce purchase limit"
+                              >
+                                <Shield className="w-3 h-3" />
+                                <span className="hidden sm:inline">
+                                  E-Limit
+                                </span>
+                                <span className="sm:hidden">E</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openTransferModal(item)}
+                                disabled={item.quantity === 0}
+                                className="text-xs bg-purple-50 text-primary-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <ArrowRightLeft className="w-3 h-3" />
+                                <span className="hidden sm:inline">
+                                  Transfer
+                                </span>
+                                <span className="sm:hidden">T</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openAdjustmentModal(item, "increase")
+                                }
+                                className="text-xs bg-green-50 text-green-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                                title="Increase Stock"
+                              >
+                                <TrendingUp className="w-3 h-3" /> +
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openAdjustmentModal(item, "decrease")
+                                }
+                                disabled={item.quantity === 0}
+                                className="text-xs bg-red-50 text-red-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Decrease Stock"
+                              >
+                                <TrendingDown className="w-3 h-3" /> -
+                              </button>
+                            </div>
+                          )}
                       </td>
                     </tr>
                   ))}
@@ -941,10 +1112,11 @@ export const StorefrontDetail: React.FC = () => {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${currentPage === pageNum
-                        ? "bg-primary text-white border-primary"
-                        : "hover:bg-slate-50"
-                        }`}
+                      className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-primary text-white border-primary"
+                          : "hover:bg-slate-50"
+                      }`}
                     >
                       {pageNum}
                     </button>
@@ -1253,10 +1425,11 @@ export const StorefrontDetail: React.FC = () => {
 
               {/* Adjustment Type Info */}
               <div
-                className={`p-3 rounded-lg ${adjustmentType === "increase"
-                  ? "bg-green-50 border border-green-200"
-                  : "bg-red-50 border border-red-200"
-                  }`}
+                className={`p-3 rounded-lg ${
+                  adjustmentType === "increase"
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
               >
                 <p className="text-sm font-medium">
                   {adjustmentType === "increase"
@@ -1319,10 +1492,11 @@ export const StorefrontDetail: React.FC = () => {
                 <button
                   onClick={handleSubmitAdjustment}
                   disabled={isAdjusting || adjustmentQuantity <= 0}
-                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${adjustmentType === "increase"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                    }`}
+                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${
+                    adjustmentType === "increase"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
                 >
                   {isAdjusting ? (
                     <>
@@ -1338,6 +1512,152 @@ export const StorefrontDetail: React.FC = () => {
                       {adjustmentType === "increase"
                         ? "Increase Stock"
                         : "Decrease Stock"}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ecommerce Purchase Limit Modal */}
+      {isEcommerceLimitModalOpen && selectedStockItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-blue-600" />
+                Ecommerce Purchase Limit
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEcommerceLimitModalOpen(false);
+                  setSelectedStockItem(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <p className="text-sm text-slate-500 mb-1">Product</p>
+                <p className="font-bold text-slate-800">
+                  {selectedStockItem.inventoryId.productName}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {selectedStockItem.inventoryId.productCode} | Current Qty:{" "}
+                  {selectedStockItem.quantity}
+                </p>
+              </div>
+
+              {loadingEcommerceLimit ? (
+                <div className="flex items-center justify-center py-8 text-slate-500 gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Loading settings...
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Max per user <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
+                      value={ecommerceMaxPerUser || ""}
+                      onChange={(e) =>
+                        setEcommerceMaxPerUser(Number(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Reset mode <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="resetMode"
+                          checked={resetMode === "manual"}
+                          onChange={() => setResetMode("manual")}
+                          className="text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-slate-700">Manual</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="resetMode"
+                          checked={resetMode === "timeline"}
+                          onChange={() => setResetMode("timeline")}
+                          className="text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-slate-700">Timeline</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Manual: admin resets limit. Timeline: auto-resets every N
+                      days.
+                    </p>
+                  </div>
+
+                  {resetMode === "timeline" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Reset days <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
+                        value={resetDays || ""}
+                        onChange={(e) =>
+                          setResetDays(Number(e.target.value) || 0)
+                        }
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEcommerceLimitModalOpen(false);
+                    setSelectedStockItem(null);
+                  }}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEcommerceLimit}
+                  disabled={
+                    isSavingEcommerceLimit ||
+                    loadingEcommerceLimit ||
+                    ecommerceMaxPerUser <= 0 ||
+                    (resetMode === "timeline" && resetDays < 1)
+                  }
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
+                >
+                  {isSavingEcommerceLimit ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4" /> Save Limit
                     </>
                   )}
                 </button>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
-  ShoppingCart,
+  // ShoppingCart,
   ShoppingBag,
   Package,
   Truck,
@@ -80,57 +80,45 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuGroups: MenuGroup[] = useMemo(
     () => [
-      {
-        id: "sales",
-        label: t("sidebar.groupSales"),
-        icon: ShoppingCart,
-        children: [
-          { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
-          {
-            path: "/direct-sale",
-            label: t("sidebar.directSale"),
-            icon: ShoppingBag,
-          },
-          {
-            path: "/quotations/create",
-            label: t("sidebar.createQuotation"),
-            icon: FileText,
-          },
-        ],
-      },
+      // {
+      //   id: "sales",
+      //   label: t("sidebar.groupSales"),
+      //   icon: ShoppingCart,
+      //   children: [
+      //     { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
+      //     {
+      //       path: "/direct-sale",
+      //       label: t("sidebar.directSale"),
+      //       icon: ShoppingBag,
+      //     },
+      //     {
+      //       path: "/quotations/create",
+      //       label: t("sidebar.createQuotation"),
+      //       icon: FileText,
+      //     },
+      //   ],
+      // },
       {
         id: "orders",
         label: t("sidebar.groupOrders"),
         icon: Receipt,
         children: [
           { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
-          {
-            path: "/direct-sale-orders",
-            label: t("sidebar.directSaleOrders"),
-            icon: ClipboardList,
-          },
+          // {
+          //   path: "/direct-sale-orders",
+          //   label: t("sidebar.directSaleOrders"),
+          //   icon: ClipboardList,
+          // },
           {
             path: "/credit-orders",
             label: t("sidebar.creditOrder"),
             icon: CreditCard,
           },
-          {
-            path: "/quotations",
-            label: t("sidebar.quotations"),
-            icon: FileText,
-          },
-          {
-            path: "/admin/ecommerce-orders",
-            label: t("sidebar.ecommerceOrders"),
-            icon: ShoppingBag,
-            roles: ["admin", "owner"],
-          },
-          {
-            path: "/customers",
-            label: t("sidebar.customers"),
-            icon: Users,
-            roles: ["admin", "owner"],
-          },
+          // {
+          //   path: "/quotations",
+          //   label: t("sidebar.quotations"),
+          //   icon: FileText,
+          // },
         ],
       },
       {
@@ -215,6 +203,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: t("sidebar.accountManagement"),
             icon: Shield,
             roles: ["owner"],
+          },
+        ],
+      },
+      {
+        id: "ecommerce",
+        label: t("Ecommerce"),
+        icon: ShoppingBag,
+        children: [
+          {
+            path: "/customers",
+            label: t("sidebar.customers"),
+            icon: Users,
+            roles: ["admin", "owner"],
+          },
+          {
+            path: "/admin/ecommerce-orders",
+            label: t("sidebar.ecommerceOrders"),
+            icon: ShoppingBag,
+            roles: ["admin", "owner"],
           },
         ],
       },

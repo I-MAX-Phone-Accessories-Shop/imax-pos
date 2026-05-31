@@ -12,6 +12,9 @@ export interface StorefrontStockInventory {
   sellingPrice?: number;
   unitOfMeasure?: string;
   uomConversions?: UomConversion[];
+  ecommerceMaxPerUser?: number;
+  ecommercePurchaseResetMode?: "manual" | "timeline";
+  ecommercePurchaseResetDays?: number;
 }
 
 export interface StorefrontStockStorefront {
@@ -59,6 +62,7 @@ export const fetchStorefrontStock = async (
   limit: number = 100,
   category?: string,
   search?: string,
+  limitedOnly?: boolean,
 ): Promise<FetchStorefrontStockResponse> => {
   try {
     const params = new URLSearchParams();
@@ -67,6 +71,7 @@ export const fetchStorefrontStock = async (
     params.append("limit", limit.toString());
     if (category && category !== "all") params.append("category", category);
     if (search && search.trim()) params.append("search", search.trim());
+    if (limitedOnly) params.append("limitedOnly", "true");
 
     const url = `/storefront-inventory?${params.toString()}`;
     const response = await axios.get(url);
