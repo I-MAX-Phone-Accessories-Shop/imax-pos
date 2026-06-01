@@ -67,9 +67,7 @@ export const RemoveItemsFromOrderModal: React.FC<
       } else {
         // Calculate discount percentage
         calculatedPercent =
-          subtotal > 0
-            ? Math.round((existingDiscount / subtotal) * 100 * 100) / 100
-            : 0;
+          subtotal > 0 ? ((existingDiscount / subtotal) * 100 * 100) / 100 : 0;
         setDiscountPercent(calculatedPercent);
         setMarkup(0);
       }

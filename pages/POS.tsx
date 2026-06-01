@@ -266,7 +266,9 @@ export const POS: React.FC = () => {
     stockItem: StorefrontStockItem,
     tierQuantity: number,
   ) => {
-    const availableQty = Number(stockItem.availableQuantity ?? stockItem.quantity);
+    const availableQty = Number(
+      stockItem.availableQuantity ?? stockItem.quantity,
+    );
     const parsedTierQty = Number(tierQuantity);
 
     if (!Number.isFinite(availableQty) || availableQty <= 0) {
@@ -287,7 +289,9 @@ export const POS: React.FC = () => {
     }
 
     setCart((prev) => {
-      const existing = prev.find((item) => item.stockItem._id === stockItem._id);
+      const existing = prev.find(
+        (item) => item.stockItem._id === stockItem._id,
+      );
 
       if (existing) {
         return prev.map((item) =>
@@ -370,7 +374,8 @@ export const POS: React.FC = () => {
 
         // Show success feedback
         toast.success(
-          `${matchingProduct.inventoryId.productName} ${t("pos.addedToCart") || "added to cart"
+          `${matchingProduct.inventoryId.productName} ${
+            t("pos.addedToCart") || "added to cart"
           }`,
         );
 
@@ -411,13 +416,10 @@ export const POS: React.FC = () => {
   const getSafeQty = (qty: number) =>
     Number.isFinite(qty) && qty > 0 ? Math.floor(qty) : 0;
 
-  const subtotal = cart.reduce(
-    (sum, item) => {
-      const qty = getSafeQty(item.qty);
-      return sum + getItemPrice(item.stockItem, qty || 1) * qty;
-    },
-    0,
-  );
+  const subtotal = cart.reduce((sum, item) => {
+    const qty = getSafeQty(item.qty);
+    return sum + getItemPrice(item.stockItem, qty || 1) * qty;
+  }, 0);
 
   const totalAfterDiscount = Math.round(
     subtotal * (1 - (Number(discount) || 0) / 100),
@@ -477,7 +479,9 @@ export const POS: React.FC = () => {
         [PaymentMethod.MMQR]: "MMQR",
       };
 
-      const discountAmount = useMarkup ? 0 : Math.round(subtotal - totalAfterDiscount);
+      const discountAmount = useMarkup
+        ? 0
+        : Math.round(subtotal - totalAfterDiscount);
 
       const orderPayload = {
         storefrontId: selectedStorefrontId,
@@ -666,8 +670,9 @@ export const POS: React.FC = () => {
                     ?.locationName || "Store"}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""
-                    }`}
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${
+                    showStorefrontMenu ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -694,16 +699,18 @@ export const POS: React.FC = () => {
                             handleStorefrontChange(sf._id);
                             setShowStorefrontMenu(false);
                           }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${
+                            sf._id === selectedStorefrontId
                               ? "bg-primary/20 border-l-4 border-primary"
                               : ""
-                            }`}
+                          }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              sf._id === selectedStorefrontId
                                 ? "bg-primary text-white"
                                 : "bg-dark-100 text-dark-500"
-                              }`}
+                            }`}
                           >
                             <Store className="w-4 h-4" />
                           </div>
@@ -793,10 +800,11 @@ export const POS: React.FC = () => {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${currentPage === pageNum
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${
+                        currentPage === pageNum
                           ? "bg-primary text-white border-primary"
                           : "hover:bg-gray-50 border-gray-200"
-                        }`}
+                      }`}
                     >
                       {pageNum}
                     </button>
@@ -838,10 +846,11 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.quantity === 0
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
+                  stockItem.quantity === 0
                     ? "opacity-50 grayscale pointer-events-none"
                     : ""
-                  }`}
+                }`}
               >
                 <div className="">
                   <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -890,28 +899,33 @@ export const POS: React.FC = () => {
                               <span className="text-right">Price</span>
                             </div>
                             <div className="border-t border-slate-200">
-                              {getSortedWholesaleTiers(stockItem).map((tier) => (
-                                <button
-                                  type="button"
-                                  key={tier._id || `${tier.quantity}-${tier.price}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    applyWholesaleTierQuantity(
-                                      stockItem,
-                                      Number(tier.quantity),
-                                    );
-                                    setActiveWholesalePopoverId(null);
-                                  }}
-                                  className="w-full grid grid-cols-2 py-1.5 px-1 border-b border-slate-100 last:border-b-0 text-[11px] rounded hover:bg-amber-50 hover:text-amber-900 transition-colors cursor-pointer"
-                                >
-                                  <span className="text-slate-700">
-                                    {tier.quantity}+
-                                  </span>
-                                  <span className="text-right text-slate-800 font-medium">
-                                    {tier.price.toLocaleString()}
-                                  </span>
-                                </button>
-                              ))}
+                              {getSortedWholesaleTiers(stockItem).map(
+                                (tier) => (
+                                  <button
+                                    type="button"
+                                    key={
+                                      tier._id ||
+                                      `${tier.quantity}-${tier.price}`
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      applyWholesaleTierQuantity(
+                                        stockItem,
+                                        Number(tier.quantity),
+                                      );
+                                      setActiveWholesalePopoverId(null);
+                                    }}
+                                    className="w-full grid grid-cols-2 py-1.5 px-1 border-b border-slate-100 last:border-b-0 text-[11px] rounded hover:bg-amber-50 hover:text-amber-900 transition-colors cursor-pointer"
+                                  >
+                                    <span className="text-slate-700">
+                                      {tier.quantity}+
+                                    </span>
+                                    <span className="text-right text-slate-800 font-medium">
+                                      {tier.price.toLocaleString()}
+                                    </span>
+                                  </button>
+                                ),
+                              )}
                             </div>
                           </div>
                         )}
@@ -954,8 +968,11 @@ export const POS: React.FC = () => {
                     {item.stockItem.inventoryId.productName}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {getItemPrice(item.stockItem, getSafeQty(item.qty) || 1).toLocaleString()} MMK x{" "}
-                    {getSafeQty(item.qty)} ={" "}
+                    {getItemPrice(
+                      item.stockItem,
+                      getSafeQty(item.qty) || 1,
+                    ).toLocaleString()}{" "}
+                    MMK x {getSafeQty(item.qty)} ={" "}
                     {(
                       getItemPrice(item.stockItem, getSafeQty(item.qty) || 1) *
                       getSafeQty(item.qty)
@@ -1267,13 +1284,13 @@ export const POS: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Markup Amount (MMK)
-                    <button
+                    {/* <button
                       onClick={() => setShowMarkupCalculator(true)}
                       className="ml-2 text-primary hover:text-primary-700 transition-colors"
                       title="Add fixed markup amount"
                     >
                       <Calculator className="w-4 h-4" />
-                    </button>
+                    </button> */}
                   </label>
                   <input
                     type="number"
@@ -1300,10 +1317,11 @@ export const POS: React.FC = () => {
                   type="number"
                   min="0"
                   disabled={paymentMethod === PaymentMethod.FOC}
-                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
+                  className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
+                    paymentMethod === PaymentMethod.FOC
                       ? "bg-gray-100 cursor-not-allowed"
                       : ""
-                    }`}
+                  }`}
                   value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
                   onChange={(e) => {
                     const value =
@@ -1589,10 +1607,8 @@ export const POS: React.FC = () => {
                 <button
                   onClick={() => {
                     if (discountAmount && Number(discountAmount) > 0) {
-                      const calculatedPercentage = (
-                        (Number(discountAmount) / subtotal) *
-                        100
-                      ).toFixed(2);
+                      const calculatedPercentage =
+                        (Number(discountAmount) / subtotal) * 100;
                       setDiscount(Number(calculatedPercentage)); // Use number for consistency
                       setShowDiscountCalculator(false);
                       setDiscountAmount("");
