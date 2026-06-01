@@ -46,6 +46,7 @@ export const Inventory: React.FC = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("active");
   const [selectedProductDetail, setSelectedProductDetail] =
     useState<ProductDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -490,10 +491,13 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  // Filter products based on selected category and search query
+  // Filter products based on selected category, status, and search query
   const filteredProducts = products
     .filter(
       (p) => selectedCategory === "All" || p.category === selectedCategory,
+    )
+    .filter(
+      (p) => selectedStatus === "all" || p.status === selectedStatus,
     )
     .filter((p) => {
       if (!searchQuery.trim()) return true;
@@ -831,6 +835,28 @@ export const Inventory: React.FC = () => {
           {error}
         </div>
       )}
+
+      {/* Status Filter */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-sm font-medium text-slate-700">Status:</span>
+        {(["all", "active", "inactive"] as const).map((status) => (
+          <button
+            key={status}
+            onClick={() => setSelectedStatus(status)}
+            className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+              selectedStatus === status
+                ? status === "all"
+                  ? "bg-slate-800 text-white border-slate-800"
+                  : status === "active"
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-red-500 text-white border-red-500"
+                : "bg-white text-slate-600 border-slate-300 hover:bg-slate-100"
+            }`}
+          >
+            {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
 
       {/* Category Filter */}
       <div className="inventory-category-filter">
