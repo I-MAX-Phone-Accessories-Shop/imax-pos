@@ -19,7 +19,6 @@ import {
   ProductModal,
   ProductFormData,
   ApiProduct,
-  sanitizeWholesalePricesForApi,
 } from "../components/Inventory/ProductModal";
 import { ProductDetailModal } from "../components/Inventory/ProductDetailModal";
 import {
@@ -35,7 +34,7 @@ import {
 } from "../services/Inventory/importExcel";
 import { useRef } from "react";
 import { ImportResultModal } from "../components/Inventory/ImportResultModal";
-import { validateUomConversions } from "../utils/uom";
+import { all } from "axios";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -48,6 +47,7 @@ export const Inventory: React.FC = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedProductDetail, setSelectedProductDetail] =
     useState<ProductDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -96,10 +96,8 @@ export const Inventory: React.FC = () => {
     description: "",
     buyingPrice: 0,
     sellingPrice: 0,
-    unitOfMeasure: "piece",
-    uomConversions: [],
     wholesalePrices: [],
-    images: [],
+    unitOfMeasure: "piece",
     reorderPoint: 0,
     reorderQuantity: 0,
     taxRate: 0,
@@ -218,10 +216,8 @@ export const Inventory: React.FC = () => {
       description: "",
       buyingPrice: 0,
       sellingPrice: 0,
-      unitOfMeasure: "piece",
-      uomConversions: [],
       wholesalePrices: [],
-      images: [],
+      unitOfMeasure: "piece",
       reorderPoint: 0,
       reorderQuantity: 0,
       taxRate: 0,
@@ -286,23 +282,6 @@ export const Inventory: React.FC = () => {
       return;
     }
 
-    if (!formData.unitOfMeasure?.trim()) {
-      const errorMsg = t("inventory.unitOfMeasureRequired");
-      toast.error(errorMsg);
-      setError(errorMsg);
-      return;
-    }
-
-    const uomError = validateUomConversions(
-      formData.unitOfMeasure,
-      formData.uomConversions,
-    );
-    if (uomError) {
-      toast.error(uomError);
-      setError(uomError);
-      return;
-    }
-
     if (editingId) {
       // Update existing product via API
       setIsLoading(true);
@@ -317,16 +296,8 @@ export const Inventory: React.FC = () => {
           category: formData.category || "Unknown",
           buyingPrice: formData.buyingPrice,
           sellingPrice: formData.sellingPrice,
-          unitOfMeasure: formData.unitOfMeasure.trim(),
-          uomConversions: formData.uomConversions,
+          unitOfMeasure: formData.unitOfMeasure || "piece",
         };
-
-        const sanitizedWholesale = sanitizeWholesalePricesForApi(
-          formData.wholesalePrices,
-        );
-        if (sanitizedWholesale) {
-          apiPayload.wholesalePrices = sanitizedWholesale;
-        }
 
         // Add optional fields only if they have values
         if (formData.saleCode) apiPayload.saleCode = formData.saleCode;
@@ -347,6 +318,11 @@ export const Inventory: React.FC = () => {
         if (formData.tags && formData.tags.length > 0)
           apiPayload.tags = formData.tags;
         if (formData.note) apiPayload.note = formData.note;
+        if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
+          apiPayload.wholesalePrices = formData.wholesalePrices.map(
+            ({ quantity, price }) => ({ quantity, price }),
+          );
+        }
 
         await updateProduct(editingId, apiPayload);
 
@@ -383,16 +359,8 @@ export const Inventory: React.FC = () => {
         category: formData.category || "Unknown",
         buyingPrice: formData.buyingPrice,
         sellingPrice: formData.sellingPrice,
-        unitOfMeasure: formData.unitOfMeasure.trim(),
-        uomConversions: formData.uomConversions,
+        unitOfMeasure: formData.unitOfMeasure || "piece",
       };
-
-      const sanitizedWholesaleCreate = sanitizeWholesalePricesForApi(
-        formData.wholesalePrices,
-      );
-      if (sanitizedWholesaleCreate) {
-        apiPayload.wholesalePrices = sanitizedWholesaleCreate;
-      }
 
       // Add SKU only if it has a value, otherwise provide a default
       if (formData.SKU) {
@@ -421,9 +389,10 @@ export const Inventory: React.FC = () => {
       if (formData.tags && formData.tags.length > 0)
         apiPayload.tags = formData.tags;
       if (formData.note) apiPayload.note = formData.note;
-
-      if (formData.images && formData.images.length > 0) {
-        apiPayload.images = formData.images;
+      if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
+        apiPayload.wholesalePrices = formData.wholesalePrices.map(
+          ({ quantity, price }) => ({ quantity, price }),
+        );
       }
 
       await createProduct(apiPayload);
@@ -460,14 +429,15 @@ export const Inventory: React.FC = () => {
       description: apiProduct?.description || "",
       buyingPrice: p.costPrice,
       sellingPrice: p.sellingPrice,
-      unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
-      uomConversions: apiProduct?.uomConversions || [],
-      wholesalePrices: (apiProduct?.wholesalePrices || []).map((t) => ({
-        quantity: t.quantity,
-        price: t.price,
-        unit: t.unit ?? "",
+      wholesalePrices: (apiProduct?.wholesalePrices || []).map((tier, i) => ({
+        id:
+          (tier as { _id?: string; id?: string })._id ||
+          (tier as { _id?: string; id?: string }).id ||
+          `tier-${i}`,
+        quantity: tier.quantity,
+        price: tier.price,
       })),
-      images: [],
+      unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,
       taxRate: apiProduct?.taxRate || 0,
@@ -523,11 +493,12 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  // Filter products based on selected category and search query
+  // Filter products based on selected category, status, and search query
   const filteredProducts = products
     .filter(
       (p) => selectedCategory === "All" || p.category === selectedCategory,
     )
+    .filter((p) => selectedStatus === "all" || p.status === selectedStatus)
     .filter((p) => {
       if (!searchQuery.trim()) return true;
 
@@ -687,7 +658,7 @@ export const Inventory: React.FC = () => {
       if (response.success) {
         toast.success(
           response.message ||
-          "Inventory transferred to storefront successfully",
+            "Inventory transferred to storefront successfully",
         );
         setSelectedProductIds([]);
         setShowSelectBoxes(false);
@@ -876,6 +847,32 @@ export const Inventory: React.FC = () => {
         />
       </div>
 
+      {/* Status Filter */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-sm font-medium text-slate-700 mr-1">Status:</span>
+        {["all", "active", "inactive"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setSelectedStatus(status)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              selectedStatus === status
+                ? status === "active"
+                  ? "bg-green-100 text-green-700 border border-green-300"
+                  : status === "inactive"
+                    ? "bg-red-100 text-red-700 border border-red-300"
+                    : "bg-slate-800 text-white border border-slate-800"
+                : "bg-white text-slate-600 border border-slate-300 hover:bg-slate-100"
+            }`}
+          >
+            {status === "all"
+              ? "All"
+              : status === "active"
+                ? "Active"
+                : "Inactive"}
+          </button>
+        ))}
+      </div>
+
       {isFetching && products.length === 0 ? (
         <div className="bg-white shadow-sm border rounded-xl p-8 text-center">
           <p className="text-slate-500">{t("inventory.loadingProducts")}</p>
@@ -886,9 +883,9 @@ export const Inventory: React.FC = () => {
             {products.length === 0
               ? t("inventory.noProductsFound")
               : t("inventory.noProductsInCategory").replace(
-                "{category}",
-                selectedCategory,
-              )}
+                  "{category}",
+                  selectedCategory,
+                )}
           </p>
         </div>
       ) : (
