@@ -19,6 +19,9 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  BarChart3,
+  ShoppingCart,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -41,10 +44,19 @@ import {
   fetchCreditPersonaProducts,
   CreditPersonaProductReportResponse,
 } from "../services/Reports/fetchCreditPersonaProducts";
-import { Order } from "../services/Order/fetchOrders";
+import { Order, fetchOrders, OrderPagination } from "../services/Order/fetchOrders";
+import { fetchOrderSummary, OrderSummaryData } from "../services/Credit/fetchOrderSummary";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
+import {
+  formatDueDate,
+  getDueDateUrgency,
+  getDueDateCellClasses,
+} from "../components/Orders/orderUtils";
 import { useLanguage } from "../context/LanguageContext";
+import { DateRangePicker } from "../components/Reports/DateRangePicker";
+import { formatDateForAPI } from "../components/Quotation/quotationUtils";
 
+type MainTabType = "summary" | "credit";
 type TabType = "orders" | "products" | "payments";
 
 export const CreditDetail: React.FC = () => {
@@ -60,6 +72,7 @@ export const CreditDetail: React.FC = () => {
   } | null;
 
   const [loading, setLoading] = useState(true);
+  const [mainTab, setMainTab] = useState<MainTabType>("summary");
   const [activeTab, setActiveTab] = useState<TabType>("orders");
   const [personaDetail, setPersonaDetail] =
     useState<CreditPersonaRecordsData | null>(null);
@@ -89,6 +102,13 @@ export const CreditDetail: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
 
+  // Credit Orders State
+  const [creditOrders, setCreditOrders] = useState<Order[]>([]);
+  const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
+  const [creditOrdersPagination, setCreditOrdersPagination] =
+    useState<OrderPagination | null>(null);
+  const [creditOrdersPage, setCreditOrdersPage] = useState(1);
+
   // Add Credit Order Modal State
   const [showAddCreditModal, setShowAddCreditModal] = useState(false);
   const [isCreatingCredit, setIsCreatingCredit] = useState(false);
@@ -104,11 +124,54 @@ export const CreditDetail: React.FC = () => {
     paymentMethod: "normal",
   });
 
+  // Order Summary State
+  const [orderSummary, setOrderSummary] = useState<OrderSummaryData | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [summaryStartDate, setSummaryStartDate] = useState<Date | null>(null);
+  const [summaryEndDate, setSummaryEndDate] = useState<Date | null>(null);
+  const [summaryAllOrders, setSummaryAllOrders] = useState<Order[]>([]);
+  const [loadingSummaryOrders, setLoadingSummaryOrders] = useState(false);
+  const [summaryOrdersPage, setSummaryOrdersPage] = useState(1);
+  const [summaryOrdersPagination, setSummaryOrdersPagination] =
+    useState<OrderPagination | null>(null);
+
   useEffect(() => {
     if (id) {
       loadCreditDetail();
+      loadCreditOrders(1);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (id && mainTab === "summary") {
+      loadOrderSummary(summaryStartDate, summaryEndDate);
+      loadSummaryOrders(1);
+    }
+  }, [id, mainTab, summaryStartDate, summaryEndDate]);
+
+  const loadCreditOrders = async (page: number = 1) => {
+    if (!id) return;
+    setLoadingCreditOrders(true);
+    try {
+      const response = await fetchOrders(undefined, undefined, "credit", {
+        creditPersonId: id,
+        page,
+        limit: 10,
+      });
+      if (response.success) {
+        setCreditOrders(response.data);
+        setCreditOrdersPagination(response.pagination ?? null);
+        setCreditOrdersPage(page);
+      } else {
+        toast.error(response.message || "Failed to load credit orders");
+      }
+    } catch (error) {
+      console.error("Error loading credit orders:", error);
+      toast.error("Failed to load credit orders");
+    } finally {
+      setLoadingCreditOrders(false);
+    }
+  };
 
   const loadPaymentRecords = async (page: number = 1) => {
     if (!id) return;
@@ -169,6 +232,65 @@ export const CreditDetail: React.FC = () => {
       setLoading(false);
       setLoadingProducts(false);
     }
+  };
+
+  const loadOrderSummary = async (
+    startDate?: Date | null,
+    endDate?: Date | null,
+  ) => {
+    if (!id) return;
+    setLoadingSummary(true);
+    try {
+      const formattedStart = formatDateForAPI(startDate);
+      const formattedEnd = formatDateForAPI(endDate);
+      const response = await fetchOrderSummary(id, formattedStart, formattedEnd);
+      if (response.success && response.data) {
+        setOrderSummary(response.data);
+      } else {
+        toast.error(response.message || "Failed to load order summary");
+      }
+    } catch (error) {
+      console.error("Error loading order summary:", error);
+      toast.error("Failed to load order summary");
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  const loadSummaryOrders = async (page: number = 1) => {
+    if (!id) return;
+    setLoadingSummaryOrders(true);
+    try {
+      const formattedStart = formatDateForAPI(summaryStartDate);
+      const formattedEnd = formatDateForAPI(summaryEndDate);
+      const response = await fetchOrders(formattedStart, formattedEnd, undefined, {
+        creditPersonId: id,
+        page,
+        limit: 10,
+      });
+      if (response.success) {
+        setSummaryAllOrders(response.data);
+        setSummaryOrdersPagination(response.pagination ?? null);
+        setSummaryOrdersPage(page);
+      }
+    } catch (error) {
+      console.error("Error loading summary orders:", error);
+    } finally {
+      setLoadingSummaryOrders(false);
+    }
+  };
+
+  const formatDateDisplay = (dateString: string) => {
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const isOverdue = (dueDate?: string | null) => {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
   };
 
   const formatDate = (dateString: string) => {
@@ -301,6 +423,15 @@ export const CreditDetail: React.FC = () => {
     }
   };
 
+  const handleOpenAddPaymentForOrder = (orderId: string) => {
+    setPaymentForm({
+      orderId,
+      paidAmount: 0,
+      paymentMethod: "cash",
+    });
+    setShowAddPaymentModal(true);
+  };
+
   const handleCloseAddPayment = () => {
     setShowAddPaymentModal(false);
     setPaymentForm({ orderId: "", paidAmount: 0, paymentMethod: "cash" });
@@ -413,7 +544,374 @@ export const CreditDetail: React.FC = () => {
         </div>
       ) : personaDetail ? (
         <>
-          {/* Summary Cards */}
+          {/* Main Tabs Navigation */}
+          <div className="flex gap-2 mb-6 border-b">
+            <button
+              onClick={() => setMainTab("summary")}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                mainTab === "summary"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              {t("creditDetail.summary")}
+            </button>
+            <button
+              onClick={() => setMainTab("credit")}
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                mainTab === "credit"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              {t("creditDetail.title")}
+            </button>
+          </div>
+
+          {/* Summary Tab */}
+          {mainTab === "summary" && (
+            <>
+              {/* Date Range Filter */}
+              <div className="bg-white rounded-xl shadow-sm border p-4 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-slate-500" />
+                    <span className="text-sm font-medium text-slate-700">{t("creditDetail.dateRange")}</span>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { label: t("creditDetail.all"), start: null, end: null },
+                      { label: t("creditDetail.days7"), start: (() => { const d = new Date(); d.setDate(d.getDate() - 7); return d; })(), end: new Date() },
+                      { label: t("creditDetail.days30"), start: (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })(), end: new Date() },
+                      { label: t("creditDetail.thisMonth"), start: (() => { const d = new Date(); d.setDate(1); return d; })(), end: new Date() },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => {
+                          setSummaryStartDate(preset.start);
+                          setSummaryEndDate(preset.end);
+                        }}
+                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-medium ${
+                          summaryStartDate === null && preset.start === null
+                            ? "bg-primary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="sm:ml-auto">
+                    <DateRangePicker
+                      startDate={summaryStartDate}
+                      endDate={summaryEndDate}
+                      onChange={(start, end) => {
+                        setSummaryStartDate(start);
+                        setSummaryEndDate(end);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {loadingSummary ? (
+                <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+                  <p className="text-slate-500">{t("creditDetail.loading")}</p>
+                </div>
+              ) : !orderSummary ? (
+                <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+                  <BarChart3 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">{t("creditDetail.noOrdersForPeriod")}</p>
+                </div>
+              ) : (
+                <>
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                    <div className="bg-white p-5 rounded-xl shadow-sm border">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-blue-100 rounded-xl">
+                          <Receipt className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalOrders")}</p>
+                          <p className="text-xl font-bold text-slate-800">
+                            {orderSummary.summary.totalOrders}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-xl shadow-sm border">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-slate-100 rounded-xl">
+                          <DollarSign className="w-5 h-5 text-slate-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalAmount")}</p>
+                          <p className="text-xl font-bold text-slate-800">
+                            {orderSummary.summary.totalFinalAmount.toLocaleString()}{" "}
+                            <span className="text-xs font-normal">MMK</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-xl shadow-sm border">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-green-100 rounded-xl">
+                          <Coins className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalPaidAmount")}</p>
+                          <p className="text-xl font-bold text-green-600">
+                            {orderSummary.summary.totalPaidAmount.toLocaleString()}{" "}
+                            <span className="text-xs font-normal">MMK</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-xl shadow-sm border">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-3 rounded-xl ${orderSummary.summary.totalOutstandingAmount > 0 ? "bg-red-100" : "bg-green-100"}`}>
+                          <AlertTriangle className={`w-5 h-5 ${orderSummary.summary.totalOutstandingAmount > 0 ? "text-red-600" : "text-green-600"}`} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.outstandingAmount")}</p>
+                          <p className={`text-xl font-bold ${orderSummary.summary.totalOutstandingAmount > 0 ? "text-red-600" : "text-green-600"}`}>
+                            {orderSummary.summary.totalOutstandingAmount.toLocaleString()}{" "}
+                            <span className="text-xs font-normal">MMK</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-xl shadow-sm border">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-purple-100 rounded-xl">
+                          <CreditCard className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.creditPaidSplit")}</p>
+                          <p className="text-xl font-bold text-slate-800">
+                            <span className="text-orange-600">{orderSummary.summary.creditOrders}</span>
+                            <span className="text-slate-400 mx-1">/</span>
+                            <span className="text-green-600">{orderSummary.summary.paidOrders}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Storefront vs Direct-Sale Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                      <div className="p-4 border-b bg-blue-50">
+                        <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                          <Store className="w-4 h-4 text-blue-600" />
+                          {t("creditDetail.storefront")}
+                        </h3>
+                      </div>
+                      <div className="p-4 grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.orders")}</p>
+                          <p className="text-lg font-bold text-slate-800">{orderSummary.summary.storefront.totalOrders}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalAmount")}</p>
+                          <p className="text-lg font-bold text-slate-800">{orderSummary.summary.storefront.totalFinalAmount.toLocaleString()} MMK</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalPaidAmount")}</p>
+                          <p className="text-lg font-bold text-green-600">{orderSummary.summary.storefront.totalPaidAmount.toLocaleString()} MMK</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.outstandingAmount")}</p>
+                          <p className={`text-lg font-bold ${orderSummary.summary.storefront.totalOutstandingAmount > 0 ? "text-red-600" : "text-green-600"}`}>
+                            {orderSummary.summary.storefront.totalOutstandingAmount.toLocaleString()} MMK
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                      <div className="p-4 border-b bg-purple-50">
+                        <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                          <ShoppingCart className="w-4 h-4 text-purple-600" />
+                          {t("creditDetail.directSale")}
+                        </h3>
+                      </div>
+                      <div className="p-4 grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.orders")}</p>
+                          <p className="text-lg font-bold text-slate-800">{orderSummary.summary.directSale.totalOrders}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalAmount")}</p>
+                          <p className="text-lg font-bold text-slate-800">{orderSummary.summary.directSale.totalFinalAmount.toLocaleString()} MMK</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.totalPaidAmount")}</p>
+                          <p className="text-lg font-bold text-green-600">{orderSummary.summary.directSale.totalPaidAmount.toLocaleString()} MMK</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">{t("creditDetail.outstandingAmount")}</p>
+                          <p className={`text-lg font-bold ${orderSummary.summary.directSale.totalOutstandingAmount > 0 ? "text-red-600" : "text-green-600"}`}>
+                            {orderSummary.summary.directSale.totalOutstandingAmount.toLocaleString()} MMK
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* All Orders Table */}
+                  <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                      <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                        <Receipt className="w-5 h-5 text-primary" />
+                        {t("creditDetail.allOrders")} ({summaryOrdersPagination?.totalItems ?? summaryAllOrders.length})
+                      </h3>
+                      <button
+                        onClick={() => loadSummaryOrders(summaryOrdersPage)}
+                        disabled={loadingSummaryOrders}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${loadingSummaryOrders ? "animate-spin" : ""}`} />
+                        {t("common.refresh")}
+                      </button>
+                    </div>
+                    {loadingSummaryOrders ? (
+                      <div className="p-12 text-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                        <p className="text-slate-400 text-sm">Loading orders...</p>
+                      </div>
+                    ) : summaryAllOrders.length === 0 ? (
+                      <div className="p-12 text-center text-slate-400">
+                        <Receipt className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">{t("creditDetail.noOrdersForPeriod")}</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-left min-w-[900px]">
+                            <thead className="bg-slate-50 text-slate-600 border-b">
+                              <tr>
+                                <th className="px-4 py-3 font-medium">Order #</th>
+                                <th className="px-4 py-3 font-medium">Date</th>
+                                <th className="px-4 py-3 font-medium">{t("creditDetail.saleType")}</th>
+                                <th className="px-4 py-3 font-medium">{t("creditDetail.paymentType")}</th>
+                                <th className="px-4 py-3 font-medium">Storefront</th>
+                                <th className="px-4 py-3 font-medium">Items</th>
+                                <th className="px-4 py-3 font-medium text-right">Total</th>
+                                <th className="px-4 py-3 font-medium text-right">Paid</th>
+                                <th className="px-4 py-3 font-medium">{t("creditDetail.dueDate")}</th>
+                                <th className="px-4 py-3 font-medium">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {summaryAllOrders.map((order) => (
+                                <tr key={order._id} className="hover:bg-slate-50">
+                                  <td className="px-4 py-3">
+                                    <span className="text-blue-600 font-medium">{order.orderNumber}</span>
+                                  </td>
+                                  <td className="px-4 py-3 text-slate-600">
+                                    {formatDateDisplay(order.createdAt)}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      order.saleType === "direct-sale"
+                                        ? "bg-purple-100 text-purple-700"
+                                        : "bg-blue-100 text-blue-700"
+                                    }`}>
+                                      {order.saleType === "direct-sale" ? "Direct" : "Storefront"}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      order.paymentType === "credit"
+                                        ? "bg-orange-100 text-orange-700"
+                                        : "bg-green-100 text-green-700"
+                                    }`}>
+                                      {order.paymentType === "credit" ? "Credit" : "Paid"}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 text-slate-600">
+                                    {order.storefrontId
+                                      ? (order.storefrontId.locationName || order.storefrontId.storefrontName || "—")
+                                      : "—"}
+                                  </td>
+                                  <td className="px-4 py-3 text-slate-600">
+                                    {order.ordersProducts?.length || 0}
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-medium text-slate-800">
+                                    {order.finalAmount.toLocaleString()} MMK
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-medium text-green-600">
+                                    {order.paidAmount.toLocaleString()} MMK
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {order.dueDate ? (
+                                      <span className={isOverdue(order.dueDate) ? "text-red-600 font-medium" : "text-slate-600"}>
+                                        {formatDateDisplay(order.dueDate)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      order.orderStatus === "completed"
+                                        ? "bg-green-100 text-green-700"
+                                        : order.orderStatus === "cancelled"
+                                          ? "bg-red-100 text-red-700"
+                                          : "bg-yellow-100 text-yellow-700"
+                                    }`}>
+                                      {order.orderStatus?.toUpperCase()}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {summaryOrdersPagination && summaryOrdersPagination.totalPages > 1 && (
+                          <div className="px-4 py-3 border-t flex items-center justify-between bg-slate-50">
+                            <p className="text-sm text-slate-500">
+                              Page {summaryOrdersPage} of {summaryOrdersPagination.totalPages}
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => loadSummaryOrders(summaryOrdersPage - 1)}
+                                disabled={summaryOrdersPage <= 1 || loadingSummaryOrders}
+                                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => loadSummaryOrders(summaryOrdersPage + 1)}
+                                disabled={summaryOrdersPage >= (summaryOrdersPagination.totalPages || 1) || loadingSummaryOrders}
+                                className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* Credit Tab */}
+          {mainTab === "credit" && (
+            <>
+              {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-white p-5 rounded-xl shadow-sm border">
               <div className="flex items-center gap-3">
@@ -510,31 +1008,186 @@ export const CreditDetail: React.FC = () => {
           <div className="mb-6">
             {activeTab === "orders" && (
               <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                <div className="p-4 border-b bg-slate-50">
+                <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
                   <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                     <Receipt className="w-5 h-5 text-primary" />
-                    {t("creditDetail.associatedOrders")}
+                    {t("creditDetail.associatedOrders")} ({creditOrdersPagination?.totalItems ?? creditOrders.length})
                   </h2>
+                  <button
+                    onClick={() => loadCreditOrders(creditOrdersPage)}
+                    disabled={loadingCreditOrders}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingCreditOrders ? "animate-spin" : ""}`} />
+                    {t("common.refresh")}
+                  </button>
                 </div>
-                <div className="p-6">
-                  {personaDetail.orders.length === 0 ? (
-                    <p className="text-slate-400 text-sm text-center py-4">
-                      {t("creditDetail.noOrders")}
-                    </p>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {personaDetail.orders.map((order) => (
-                        <button
-                          key={order._id}
-                          onClick={() => handleViewOrder(order._id)}
-                          className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer"
-                        >
-                          {order.orderNumber}
-                        </button>
-                      ))}
+                {loadingCreditOrders ? (
+                  <div className="p-12 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                    <p className="text-slate-400 text-sm">Loading orders...</p>
+                  </div>
+                ) : creditOrders.length === 0 ? (
+                  <div className="p-12 text-center text-slate-400">
+                    <Receipt className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">{t("creditDetail.noOrders")}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left min-w-[900px]">
+                        <thead className="bg-slate-50 text-slate-600 border-b">
+                          <tr>
+                            <th className="px-4 py-3 font-medium">Order #</th>
+                            <th className="px-4 py-3 font-medium">Date</th>
+                            <th className="px-4 py-3 font-medium">Type</th>
+                            <th className="px-4 py-3 font-medium">Storefront</th>
+                            <th className="px-4 py-3 font-medium">Items</th>
+                            <th className="px-4 py-3 font-medium text-right">Total</th>
+                            <th className="px-4 py-3 font-medium text-right">Paid</th>
+                            <th className="px-4 py-3 font-medium text-right">Remaining</th>
+                            <th className="px-4 py-3 font-medium">Due Date</th>
+                            <th className="px-4 py-3 font-medium">Status</th>
+                            <th className="px-4 py-3 font-medium">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {creditOrders.map((order) => (
+                            <tr
+                              key={order._id}
+                              className="hover:bg-slate-50 cursor-pointer"
+                              onClick={() => handleViewOrder(order._id)}
+                            >
+                              <td className="px-4 py-3">
+                                <span className="font-medium text-blue-600">
+                                  {order.orderNumber}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {new Date(order.createdAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  order.saleType === "direct-sale"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "bg-blue-100 text-blue-700"
+                                }`}>
+                                  {order.saleType === "direct-sale" ? "Direct" : "Storefront"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {order.storefrontId?.locationName || "—"}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {order.ordersProducts?.length || 0}
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-slate-800">
+                                {order.finalAmount?.toLocaleString()} MMK
+                              </td>
+                              <td className="px-4 py-3 text-right text-green-600 font-medium">
+                                {order.paidAmount?.toLocaleString()} MMK
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-orange-600">
+                                {order.remainingBalance?.toLocaleString()} MMK
+                              </td>
+                              <td className="px-4 py-3">
+                                {order.dueDate ? (
+                                  (() => {
+                                    const dueDatePart = order.dueDate.split("T")[0];
+                                    const urgency = getDueDateUrgency(dueDatePart, 7);
+                                    return (
+                                      <div className={`rounded-lg px-2 py-1 ${
+                                        urgency === "near" ? "bg-amber-50 border border-amber-200" : ""
+                                      }`}>
+                                        <div className={`text-xs font-medium ${getDueDateCellClasses(urgency)}`}>
+                                          {formatDueDate(dueDatePart)}
+                                        </div>
+                                        {urgency === "expired" && (
+                                          <span className="text-[10px] font-semibold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
+                                            {t("creditOrders.dueDateExpired")}
+                                          </span>
+                                        )}
+                                        {urgency === "near" && (
+                                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                                            {t("creditOrders.dueDateDueSoon")}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })()
+                                ) : (
+                                  <span className="text-slate-400">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  order.orderStatus === "completed"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.orderStatus === "cancelled"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                                }`}>
+                                  {order.orderStatus?.toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewOrder(order._id);
+                                    }}
+                                    className="text-xs bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded hover:bg-blue-200 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                    {t("creditOrders.view")}
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenAddPaymentForOrder(order._id);
+                                    }}
+                                    className="text-xs bg-green-100 text-green-700 px-2.5 py-1.5 rounded hover:bg-green-200 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                                  >
+                                    <Coins className="w-3 h-3" />
+                                    {t("creditDetail.addPayment")}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
-                </div>
+                    {creditOrdersPagination && creditOrdersPagination.totalPages > 1 && (
+                      <div className="px-4 py-3 border-t flex items-center justify-between bg-slate-50">
+                        <p className="text-sm text-slate-500">
+                          Page {creditOrdersPage} of {creditOrdersPagination.totalPages}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => loadCreditOrders(creditOrdersPage - 1)}
+                            disabled={creditOrdersPage <= 1 || loadingCreditOrders}
+                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => loadCreditOrders(creditOrdersPage + 1)}
+                            disabled={creditOrdersPage >= (creditOrdersPagination.totalPages || 1) || loadingCreditOrders}
+                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
@@ -833,6 +1486,8 @@ export const CreditDetail: React.FC = () => {
               </div>
             )}
           </div>
+          </>
+          )}
         </>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">

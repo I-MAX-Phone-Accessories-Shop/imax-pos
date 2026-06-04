@@ -103,7 +103,7 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("quotation.customerName")} ({t("common.optional")})
             </label>
@@ -126,7 +126,7 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder={t("quotation.customerPhone")}
             />
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -167,10 +167,10 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
             </div>
           </div>
 
-          {paymentType === "credit" && (
+          {/* {paymentType === "credit" && ( */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("pos.selectCreditPerson")}
+               {t("directSale.selectCustomer")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -183,8 +183,8 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
                 >
                   <option value="">
                     {creditPersonas.length === 0
-                      ? `-- ${t("pos.noCreditPersons")} --`
-                      : `-- ${t("pos.selectCreditPersonOptional")} --`}
+                      ? `-- ${t("directSale.noCustomers")} --`
+                      : `-- ${t("directSale.selectCustomerOptional")} --`}
                   </option>
                   {creditPersonas.map((persona) => (
                     <option key={persona._id} value={persona._id}>
@@ -194,7 +194,7 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
                 </select>
               </div>
             </div>
-          )}
+          {/* // )} */}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

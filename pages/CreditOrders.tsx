@@ -8,6 +8,7 @@ import {
   Eye,
   Edit2,
   Trash2,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchCreditOrders } from "../services/Order/fetchCreditOrders";
@@ -24,6 +25,15 @@ import {
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
 import { assignCreditPerson } from "../services/Order/assignCreditPerson";
+import { updateOrderDueDate } from "../services/Order/updateOrderDueDate";
+import {
+  formatDueDate,
+  isDueDateExpired,
+  parseDueDateString,
+  getDueDateUrgency,
+  getDueDateCellClasses,
+} from "../components/Orders/orderUtils";
+import { SingleDateCalendar } from "../components/common/SingleDateCalendar";
 import { CreditOrdersFilters } from "../components/Orders/CreditOrdersFilters";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { CreditPersonModal } from "../components/Orders/CreditPersonModal";
@@ -48,6 +58,7 @@ export const CreditOrders: React.FC = () => {
   const [selectedStorefrontId, setSelectedStorefrontId] =
     useState<string>("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
+  const [nearDueDateFilter, setNearDueDateFilter] = useState(false);
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [showCreditPersonModal, setShowCreditPersonModal] = useState(false);
   const [selectedOrderForCredit, setSelectedOrderForCredit] =
@@ -70,6 +81,13 @@ export const CreditOrders: React.FC = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(false);
 
+  // Due Date Edit States
+  const [showDueDateModal, setShowDueDateModal] = useState(false);
+  const [selectedOrderForDueDate, setSelectedOrderForDueDate] =
+    useState<Order | null>(null);
+  const [newDueDate, setNewDueDate] = useState("");
+  const [updatingDueDate, setUpdatingDueDate] = useState(false);
+
   useEffect(() => {
     loadInitialData();
   }, []);
@@ -77,7 +95,13 @@ export const CreditOrders: React.FC = () => {
   useEffect(() => {
     loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStorefrontId, startDate, endDate, paymentMethodFilter]);
+  }, [
+    selectedStorefrontId,
+    startDate,
+    endDate,
+    paymentMethodFilter,
+    nearDueDateFilter,
+  ]);
 
   const loadInitialData = async () => {
     // Load storefronts and credit personas
@@ -117,6 +141,7 @@ export const CreditOrders: React.FC = () => {
         startDateStr,
         endDateStr,
         paymentMethodFilter === "all" ? null : paymentMethodFilter,
+        nearDueDateFilter ? 7 : null,
       );
 
       if (response.success && response.data) {
@@ -276,6 +301,66 @@ export const CreditOrders: React.FC = () => {
     }
   };
 
+  const handleOpenDueDateModal = (order: Order) => {
+    setSelectedOrderForDueDate(order);
+    setNewDueDate(order.dueDate?.split("T")[0] || "");
+    setShowDueDateModal(true);
+  };
+
+  const handleUpdateDueDate = async () => {
+    if (!selectedOrderForDueDate || !newDueDate) return;
+
+    setUpdatingDueDate(true);
+    try {
+      const response = await updateOrderDueDate(
+        selectedOrderForDueDate._id,
+        newDueDate,
+      );
+      if (response.success) {
+        toast.success(t("creditOrders.dueDateUpdated"));
+        setShowDueDateModal(false);
+        setSelectedOrderForDueDate(null);
+        await loadOrders();
+      } else {
+        toast.error(
+          response.message || t("creditOrders.failedToUpdateDueDate"),
+        );
+      }
+    } catch (error) {
+      console.error("Error updating due date:", error);
+      toast.error(t("creditOrders.failedToUpdateDueDate"));
+    } finally {
+      setUpdatingDueDate(false);
+    }
+  };
+
+  const handleRemoveDueDate = async () => {
+    if (!selectedOrderForDueDate?.dueDate) return;
+
+    setUpdatingDueDate(true);
+    try {
+      const response = await updateOrderDueDate(
+        selectedOrderForDueDate._id,
+        null,
+      );
+      if (response.success) {
+        toast.success(t("creditOrders.dueDateRemoved"));
+        setShowDueDateModal(false);
+        setSelectedOrderForDueDate(null);
+        await loadOrders();
+      } else {
+        toast.error(
+          response.message || t("creditOrders.failedToRemoveDueDate"),
+        );
+      }
+    } catch (error) {
+      console.error("Error removing due date:", error);
+      toast.error(t("creditOrders.failedToRemoveDueDate"));
+    } finally {
+      setUpdatingDueDate(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -361,6 +446,8 @@ export const CreditOrders: React.FC = () => {
         onStorefrontChange={setSelectedStorefrontId}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodChange={setPaymentMethodFilter}
+        nearDueDateFilter={nearDueDateFilter}
+        onNearDueDateFilterChange={setNearDueDateFilter}
         orders={orders}
         filteredOrders={filteredOrders}
       />
@@ -386,7 +473,7 @@ export const CreditOrders: React.FC = () => {
 
             {/* Table container with horizontal scroll on mobile */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left min-w-[1000px]">
+              <table className="w-full text-sm text-left min-w-[1100px]">
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
@@ -440,6 +527,14 @@ export const CreditOrders: React.FC = () => {
                       </span>
                       <span className="sm:hidden">
                         {t("creditOrders.balance")}
+                      </span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.dueDate")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.dueDate")}
                       </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
@@ -540,6 +635,51 @@ export const CreditOrders: React.FC = () => {
                           <span className="hidden sm:inline">MMK</span>
                         </span>
                       </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="min-w-0">
+                          {order.dueDate ? (
+                            (() => {
+                              const dueDatePart = order.dueDate.split("T")[0];
+                              const urgency = getDueDateUrgency(dueDatePart, 7);
+                              return (
+                                <button
+                                  onClick={() => handleOpenDueDateModal(order)}
+                                  className={`rounded-lg px-2 py-1 text-left w-full transition-colors hover:opacity-80 ${
+                                    urgency === "near"
+                                      ? "bg-amber-50 border border-amber-200"
+                                      : ""
+                                  }`}
+                                >
+                                  <div
+                                    className={`font-medium text-xs sm:text-sm ${getDueDateCellClasses(
+                                      urgency,
+                                    )}`}
+                                  >
+                                    {formatDueDate(dueDatePart)}
+                                  </div>
+                                  {urgency === "expired" && (
+                                    <span className="inline-block mt-0.5 text-[10px] sm:text-xs font-semibold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
+                                      {t("creditOrders.dueDateExpired")}
+                                    </span>
+                                  )}
+                                  {urgency === "near" && (
+                                    <span className="inline-block mt-0.5 text-[10px] sm:text-xs font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                                      {t("creditOrders.dueDateDueSoon")}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })()
+                          ) : (
+                            <button
+                              onClick={() => handleOpenDueDateModal(order)}
+                              className="text-slate-400 text-xs sm:text-sm hover:text-blue-600 transition-colors cursor-pointer"
+                            >
+                              {t("creditOrders.noDueDate")}
+                            </button>
+                          )}
+                        </div>
+                      </td>
 
                       <td className="px-2 sm:px-4 py-3">
                         <div className="flex items-center gap-1 sm:gap-2">
@@ -603,7 +743,7 @@ export const CreditOrders: React.FC = () => {
         onClose={() => setSelectedOrder(null)}
         order={selectedOrder}
         loading={loadingDetail}
-        onRefresh={handleRefreshOrderDetails}
+        onOrderUpdate={handleRefreshOrderDetails}
       />
 
       {/* Credit Person Selection Modal */}
@@ -618,6 +758,87 @@ export const CreditOrders: React.FC = () => {
         }}
         onAssign={handleAssignCreditPerson}
       />
+      {/* Due Date Edit Modal */}
+      {showDueDateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                {t("creditOrders.editDueDateTitle")}
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {t("creditOrders.orderNumber")}
+                  </label>
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-600 text-sm">
+                    {selectedOrderForDueDate?.orderNumber}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {t("creditOrders.selectDueDate")}
+                  </label>
+                  <SingleDateCalendar
+                    value={newDueDate ? parseDueDateString(newDueDate) : null}
+                    onChange={(date) => {
+                      const formatted = formatDateForAPI(date);
+                      if (formatted) setNewDueDate(formatted);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {selectedOrderForDueDate?.dueDate && (
+                <button
+                  type="button"
+                  onClick={handleRemoveDueDate}
+                  disabled={updatingDueDate}
+                  className="w-full mt-4 py-2.5 px-4 rounded-xl border border-red-200 text-red-700 font-semibold hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {updatingDueDate ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  {t("creditOrders.removeDueDate")}
+                </button>
+              )}
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    setShowDueDateModal(false);
+                    setSelectedOrderForDueDate(null);
+                  }}
+                  disabled={updatingDueDate}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  {t("creditOrders.cancel")}
+                </button>
+                <button
+                  onClick={handleUpdateDueDate}
+                  disabled={updatingDueDate || !newDueDate}
+                  className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                >
+                  {updatingDueDate ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      {t("creditOrders.updatingDueDate")}
+                    </>
+                  ) : (
+                    t("creditOrders.confirm")
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Paid Amount Edit Modal */}
       {showPaidAmountModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">

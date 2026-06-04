@@ -516,14 +516,14 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
             </div>
           )}
         </div>
-      </Modal>
 
-      <OrderDetailModal
-        isOpen={isOrderModalOpen}
-        order={selectedViewOrder}
-        loading={false}
-        onClose={() => setIsOrderModalOpen(false)}
-      />
+        <OrderDetailModal
+          isOpen={isOrderModalOpen}
+          order={selectedViewOrder}
+          loading={false}
+          onClose={() => setIsOrderModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 };

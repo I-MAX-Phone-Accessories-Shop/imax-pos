@@ -65,6 +65,7 @@ export interface Order {
   updatedAt: string;
   totalPaidAmount?: Record<string, unknown>;
   remainingBalance?: number;
+  dueDate?: string | null;
   id?: string;
 }
 
@@ -80,6 +81,7 @@ export interface FetchOrdersQueryOptions {
   limit?: number;
   storefrontId?: string | null;
   paymentMethod?: string | null;
+  creditPersonId?: string | null;
   saleType?: "storefront" | "direct-sale";
   /** Server-side search (e.g. product name) — GET /order?search=... */
   search?: string | null;
@@ -100,9 +102,12 @@ export const fetchOrders = async (
 ): Promise<FetchOrdersResponse> => {
   try {
     const params = new URLSearchParams();
-    params.append("saleType", query?.saleType ?? "storefront");
     params.append("page", String(query?.page ?? 1));
     params.append("limit", String(query?.limit ?? 100));
+
+    if (query?.saleType) {
+      params.append("saleType", query.saleType);
+    }
 
     if (paymentType && paymentType !== "all") {
       params.append("paymentType", paymentType);
@@ -114,6 +119,10 @@ export const fetchOrders = async (
 
     if (query?.storefrontId) {
       params.append("storefrontId", query.storefrontId);
+    }
+
+    if (query?.creditPersonId) {
+      params.append("creditPersonId", query.creditPersonId);
     }
 
     if (query?.search) {

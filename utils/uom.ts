@@ -97,17 +97,11 @@ export function buildOrderProductLine(
   baseUnit: string,
   selectedUnit: string,
 ): { inventoryId: string; quantity: number; unit?: string } {
-  const payload: { inventoryId: string; quantity: number; unit?: string } = {
+  return {
     inventoryId,
     quantity,
+    unit: selectedUnit || baseUnit,
   };
-  if (
-    selectedUnit &&
-    normalizeUnit(selectedUnit) !== normalizeUnit(baseUnit)
-  ) {
-    payload.unit = normalizeUnit(selectedUnit);
-  }
-  return payload;
 }
 
 export function validateUomConversions(

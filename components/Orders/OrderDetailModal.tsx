@@ -20,6 +20,9 @@ import {
   getPaymentMethodLabel,
   getPaymentTypeColor,
   formatDate,
+  formatDueDate,
+  isDueDateExpired,
+  getDueDateUrgency,
 } from "./orderUtils";
 import { useLanguage } from "../../context/LanguageContext";
 import { getSavedPrintPaperSize } from "../../utils/printPaperSize";
@@ -202,6 +205,38 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   <span>{formatDate(order.createdAt)}</span>
                 </div>
               </div>
+
+              {order.paymentType === "credit" && order.dueDate && (
+                <div
+                  className={`mb-6 p-4 rounded-lg border text-sm ${
+                    getDueDateUrgency(order.dueDate.split("T")[0]) === "expired"
+                      ? "bg-red-50 border-red-200"
+                      : getDueDateUrgency(order.dueDate.split("T")[0]) === "near"
+                        ? "bg-amber-50 border-amber-200"
+                        : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-4 h-4 shrink-0 text-slate-600" />
+                    <p className="text-xs font-medium text-slate-600">
+                      {t("creditOrders.dueDate")}
+                    </p>
+                  </div>
+                  <p className="font-bold text-slate-800">
+                    {formatDueDate(order.dueDate.split("T")[0])}
+                  </p>
+                  {isDueDateExpired(order.dueDate.split("T")[0]) && (
+                    <span className="inline-block mt-2 text-xs font-semibold text-red-700 bg-red-100 px-2 py-0.5 rounded">
+                      {t("creditOrders.dueDateExpired")}
+                    </span>
+                  )}
+                  {getDueDateUrgency(order.dueDate.split("T")[0]) === "near" && (
+                    <span className="inline-block mt-2 text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+                      {t("creditOrders.dueDateDueSoon")}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Customer (direct sale) */}
               {hasCustomer && (

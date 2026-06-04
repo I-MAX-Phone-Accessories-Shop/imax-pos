@@ -343,6 +343,9 @@ export const useDirectSale = () => {
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
+        ...(selectedCreditPersonId
+          ? { creditPersonId: selectedCreditPersonId }
+          : {}),
       };
 
       const result = await createDirectSale(orderPayload);
@@ -366,6 +369,7 @@ export const useDirectSale = () => {
           change: finalPaidAmount - total,
           paymentMethod,
           note,
+          creditPersonName: creditPersonas.find(cp => cp._id === selectedCreditPersonId)?.name,
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;

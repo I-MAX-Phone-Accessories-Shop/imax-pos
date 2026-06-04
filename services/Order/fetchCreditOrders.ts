@@ -11,6 +11,7 @@ export const fetchCreditOrders = async (
   startDate?: string | null,
   endDate?: string | null,
   paymentMethod?: string | null,
+  dueDays?: number | null,
 ): Promise<FetchCreditOrdersResponse> => {
   try {
     let url = "/order";
@@ -33,6 +34,10 @@ export const fetchCreditOrders = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+
+    if (dueDays != null && dueDays > 0) {
+      params.append("dueDays", String(dueDays));
     }
 
     if (params.toString()) {

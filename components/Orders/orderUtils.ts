@@ -55,3 +55,61 @@ export const formatDate = (dateString: string) => {
   });
 };
 
+export const parseDueDateString = (dateString: string): Date => {
+  const datePart = dateString.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export const formatDueDate = (dateString: string) => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+export const isDueDateExpired = (dueDate: string): boolean => {
+  const [year, month, day] = dueDate.split("-").map(Number);
+  const due = new Date(year, month - 1, day);
+  due.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+};
+
+export const isDueDateWithinDays = (dueDate: string, days: number): boolean => {
+  const [year, month, day] = dueDate.split("-").map(Number);
+  const due = new Date(year, month - 1, day);
+  due.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const limit = new Date(today);
+  limit.setDate(limit.getDate() + days);
+  return due >= today && due <= limit;
+};
+
+export type DueDateUrgency = "expired" | "near" | "normal";
+
+export const getDueDateUrgency = (
+  dueDate: string,
+  withinDays = 7,
+): DueDateUrgency => {
+  if (isDueDateExpired(dueDate)) return "expired";
+  if (isDueDateWithinDays(dueDate, withinDays)) return "near";
+  return "normal";
+};
+
+export const getDueDateCellClasses = (urgency: DueDateUrgency): string => {
+  switch (urgency) {
+    case "expired":
+      return "text-red-700";
+    case "near":
+      return "text-amber-800 font-semibold";
+    default:
+      return "text-slate-800";
+  }
+};
+

@@ -345,6 +345,7 @@ export const usePOS = () => {
         ...(paymentType === "credit" && selectedCreditPersonId
           ? { creditPersonId: selectedCreditPersonId }
           : {}),
+        ...(note.trim() ? { note: note.trim() } : {}),
       };
 
       const result = await createOrder(orderPayload);

@@ -213,7 +213,7 @@ export const WarehouseDetail: React.FC = () => {
           productCode: item.inventoryId.productCode,
           productName: item.inventoryId.productName,
           quantity: 1,
-          maxQuantity: item.availableQuantity,
+          maxQuantity: item.quantity,
           notes: "",
         },
       ]);

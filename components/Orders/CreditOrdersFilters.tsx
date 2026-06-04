@@ -1,5 +1,5 @@
 import React from "react";
-import { Search } from "lucide-react";
+import { Search, CalendarClock } from "lucide-react";
 import { StorefrontProfile } from "../../services/Storefront/fetchStorefrontProfiles";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -11,6 +11,8 @@ interface CreditOrdersFiltersProps {
   onStorefrontChange: (value: string) => void;
   paymentMethodFilter: string;
   onPaymentMethodChange: (value: string) => void;
+  nearDueDateFilter: boolean;
+  onNearDueDateFilterChange: (value: boolean) => void;
   orders: any[];
   filteredOrders: any[];
 }
@@ -23,6 +25,8 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
   onStorefrontChange,
   paymentMethodFilter,
   onPaymentMethodChange,
+  nearDueDateFilter,
+  onNearDueDateFilterChange,
   orders,
   filteredOrders,
 }) => {
@@ -71,6 +75,24 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
               <option value="hot">Hot</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={() => onNearDueDateFilterChange(!nearDueDateFilter)}
+            className={`flex items-center gap-2 px-3 py-2.5 sm:px-4 rounded-lg border text-sm sm:text-base font-medium whitespace-nowrap transition-colors ${
+              nearDueDateFilter
+                ? "bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200"
+                : "bg-white border-gray-200 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <CalendarClock className="w-4 h-4 shrink-0" />
+            <span className="hidden xl:inline">
+              {t("creditOrders.nearDueDate")}
+            </span>
+            <span className="sm:hidden">
+              {t("creditOrders.nearDueDateShort")}
+            </span>
+          </button>
 
           {/* Results count */}
           <div className="text-sm text-slate-500 whitespace-nowrap">

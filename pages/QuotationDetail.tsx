@@ -96,6 +96,7 @@ export const QuotationDetail: React.FC = () => {
   }
 
   const products = getQuotationProducts(quotation);
+  console.log("products", products);
   const convertedOrder =
     typeof quotation.convertedOrderId === "object"
       ? quotation.convertedOrderId
@@ -125,7 +126,10 @@ export const QuotationDetail: React.FC = () => {
             <p className="text-sm text-slate-500 mt-1">
               {t("common.date")}: {formatQuotationDate(quotation.createdAt)}
               {quotation.createdBy?.name && (
-                <> · {t("quotation.createdBy")}: {quotation.createdBy.name}</>
+                <>
+                  {" "}
+                  · {t("quotation.createdBy")}: {quotation.createdBy.name}
+                </>
               )}
             </p>
           </div>
@@ -171,7 +175,9 @@ export const QuotationDetail: React.FC = () => {
           <p className="text-sm text-emerald-800">
             {t("quotation.convertedToOrder")}
             {convertedOrder.orderNumber && (
-              <span className="font-semibold ml-1">{convertedOrder.orderNumber}</span>
+              <span className="font-semibold ml-1">
+                {convertedOrder.orderNumber}
+              </span>
             )}
           </p>
           <Link
@@ -186,13 +192,19 @@ export const QuotationDetail: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border p-4 space-y-2 text-sm">
-          <h2 className="font-semibold text-slate-800 mb-2">{t("quotation.customerInfo")}</h2>
+          <h2 className="font-semibold text-slate-800 mb-2">
+            {t("quotation.customerInfo")}
+          </h2>
           <p>
-            <span className="text-slate-500">{t("quotation.customerName")}:</span>{" "}
+            <span className="text-slate-500">
+              {t("quotation.customerName")}:
+            </span>{" "}
             {quotation.customerName || "—"}
           </p>
           <p>
-            <span className="text-slate-500">{t("quotation.customerPhone")}:</span>{" "}
+            <span className="text-slate-500">
+              {t("quotation.customerPhone")}:
+            </span>{" "}
             {quotation.customerPhone || "—"}
           </p>
           <p>
@@ -201,7 +213,9 @@ export const QuotationDetail: React.FC = () => {
           </p>
         </div>
         <div className="bg-white rounded-xl border p-4 space-y-2 text-sm">
-          <h2 className="font-semibold text-slate-800 mb-2">{t("quotation.saleInfo")}</h2>
+          <h2 className="font-semibold text-slate-800 mb-2">
+            {t("quotation.saleInfo")}
+          </h2>
           <p>
             <span className="text-slate-500">{t("quotation.saleType")}:</span>{" "}
             {quotation.saleType === "direct-sale"
@@ -210,7 +224,9 @@ export const QuotationDetail: React.FC = () => {
           </p>
           {quotation.saleType === "storefront" && (
             <p>
-              <span className="text-slate-500">{t("quotation.storefront")}:</span>{" "}
+              <span className="text-slate-500">
+                {t("quotation.storefront")}:
+              </span>{" "}
               {getStorefrontLabel(quotation.storefrontId)}
             </p>
           )}
@@ -226,16 +242,23 @@ export const QuotationDetail: React.FC = () => {
             <thead className="bg-slate-50">
               <tr>
                 <th className="text-left px-4 py-2 w-10">#</th>
-                <th className="text-left px-4 py-2">{t("quotation.productName")}</th>
-                <th className="text-left px-4 py-2">{t("quotation.productCode")}</th>
+                <th className="text-left px-4 py-2">
+                  {t("quotation.productName")}
+                </th>
+                <th className="text-left px-4 py-2">
+                  {t("quotation.productCode")}
+                </th>
                 <th className="text-left px-4 py-2">{t("quotation.unit")}</th>
                 <th className="text-right px-4 py-2">{t("common.quantity")}</th>
-                <th className="text-right px-4 py-2">{t("quotation.unitPrice")}</th>
+                <th className="text-right px-4 py-2">
+                  {t("quotation.unitPrice")}
+                </th>
                 <th className="text-right px-4 py-2">{t("common.total")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {products.map((p, idx) => {
+                console.log(p);
                 const inv = p.inventoryId;
                 const name =
                   p.productName ||
@@ -254,7 +277,9 @@ export const QuotationDetail: React.FC = () => {
                     <td className="px-4 py-2 text-slate-600">{code}</td>
                     <td className="px-4 py-2">{p.unit || "—"}</td>
                     <td className="px-4 py-2 text-right">{p.quantity}</td>
-                    <td className="px-4 py-2 text-right">{formatMMK(unitPrice)}</td>
+                    <td className="px-4 py-2 text-right">
+                      {formatMMK(unitPrice)}
+                    </td>
                     <td className="px-4 py-2 text-right font-medium">
                       {formatMMK(lineTotal)}
                     </td>
@@ -281,7 +306,9 @@ export const QuotationDetail: React.FC = () => {
         </div>
         <div className="flex justify-between pt-2 border-t font-bold text-base">
           <span>{t("quotation.finalAmount")}</span>
-          <span className="text-primary">{formatMMK(quotation.finalAmount)}</span>
+          <span className="text-primary">
+            {formatMMK(quotation.finalAmount)}
+          </span>
         </div>
       </div>
 

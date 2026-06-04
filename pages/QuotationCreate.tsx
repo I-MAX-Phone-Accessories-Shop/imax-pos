@@ -739,6 +739,11 @@ export const QuotationCreate: React.FC = () => {
                       selectedUnit={item.selectedUnit}
                       onUnitChange={(unit) => setCartLineUnit(lineId, unit)}
                     />
+                    {!conversions?.length && (
+                      <span className="text-xs font-medium text-gray-700">
+                        {item.selectedUnit}
+                      </span>
+                    )}
                     <div className="flex items-center gap-2 ml-auto">
                       <button
                         type="button"

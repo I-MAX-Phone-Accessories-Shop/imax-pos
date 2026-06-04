@@ -4,7 +4,7 @@ import { PrintPaperSize } from "../../utils/printPaperSize";
 
 export interface VoucherReceiptItem {
   name: string;
-  code?: string;
+  code: string;
   qty: number;
   /** Unit of measure, e.g. ကျင်း, မူး */
   unit?: string;
@@ -40,6 +40,7 @@ export interface VoucherReceiptData {
   change?: number;
   note?: string;
   documentType?: VoucherDocumentType;
+  creditPersonName?: string;
 }
 
 interface VoucherContentProps {
@@ -61,6 +62,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
     shopBranding.phone && `Tel: ${shopBranding.phone}`,
     shopBranding.website,
   ].filter(Boolean);
+  console.log("receiptData", receiptData);
 
   return (
     <div className="voucher-container" data-paper={paperSize}>
@@ -91,17 +93,19 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           isThermal ? "flex-col gap-1" : ""
         }`}
       >
-        {/* <div>
-          <p className="font-bold mb-0.5">
-            {isQuotation ? "QUOTATION TO :" : "INVOICE TO :"}
-          </p>
-          <p>{receiptData.storefrontName}</p>
-        </div> */}
+        {receiptData.creditPersonName && (
+          <div>
+            <p className="font-bold mb-0.5">BILL TO:</p>
+            <p>{receiptData.creditPersonName}</p>
+          </div>
+        )}
         <div className={isThermal ? "" : "text-right"}>
           <p className="font-bold mb-0.5">
             {isQuotation ? "QUOTATION NO" : "INVOICE NO"} :{" "}
             {receiptData.invoiceNumber}
           </p>
+        </div>
+        <div>
           <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
         </div>
       </div>
@@ -146,6 +150,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <thead>
               <tr>
                 <th style={{ width: "8%" }}>NO</th>
+                <th style={{ width: "8%" }}>CODE</th>
                 <th style={{ width: "38%" }}>ITEM DESCRIPTION</th>
                 <th style={{ width: "12%" }}>PRICE</th>
                 <th style={{ width: "10%" }}>QTY.</th>
@@ -157,6 +162,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               {receiptData.items.map((item, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
+                  <td>{item.code}</td>
                   <td>{item.name}</td>
                   <td>{item.price.toLocaleString()}</td>
                   <td>{formatReceiptQty(item)}</td>
