@@ -33,7 +33,7 @@ import {
   getDueDateUrgency,
   getDueDateCellClasses,
 } from "../components/Orders/orderUtils";
-import { SingleDateCalendar } from "../components/common/SingleDateCalendar";
+import { SingleDateCalendar } from "../components/Common/SingleDateCalendar";
 import { CreditOrdersFilters } from "../components/Orders/CreditOrdersFilters";
 import { OrderDetailModal } from "../components/Orders/OrderDetailModal";
 import { CreditPersonModal } from "../components/Orders/CreditPersonModal";
