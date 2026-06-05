@@ -114,7 +114,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: t("sidebar.creditOrder"),
             icon: CreditCard,
           },
-          { path: "/quotations", label: t("sidebar.quotations"), icon: FileText },
+          {
+            path: "/quotations",
+            label: t("sidebar.quotations"),
+            icon: FileText,
+          },
         ],
       },
       {
@@ -271,11 +275,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-3">
             <img
               src="/shewpyi.jpg"
-              alt="shewpyi-pos Logo"
+              alt="shewpyi-erp Logo"
               className="w-10 h-10 object-contain rounded-lg"
             />
             <h1 className="text-xl font-bold text-white tracking-tight">
-              shewpyi-pos
+              shewpyi-erp
             </h1>
           </div>
           <button

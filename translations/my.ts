@@ -52,8 +52,8 @@ export const my = {
     processing: "လုပ်ဆောင်နေသည်...",
   },
   app: {
-    title: "shewpyi-pos",
-    subtitle: "POS စနစ်",
+    title: "shewpyi-erp",
+    subtitle: "ERP စနစ်",
   },
   login: {
     title: "သင့်အကောင့်သို့ ဝင်ရောက်ပါ",
@@ -68,7 +68,7 @@ export const my = {
     checkCredentials:
       "ဝင်ရောက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ သင့်အထောက်အထားများကို စစ်ဆေးပါ။",
     welcomeBack: "{name} ကို ပြန်လည်ကြိုဆိုပါသည်!",
-    copyright: "© 2024 shewpyi-pos မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
+    copyright: "© 2024 shewpyi-erp မူပိုင်ခွင့်အားလုံး လက်ဝယ်ရှိသည်။",
   },
   sidebar: {
     groupSales: "ရောင်းချမှု",
