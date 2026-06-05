@@ -90,7 +90,7 @@ export const my = {
     directSaleOrders: "တိုက်ရိုက် ရောင်းချမှု အော်ဒါများ",
     creditOrder: "အကြွေး အော်ဒါများ",
     quotations: "ယာယီ Order (Quotation)",
-    creditSales: "အကြွေး ရောင်းချမှုများ",
+    creditSales: "Customer",
     expenses: "အထွေထွေ အသုံးစရိတ်",
     reports: "အစီရင်ခံစာများ",
     accountManagement: "အကောင့်စီမံခန့်ခွဲမှု",
