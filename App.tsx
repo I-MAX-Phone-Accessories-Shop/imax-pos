@@ -54,7 +54,7 @@ const AppLayout: React.FC = () => {
                   <Menu className="w-6 h-6 text-white" />
                 </button>
                 <h1 className="text-lg font-bold text-white tracking-wide">
-                  Shewpyi-ERP System
+                  Shwepyi-ERP System
                 </h1>
               </div>
               <div className="flex items-center gap-2">
