@@ -42,7 +42,9 @@ interface DirectSaleCheckoutModalProps {
   t: (key: string) => string;
 }
 
-export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = ({
+export const DirectSaleCheckoutModal: React.FC<
+  DirectSaleCheckoutModalProps
+> = ({
   showCheckoutModal,
   setShowCheckoutModal,
   cart,
@@ -168,32 +170,30 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
           </div>
 
           {/* {paymentType === "credit" && ( */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-               {t("directSale.selectCustomer")}
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                <select
-                  className="w-full pl-9 pr-4 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
-                  value={selectedCreditPersonId}
-                  onChange={(e) =>
-                    setSelectedCreditPersonId(e.target.value)
-                  }
-                >
-                  <option value="">
-                    {creditPersonas.length === 0
-                      ? `-- ${t("directSale.noCustomers")} --`
-                      : `-- ${t("directSale.selectCustomerOptional")} --`}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t("directSale.selectCustomer")}
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <select
+                className="w-full pl-9 pr-4 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
+                value={selectedCreditPersonId}
+                onChange={(e) => setSelectedCreditPersonId(e.target.value)}
+              >
+                <option value="">
+                  {creditPersonas.length === 0
+                    ? `-- ${t("directSale.noCustomers")} --`
+                    : `-- ${t("directSale.selectCustomerOptional")} --`}
+                </option>
+                {creditPersonas.map((persona) => (
+                  <option key={persona._id} value={persona._id}>
+                    {persona.name} - {persona.phone}
                   </option>
-                  {creditPersonas.map((persona) => (
-                    <option key={persona._id} value={persona._id}>
-                      {persona.name} - {persona.phone}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                ))}
+              </select>
             </div>
+          </div>
           {/* // )} */}
 
           <div>
@@ -215,11 +215,21 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
               ) : (
                 <>
                   <option value={PaymentMethod.CASH}>{t("pos.cash")}</option>
-                  <option value={PaymentMethod.KBZ_PAY}>{t("pos.kbzPay")}</option>
-                  <option value={PaymentMethod.WAVE_PAY}>{t("pos.wavePay")}</option>
-                  <option value={PaymentMethod.AYA_PAY}>{t("pos.ayaPay")}</option>
-                  <option value={PaymentMethod.UAB_PAY}>{t("pos.uabPay")}</option>
-                  <option value={PaymentMethod.BANK_TRANSFER}>{t("pos.bankTransfer")}</option>
+                  <option value={PaymentMethod.KBZ_PAY}>
+                    {t("pos.kbzPay")}
+                  </option>
+                  <option value={PaymentMethod.WAVE_PAY}>
+                    {t("pos.wavePay")}
+                  </option>
+                  <option value={PaymentMethod.AYA_PAY}>
+                    {t("pos.ayaPay")}
+                  </option>
+                  <option value={PaymentMethod.UAB_PAY}>
+                    {t("pos.uabPay")}
+                  </option>
+                  <option value={PaymentMethod.BANK_TRANSFER}>
+                    {t("pos.bankTransfer")}
+                  </option>
                   <option value={PaymentMethod.MMQR}>MMQR</option>
                   <option value={PaymentMethod.FOC}>FOC</option>
                 </>
@@ -272,7 +282,7 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
                 min="0"
                 max="100"
                 className="discount-input w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                value={discount}
+                value={discount.toFixed(2)}
                 onChange={(e) => setDiscount(Number(e.target.value))}
               />
             </div>
@@ -314,10 +324,11 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
               type="number"
               min="0"
               disabled={paymentMethod === PaymentMethod.FOC}
-              className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
+              className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
+                paymentMethod === PaymentMethod.FOC
                   ? "bg-gray-100 cursor-not-allowed"
                   : ""
-                }`}
+              }`}
               value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
               onChange={(e) => {
                 const value =
@@ -353,7 +364,7 @@ export const DirectSaleCheckoutModal: React.FC<DirectSaleCheckoutModalProps> = (
             {!useMarkup && discount > 0 && (
               <div className="flex justify-between text-sm text-green-600">
                 <span>
-                  {t("common.discount")} ({discount}%)
+                  {t("common.discount")} ({discount.toFixed(2)}%)
                 </span>
                 <span>-{combinedDiscountAmount.toLocaleString()} MMK</span>
               </div>

@@ -68,9 +68,7 @@ export const DiscountCalculator: React.FC<DiscountCalculatorProps> = ({
           {discountAmount && Number(discountAmount) > 0 && (
             <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-slate-600">
-                  Discount Amount:
-                </span>
+                <span className="text-sm text-slate-600">Discount Amount:</span>
                 <span className="font-bold text-green-700">
                   {Number(discountAmount).toLocaleString()} MMK
                 </span>
@@ -103,10 +101,8 @@ export const DiscountCalculator: React.FC<DiscountCalculatorProps> = ({
             <button
               onClick={() => {
                 if (discountAmount && Number(discountAmount) > 0) {
-                  const calculatedPercentage = (
-                    (Number(discountAmount) / subtotal) *
-                    100
-                  ).toFixed(2);
+                  const calculatedPercentage =
+                    (Number(discountAmount) / subtotal) * 100;
                   setDiscount(Number(calculatedPercentage));
                   setShowDiscountCalculator(false);
                   setDiscountAmount("");

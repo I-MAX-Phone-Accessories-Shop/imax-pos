@@ -150,9 +150,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
       } else {
         // Calculate discount percentage
         calculatedPercent =
-          subtotal > 0
-            ? Math.round((existingDiscount / subtotal) * 100 * 100) / 100
-            : 0;
+          subtotal > 0 ? ((existingDiscount / subtotal) * 100 * 100) / 100 : 0;
         setDiscountPercent(calculatedPercent);
         setMarkup(0);
       }
@@ -748,8 +746,9 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                               {item.productName}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {item.productCode} · {item.unitPrice.toLocaleString()}{" "}
-                              MMK / {item.selectedUnit}
+                              {item.productCode} ·{" "}
+                              {item.unitPrice.toLocaleString()} MMK /{" "}
+                              {item.selectedUnit}
                             </p>
                           </div>
                           <button
@@ -1029,9 +1028,7 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
 
       <ConfirmModal
         isOpen={showPaidAmountConfirm}
-        title={
-          t("orders.confirmPaidAmountTitle") || "Confirm Paid Amount"
-        }
+        title={t("orders.confirmPaidAmountTitle") || "Confirm Paid Amount"}
         message={paidAmountConfirmMessage}
         confirmText={t("orders.confirmAddItems") || "Yes, Add Items"}
         confirmButtonColor="primary"

@@ -279,7 +279,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               className="w-10 h-10 object-contain rounded-lg"
             />
             <h1 className="text-xl font-bold text-white tracking-tight">
-              shewpyi-erp
+              Shewpyi-ERP
             </h1>
           </div>
           <button
