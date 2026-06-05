@@ -4,6 +4,7 @@ import { CreditPersona } from "./fetchCreditPersonas";
 export interface UpdateCreditPersonaPayload {
   name?: string;
   phone?: string;
+  creditLimit?: number;
 }
 
 interface UpdateCreditPersonaResponse {

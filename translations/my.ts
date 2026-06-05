@@ -458,6 +458,8 @@ export const my = {
     totalOutstanding: "စုစုပေါင်းလက်ကျန်",
     view: "အသေးစိတ် ကြည့်ရှုမည်",
     noCredits: "အကြွေးရောင်းချမှုများ မတွေ့ရှိပါ",
+    creditLimit: "အကြွေးကန့်သတ်ငွေ",
+    creditLimitPlaceholder: "အကြွေးကန့်သတ်ငွေ ထည့်ပါ (ရွေးချယ်ရန်)",
   },
   creditDetail: {
     title: "အကြွေး",
@@ -505,6 +507,8 @@ export const my = {
     failedToRecord: "ပေးချေမှု မှတ်တမ်းတင်ရန် မအောင်မြင်ပါ",
     loading: "အကြွေးအသေးစိတ် ခေတ္တစောင့်ဆိုင်းနေသည်...",
     refresh: "ပြန်လည်စတင်မည်",
+    creditLimit: "အကြွေးကန့်သတ်ငွေ",
+    remainingLimit: "ကျန်ရှိသည့် ကန့်သတ်ငွေ",
   },
   expenses: {
     title: "ဆိုင်အသုံးစရိတ်",

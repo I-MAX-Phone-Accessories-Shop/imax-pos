@@ -4,6 +4,7 @@ export interface CreditPersona {
   _id: string;
   name: string;
   phone: string;
+  creditLimit?: number;
   blacklist: boolean;
   blacklistReason: string | null;
   blacklistDate: string | null;

@@ -452,6 +452,8 @@ export const en = {
     totalOutstanding: "Total Outstanding",
     view: "View Details",
     noCredits: "No credit sales found",
+    creditLimit: "Credit Limit",
+    creditLimitPlaceholder: "Enter credit limit (optional)",
   },
   creditDetail: {
     title: "Credit",
@@ -499,6 +501,8 @@ export const en = {
     failedToRecord: "Failed to record payment",
     loading: "Loading credit details...",
     refresh: "Refresh",
+    creditLimit: "Credit Limit",
+    remainingLimit: "Remaining Limit",
   },
   expenses: {
     title: "Shop Expenses",

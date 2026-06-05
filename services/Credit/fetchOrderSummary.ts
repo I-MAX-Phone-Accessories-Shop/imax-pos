@@ -4,6 +4,8 @@ export interface OrderSummaryCreditPerson {
   _id: string;
   name: string;
   phone: string;
+  creditLimit: number | null;
+  remainingLimit: number | null;
 }
 
 export interface OrderSummaryBreakdown {

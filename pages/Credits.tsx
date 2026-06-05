@@ -34,7 +34,7 @@ export const Credits: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", phone: "" });
+  const [formData, setFormData] = useState({ name: "", phone: "", creditLimit: "" });
 
   useEffect(() => {
     loadCreditPersonas();
@@ -64,20 +64,20 @@ export const Credits: React.FC = () => {
 
   const handleOpenAddModal = () => {
     setEditingId(null);
-    setFormData({ name: "", phone: "" });
+    setFormData({ name: "", phone: "", creditLimit: "" });
     setIsAddModalOpen(true);
   };
 
   const handleOpenEditModal = (persona: CreditPersona) => {
     setEditingId(persona._id);
-    setFormData({ name: persona.name, phone: persona.phone });
+    setFormData({ name: persona.name, phone: persona.phone, creditLimit: persona.creditLimit?.toString() || "" });
     setIsAddModalOpen(true);
   };
 
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
     setEditingId(null);
-    setFormData({ name: "", phone: "" });
+    setFormData({ name: "", phone: "", creditLimit: "" });
   };
 
   const handleSubmitProfile = async () => {
@@ -97,6 +97,7 @@ export const Credits: React.FC = () => {
         const response = await updateCreditPersona(editingId, {
           name: formData.name.trim(),
           phone: formData.phone.trim(),
+          ...(formData.creditLimit ? { creditLimit: Number(formData.creditLimit) } : {}),
         });
 
         if (response.success) {
@@ -111,6 +112,7 @@ export const Credits: React.FC = () => {
         const response = await createCreditPersona({
           name: formData.name.trim(),
           phone: formData.phone.trim(),
+          ...(formData.creditLimit ? { creditLimit: Number(formData.creditLimit) } : {}),
         });
 
         if (response.success) {
@@ -467,6 +469,22 @@ export const Credits: React.FC = () => {
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  {t("credits.creditLimit")} ({t("common.optional")})
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  placeholder={t("credits.creditLimitPlaceholder")}
+                  value={formData.creditLimit}
+                  onChange={(e) =>
+                    setFormData({ ...formData, creditLimit: e.target.value })
                   }
                 />
               </div>
