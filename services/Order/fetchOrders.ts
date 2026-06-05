@@ -58,6 +58,7 @@ export interface Order {
   updatedAt: string;
   totalPaidAmount?: Record<string, unknown>;
   remainingBalance?: number;
+  note?: string;
   id?: string;
 }
 

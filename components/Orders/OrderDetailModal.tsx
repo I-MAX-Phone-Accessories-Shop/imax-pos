@@ -74,7 +74,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       paymentMethod: getPaymentMethodLabel(order.paymentMethod),
       paidAmount: order.paidAmount,
       change: order.extraChange,
-      note: (order as any).notes,
+      note: order.note,
     };
 
     // Save receipt data to localStorage for A4 printing
@@ -230,6 +230,16 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                     </div>
                   )}
               </div>
+
+              {/* Note */}
+              {order.note && (
+                <div className="mb-6 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <p className="text-xs text-yellow-600 font-medium mb-1">
+                    Note
+                  </p>
+                  <p className="text-sm text-yellow-800">{order.note}</p>
+                </div>
+              )}
 
               {/* Products */}
               <div className="mb-6">

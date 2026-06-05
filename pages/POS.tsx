@@ -494,6 +494,7 @@ export const POS: React.FC = () => {
         finalAmount: total,
         paidAmount: finalPaidAmount,
         paymentType: paymentType,
+        note: note,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
         ...(paymentType === "credit" && selectedCreditPersonId
