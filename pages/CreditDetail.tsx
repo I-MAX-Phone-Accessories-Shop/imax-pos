@@ -510,7 +510,7 @@ export const CreditDetail: React.FC = () => {
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate("/credits")}
-          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          className="hidden md:block p-2 hover:bg-slate-100 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </button>
@@ -519,17 +519,17 @@ export const CreditDetail: React.FC = () => {
             <User className="w-6 h-6 text-primary" />
             {personName}
           </h1>
-          {personPhone && (
+          {/* {personPhone && (
             <p className="text-slate-500 text-sm flex items-center gap-1 mt-1">
               <Phone className="w-4 h-4" />
               {personPhone}
             </p>
-          )}
+          )} */}
           {mainTab === "summary" && orderSummary?.creditPerson && (
             <div className="flex items-center gap-4 mt-1">
               {orderSummary.creditPerson.creditLimit != null && (
                 <p className="text-sm text-slate-600 flex items-center gap-1">
-                  <Wallet className="w-4 h-4 text-blue-500" />
+                  <Wallet className="hidden xl:block w-4 h-4 text-blue-500" />
                   {t("creditDetail.creditLimit")}:{" "}
                   <span className="font-semibold">
                     {orderSummary.creditPerson.creditLimit.toLocaleString()} MMK
@@ -538,10 +538,11 @@ export const CreditDetail: React.FC = () => {
               )}
               {orderSummary.creditPerson.remainingLimit != null && (
                 <p className="text-sm text-slate-600 flex items-center gap-1">
-                  <Wallet className="w-4 h-4 text-green-500" />
+                  <Wallet className="hidden xl:block w-4 h-4 text-green-500" />
                   {t("creditDetail.remainingLimit")}:{" "}
                   <span className="font-semibold text-green-600">
-                    {orderSummary.creditPerson.remainingLimit.toLocaleString()} MMK
+                    {orderSummary.creditPerson.remainingLimit.toLocaleString()}{" "}
+                    MMK
                   </span>
                 </p>
               )}
@@ -554,7 +555,7 @@ export const CreditDetail: React.FC = () => {
           className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          {t("creditDetail.refresh")}
+          <span className="hidden md:inline">{t("creditDetail.refresh")}</span>
         </button>
         {personaDetail && (
           <div className="flex gap-2">
@@ -565,7 +566,7 @@ export const CreditDetail: React.FC = () => {
               <Box className="w-4 h-4" />
               Add Credit
             </button> */}
-            {personaDetail.orders.length > 0 && (
+            {personaDetail.orders.length > 0 && mainTab === "credit" && (
               <button
                 onClick={handleOpenAddPayment}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm transition-all active:scale-95"
@@ -1237,11 +1238,11 @@ export const CreditDetail: React.FC = () => {
                                   Order #
                                 </th>
                                 <th className="px-4 py-3 font-medium">Date</th>
-                                <th className="px-4 py-3 font-medium">Type</th>
-                                <th className="px-4 py-3 font-medium">
+                                {/* <th className="px-4 py-3 font-medium">Type</th> */}
+                                {/* <th className="px-4 py-3 font-medium">
                                   Storefront
-                                </th>
-                                <th className="px-4 py-3 font-medium">Items</th>
+                                </th> */}
+                                {/* <th className="px-4 py-3 font-medium">Items</th> */}
                                 <th className="px-4 py-3 font-medium text-right">
                                   Total
                                 </th>
@@ -1283,7 +1284,7 @@ export const CreditDetail: React.FC = () => {
                                       day: "numeric",
                                     })}
                                   </td>
-                                  <td className="px-4 py-3">
+                                  {/* <td className="px-4 py-3">
                                     <span
                                       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                                         order.saleType === "direct-sale"
@@ -1295,13 +1296,13 @@ export const CreditDetail: React.FC = () => {
                                         ? "Direct"
                                         : "Storefront"}
                                     </span>
-                                  </td>
-                                  <td className="px-4 py-3 text-slate-600">
+                                  </td> */}
+                                  {/* <td className="px-4 py-3 text-slate-600">
                                     {order.storefrontId?.locationName || "—"}
-                                  </td>
-                                  <td className="px-4 py-3 text-slate-600">
-                                    {order.ordersProducts?.length || 0}
-                                  </td>
+                                  </td> */}
+                                  {/* <td className="px-4 py-3 text-slate-600">
+                                      {order.ordersProducts?.length || 0}
+                                    </td> */}
                                   <td className="px-4 py-3 text-right font-medium text-slate-800">
                                     {order.finalAmount?.toLocaleString()} MMK
                                   </td>
