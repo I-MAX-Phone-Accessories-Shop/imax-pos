@@ -20,6 +20,7 @@ import {
   Users,
   MessageSquare,
   type LucideIcon,
+  ShoppingCart,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { removeAuthToken } from "../services/axios";
@@ -80,24 +81,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuGroups: MenuGroup[] = useMemo(
     () => [
-      // {
-      //   id: "sales",
-      //   label: t("sidebar.groupSales"),
-      //   icon: ShoppingCart,
-      //   children: [
-      //     { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
-      //     {
-      //       path: "/direct-sale",
-      //       label: t("sidebar.directSale"),
-      //       icon: ShoppingBag,
-      //     },
-      //     {
-      //       path: "/quotations/create",
-      //       label: t("sidebar.createQuotation"),
-      //       icon: FileText,
-      //     },
-      //   ],
-      // },
+      {
+        id: "sales",
+        label: t("sidebar.groupSales"),
+        icon: ShoppingCart,
+        children: [
+          { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
+          {
+            path: "/direct-sale",
+            label: t("sidebar.directSale"),
+            icon: ShoppingBag,
+          },
+          {
+            path: "/quotations/create",
+            label: t("sidebar.createQuotation"),
+            icon: FileText,
+          },
+        ],
+      },
       {
         id: "orders",
         label: t("sidebar.groupOrders"),

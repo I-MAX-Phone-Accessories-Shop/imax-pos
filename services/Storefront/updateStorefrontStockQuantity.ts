@@ -2,6 +2,7 @@ import axios from "../axios";
 
 export interface UpdateStorefrontStockQuantityPayload {
   quantityChange: number; // Positive for increase, negative for decrease
+  unit?: string;
   reason: string;
 }
 

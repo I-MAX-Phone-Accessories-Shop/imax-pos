@@ -34,7 +34,7 @@ import {
 } from "../services/Inventory/importExcel";
 import { useRef } from "react";
 import { ImportResultModal } from "../components/Inventory/ImportResultModal";
-import { all } from "axios";
+import { validateUomConversions } from "../utils/uom";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -92,6 +92,7 @@ export const Inventory: React.FC = () => {
     barcode: "",
     category: "",
     subCategory: "",
+    uomConversions: [],
     brand: "",
     description: "",
     buyingPrice: 0,
@@ -216,6 +217,7 @@ export const Inventory: React.FC = () => {
       description: "",
       buyingPrice: 0,
       sellingPrice: 0,
+      uomConversions: [],
       wholesalePrices: [],
       unitOfMeasure: "piece",
       reorderPoint: 0,
@@ -282,6 +284,16 @@ export const Inventory: React.FC = () => {
       return;
     }
 
+    const uomError = validateUomConversions(
+      formData.unitOfMeasure,
+      formData.uomConversions,
+    );
+    if (uomError) {
+      toast.error(uomError);
+      setError(uomError);
+      return;
+    }
+
     if (editingId) {
       // Update existing product via API
       setIsLoading(true);
@@ -297,6 +309,7 @@ export const Inventory: React.FC = () => {
           buyingPrice: formData.buyingPrice,
           sellingPrice: formData.sellingPrice,
           unitOfMeasure: formData.unitOfMeasure || "piece",
+          uomConversions: formData.uomConversions || [],
         };
 
         // Add optional fields only if they have values
@@ -320,7 +333,7 @@ export const Inventory: React.FC = () => {
         if (formData.note) apiPayload.note = formData.note;
         if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
           apiPayload.wholesalePrices = formData.wholesalePrices.map(
-            ({ quantity, price }) => ({ quantity, price }),
+            ({ unit, quantity, price }) => ({ unit, quantity, price }),
           );
         }
 
@@ -360,6 +373,7 @@ export const Inventory: React.FC = () => {
         buyingPrice: formData.buyingPrice,
         sellingPrice: formData.sellingPrice,
         unitOfMeasure: formData.unitOfMeasure || "piece",
+        uomConversions: formData.uomConversions || [],
       };
 
       // Add SKU only if it has a value, otherwise provide a default
@@ -391,7 +405,7 @@ export const Inventory: React.FC = () => {
       if (formData.note) apiPayload.note = formData.note;
       if (formData.wholesalePrices && formData.wholesalePrices.length > 0) {
         apiPayload.wholesalePrices = formData.wholesalePrices.map(
-          ({ quantity, price }) => ({ quantity, price }),
+          ({ unit, quantity, price }) => ({ unit, quantity, price }),
         );
       }
 
@@ -434,9 +448,11 @@ export const Inventory: React.FC = () => {
           (tier as { _id?: string; id?: string })._id ||
           (tier as { _id?: string; id?: string }).id ||
           `tier-${i}`,
+        unit: tier.unit || "",
         quantity: tier.quantity,
         price: tier.price,
       })),
+      uomConversions: apiProduct?.uomConversions || [],
       unitOfMeasure: apiProduct?.unitOfMeasure || "piece",
       reorderPoint: p.lowStockThreshold,
       reorderQuantity: apiProduct?.reorderQuantity || 0,

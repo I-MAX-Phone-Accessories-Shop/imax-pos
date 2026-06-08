@@ -1,4 +1,5 @@
 import axios from "../axios";
+import { UomConversion } from "../../types/uom";
 
 export interface WarehouseStockInventory {
   _id: string;
@@ -11,6 +12,8 @@ export interface WarehouseStockInventory {
   sellingPrice?: number;
   profitMargin: number | null;
   profitAmount: number | null;
+  unitOfMeasure?: string;
+  uomConversions?: UomConversion[];
 }
 
 export interface WarehouseStockWarehouse {

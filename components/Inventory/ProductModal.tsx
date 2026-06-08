@@ -122,6 +122,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onSave,
   onFormDataChange,
 }) => {
+  console.log("formData", formData);
   const { t } = useLanguage();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
@@ -190,7 +191,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const addWholesaleRow = () => {
     updateFormData({
-      wholesalePrices: [...wholesalePrices, { quantity: 0, price: 0, unit: "" }],
+      wholesalePrices: [
+        ...wholesalePrices,
+        { quantity: 0, price: 0, unit: "" },
+      ],
     });
   };
 
@@ -440,11 +444,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          {/* <UomConversionsEditor
+          <UomConversionsEditor
             baseUnit={formData.unitOfMeasure}
             conversions={formData.uomConversions}
             onChange={(uomConversions) => updateFormData({ uomConversions })}
-          /> */}
+          />
 
           {/* <div className="col-span-2">
             <label className="block text-xs font-bold text-slate-500">
@@ -553,7 +557,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         <input
                           type="text"
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
-                          value={wp.unit ?? ""}
+                          value={wp.unit || ""}
                           onChange={(e) =>
                             updateWholesaleRow(idx, "unit", e.target.value)
                           }

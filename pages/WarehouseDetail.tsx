@@ -36,6 +36,14 @@ import {
   updateWarehouseStockQuantity,
   UpdateWarehouseStockQuantityPayload,
 } from "../services/Warehouse/updateWarehouseStockQuantity";
+import { getUnitOptions } from "../utils/uom";
+
+function getWarehouseInventoryUom(inventoryId: { unitOfMeasure?: string; uomConversions?: import("../types/uom").UomConversion[] }) {
+  return {
+    baseUnit: inventoryId.unitOfMeasure?.trim() || "piece",
+    conversions: inventoryId.uomConversions,
+  };
+}
 
 interface TransferFormItem {
   productCode: string;
@@ -101,6 +109,7 @@ export const WarehouseDetail: React.FC = () => {
   );
   const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
   const [adjustmentReason, setAdjustmentReason] = useState("");
+  const [selectedAdjustmentUnit, setSelectedAdjustmentUnit] = useState("piece");
   const [isAdjusting, setIsAdjusting] = useState(false);
 
   useEffect(() => {
@@ -384,6 +393,8 @@ export const WarehouseDetail: React.FC = () => {
     setAdjustmentType(type);
     setAdjustmentQuantity(0);
     setAdjustmentReason("");
+    const { baseUnit } = getWarehouseInventoryUom(item.inventoryId);
+    setSelectedAdjustmentUnit(baseUnit);
     setIsAdjustmentModalOpen(true);
   };
 
@@ -415,6 +426,7 @@ export const WarehouseDetail: React.FC = () => {
 
       const payload: UpdateWarehouseStockQuantityPayload = {
         quantityChange,
+        unit: selectedAdjustmentUnit,
         reason: adjustmentReason.trim() || "",
       };
 
@@ -433,6 +445,7 @@ export const WarehouseDetail: React.FC = () => {
         setSelectedStockItem(null);
         setAdjustmentQuantity(0);
         setAdjustmentReason("");
+        setSelectedAdjustmentUnit("piece");
         loadWarehouseStock(); // Refresh stock
       } else {
         toast.error(result.message || "Failed to update stock quantity");
@@ -1155,6 +1168,37 @@ export const WarehouseDetail: React.FC = () => {
                     setAdjustmentQuantity(Number(e.target.value) || 0)
                   }
                 />
+              </div>
+
+              {/* Unit Selector */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Unit
+                </label>
+                {(() => {
+                  const { baseUnit, conversions } = getWarehouseInventoryUom(selectedStockItem.inventoryId);
+                  const unitOptions = getUnitOptions(baseUnit, conversions);
+                  if (unitOptions.length <= 1) {
+                    return (
+                      <div className="w-full border rounded-lg p-3 bg-slate-50 text-slate-700">
+                        {baseUnit}
+                      </div>
+                    );
+                  }
+                  return (
+                    <select
+                      className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
+                      value={selectedAdjustmentUnit}
+                      onChange={(e) => setSelectedAdjustmentUnit(e.target.value)}
+                    >
+                      {unitOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                })()}
               </div>
 
               {/* Reason Input */}
