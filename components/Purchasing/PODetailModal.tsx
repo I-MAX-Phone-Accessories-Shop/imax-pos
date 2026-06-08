@@ -2,9 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "../Modal";
 import {
   fetchPurchaseById,
+  PurchaseProduct,
   PurchaseDetail,
 } from "../../services/Purchase/fetchPurchaseById";
+import { updatePurchaseProductUnit } from "../../services/Purchase/updatePurchaseProductUnit";
+import { fetchProductById } from "../../services/Inventory/fetchProductById";
 import { Supplier } from "../../types";
+import { getUnitOptions } from "../../utils/uom";
+import { toast } from "sonner";
 import {
   Package,
   Calendar,
@@ -14,6 +19,7 @@ import {
   User,
   CheckCircle,
   Clock,
+  Loader2,
 } from "lucide-react";
 
 interface PODetailModalProps {
@@ -21,6 +27,7 @@ interface PODetailModalProps {
   onClose: () => void;
   purchaseId: string | null;
   suppliers: Supplier[];
+  onUpdate?: () => void;
 }
 
 export const PODetailModal: React.FC<PODetailModalProps> = ({
@@ -28,9 +35,15 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
   onClose,
   purchaseId,
   suppliers,
+  onUpdate,
 }) => {
   const [purchase, setPurchase] = useState<PurchaseDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<string | null>(null);
+  const [unitOptionsMap, setUnitOptionsMap] = useState<
+    Record<string, { value: string; label: string; isBase: boolean }[]>
+  >({});
+  const [updatingUnit, setUpdatingUnit] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && purchaseId) {
@@ -45,11 +58,62 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
       const res = await fetchPurchaseById(purchaseId);
       if (res.success && res.data) {
         setPurchase(res.data);
+        loadUnitOptions(res.data.products);
       }
     } catch (error) {
       console.error("Failed to load purchase details", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUnitOptions = async (products: PurchaseProduct[]) => {
+    const optionsMap: Record<string, { value: string; label: string; isBase: boolean }[]> = {};
+    for (const product of products) {
+      try {
+        const res = await fetchProductById(product.inventoryId);
+        if (res.success && res.data) {
+          const baseUnit = res.data.unitOfMeasure || "piece";
+          const conversions = res.data.uomConversions;
+          optionsMap[product._id] = getUnitOptions(baseUnit, conversions);
+        }
+      } catch {
+        optionsMap[product._id] = [{ value: "piece", label: "piece", isBase: true }];
+      }
+    }
+    setUnitOptionsMap(optionsMap);
+  };
+
+  const handleUnitChange = async (productId: string, newUnit: string) => {
+    if (!purchaseId || !purchase) return;
+
+    setUpdatingUnit(productId);
+    try {
+      const result = await updatePurchaseProductUnit(purchaseId, {
+        productId,
+        unit: newUnit,
+      });
+
+      if (result.success) {
+        setPurchase((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            products: prev.products.map((p) =>
+              p._id === productId ? { ...p, unit: newUnit } : p
+            ),
+          };
+        });
+        toast.success("Unit updated successfully");
+        onUpdate?.();
+      } else {
+        toast.error(result.message || "Failed to update unit");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update unit");
+    } finally {
+      setUpdatingUnit(null);
+      setEditingUnit(null);
     }
   };
 
@@ -90,6 +154,8 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
 
   const handleClose = () => {
     setPurchase(null);
+    setEditingUnit(null);
+    setUnitOptionsMap({});
     onClose();
   };
 
@@ -215,71 +281,109 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
               Products ({purchase.products.length})
             </h3>
             <div className="bg-white rounded-lg border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="p-3 text-left">Product Name</th>
-                    <th className="p-3 text-left">Product Code</th>
-                    <th className="p-3 text-center">Status</th>
-                    <th className="p-3 text-center">Quantity</th>
-                    <th className="p-3 text-center">Received</th>
-                    <th className="p-3 text-right">Buying Price</th>
-                    <th className="p-3 text-right">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {purchase.products.map((product) => (
-                    <tr key={product._id} className="hover:bg-slate-50">
-                      <td className="p-3 font-medium">{product.productName}</td>
-                      <td className="p-3 text-slate-600">
-                        {product.productCode}
-                      </td>
-                      <td className="p-3 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getProductStatusColor(
-                            product.productStatus
-                          )}`}
-                        >
-                          {product.productStatus === "received" ? (
-                            <CheckCircle className="w-3 h-3" />
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[700px]">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="p-3 text-left">Product Name</th>
+                      <th className="p-3 text-left">Product Code</th>
+                      <th className="p-3 text-center">Status</th>
+                      <th className="p-3 text-center">Quantity</th>
+                      <th className="p-3 text-center">Unit</th>
+                      <th className="p-3 text-center">Received</th>
+                      <th className="p-3 text-right">Buying Price</th>
+                      <th className="p-3 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {purchase.products.map((product) => (
+                      <tr key={product._id} className="hover:bg-slate-50">
+                        <td className="p-3 font-medium">{product.productName}</td>
+                        <td className="p-3 text-slate-600">
+                          {product.productCode}
+                        </td>
+                        <td className="p-3 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getProductStatusColor(
+                              product.productStatus
+                            )}`}
+                          >
+                            {product.productStatus === "received" ? (
+                              <CheckCircle className="w-3 h-3" />
+                            ) : (
+                              <Clock className="w-3 h-3" />
+                            )}
+                            {product.productStatus.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
+                            {product.purchaseQuantity}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          {editingUnit === product._id ? (
+                            <div className="flex items-center justify-center gap-1">
+                              {updatingUnit === product._id ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                              ) : (
+                                <select
+                                  className="text-xs border rounded px-1 py-0.5 bg-white focus:ring-1 focus:ring-primary outline-none"
+                                  value={product.unit || "piece"}
+                                  onChange={(e) =>
+                                    handleUnitChange(product._id, e.target.value)
+                                  }
+                                  onBlur={() => setEditingUnit(null)}
+                                  autoFocus
+                                >
+                                  {(unitOptionsMap[product._id] || [
+                                    { value: "piece", label: "piece" },
+                                  ]).map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
                           ) : (
-                            <Clock className="w-3 h-3" />
+                            <button
+                              onClick={() => setEditingUnit(product._id)}
+                              className="px-2 py-1 rounded text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                              title="Click to edit unit"
+                            >
+                              {product.unit || "—"}
+                            </button>
                           )}
-                          {product.productStatus.toUpperCase()}
-                        </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                            {product.receivedQuantity}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right text-slate-600">
+                          {product.buyingPrice.toLocaleString()}
+                        </td>
+                        <td className="p-3 text-right font-medium">
+                          {(
+                            product.buyingPrice * product.purchaseQuantity
+                          ).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-slate-50 border-t">
+                    <tr>
+                      <td colSpan={7} className="p-3 text-right font-semibold">
+                        Total Amount:
                       </td>
-                      <td className="p-3 text-center">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
-                          {product.purchaseQuantity}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
-                          {product.receivedQuantity}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right text-slate-600">
-                        {product.buyingPrice.toLocaleString()}
-                      </td>
-                      <td className="p-3 text-right font-medium">
-                        {(
-                          product.buyingPrice * product.purchaseQuantity
-                        ).toLocaleString()}
+                      <td className="p-3 text-right font-bold text-green-600">
+                        {purchase.totalAmount.toLocaleString()}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-slate-50 border-t">
-                  <tr>
-                    <td colSpan={6} className="p-3 text-right font-semibold">
-                      Total Amount:
-                    </td>
-                    <td className="p-3 text-right font-bold text-green-600">
-                      {purchase.totalAmount.toLocaleString()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
 

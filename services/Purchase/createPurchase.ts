@@ -3,6 +3,7 @@ import axios from "../axios";
 export interface PurchaseProductPayload {
   inventoryId: string;
   purchaseQuantity: number;
+  unit?: string;
 }
 
 export interface CreatePurchasePayload {

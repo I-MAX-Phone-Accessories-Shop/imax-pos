@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { UomConversion } from "../../types/uom";
-import { getUnitOptions } from "../../utils/uom";
+import { getUnitOptions, getAvailableQuantityInUnit } from "../../utils/uom";
 
 interface CartUnitSelectorProps {
   baseUnit: string;
@@ -9,6 +9,8 @@ interface CartUnitSelectorProps {
   onUnitChange: (unit: string) => void;
   className?: string;
   disabled?: boolean;
+  availableQuantity?: number;
+  quantityByUnit?: Record<string, number>;
 }
 
 export const CartUnitSelector: React.FC<CartUnitSelectorProps> = ({
@@ -18,9 +20,36 @@ export const CartUnitSelector: React.FC<CartUnitSelectorProps> = ({
   onUnitChange,
   className = "",
   disabled = false,
+  availableQuantity,
+  quantityByUnit,
 }) => {
   const options = getUnitOptions(baseUnit, conversions);
   if (options.length <= 1) return null;
+
+  const hasStockInfo = availableQuantity !== undefined;
+
+  const optionAvailability = options.map((opt) => {
+    if (!hasStockInfo) return { ...opt, outOfStock: false };
+    const qty = getAvailableQuantityInUnit(
+      baseUnit,
+      opt.value,
+      conversions,
+      availableQuantity,
+      quantityByUnit,
+    );
+    return { ...opt, outOfStock: qty < 1 };
+  });
+
+  const selectedUnavailable =
+    hasStockInfo &&
+    optionAvailability.find((o) => o.value === selectedUnit)?.outOfStock;
+
+  useEffect(() => {
+    if (selectedUnavailable) {
+      const fallback = optionAvailability.find((o) => !o.outOfStock);
+      if (fallback) onUnitChange(fallback.value);
+    }
+  }, [selectedUnavailable]);
 
   return (
     <select
@@ -29,9 +58,10 @@ export const CartUnitSelector: React.FC<CartUnitSelectorProps> = ({
       value={selectedUnit}
       onChange={(e) => onUnitChange(e.target.value)}
     >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
+      {optionAvailability.map((opt) => (
+        <option key={opt.value} value={opt.value} disabled={opt.outOfStock}>
           {opt.label}
+          {opt.outOfStock ? " (Out of stock)" : ""}
         </option>
       ))}
     </select>

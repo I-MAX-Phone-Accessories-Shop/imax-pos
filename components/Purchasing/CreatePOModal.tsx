@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Modal } from "../Modal";
 import { Supplier, Product, PurchaseOrderItem } from "../../types";
 import { createPurchase } from "../../services/Purchase/createPurchase";
+import { getUnitOptions, getConversionFactor } from "../../utils/uom";
 import { toast } from "sonner";
 
 interface CreatePOModalProps {
@@ -29,6 +30,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
   const [poNewProductName, setPONewProductName] = useState("");
   const [productSearchQuery, setProductSearchQuery] = useState("");
   const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState("piece");
   const productDropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredProducts = products.filter((product) =>
@@ -37,11 +39,19 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
       .includes(productSearchQuery.toLowerCase()),
   );
 
+  const getSelectedProduct = (): Product | undefined => {
+    return products.find((p) => (p._id || p.id) === poSelectedProduct);
+  };
+
   const handleProductSelect = (productId: string, productName: string) => {
     setPOSelectedProduct(productId);
     setProductSearchQuery(productName);
     setShowProductDropdown(false);
     setPONewProductName("");
+    const product = products.find((p) => (p._id || p.id) === productId);
+    if (product) {
+      setSelectedUnit(product.unitOfMeasure || "piece");
+    }
   };
 
   const handleProductInputChange = (value: string) => {
@@ -49,6 +59,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     setShowProductDropdown(true);
     if (value === "") {
       setPOSelectedProduct("");
+      setSelectedUnit("piece");
     }
   };
 
@@ -82,9 +93,13 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
       );
       if (!product) return;
       productName = product.productName || product.name;
-      buyingPrice = product.buyingPrice;
+      const factor = getConversionFactor(
+        product.unitOfMeasure || "piece",
+        selectedUnit,
+        product.uomConversions,
+      );
+      buyingPrice = product.buyingPrice * factor;
     } else {
-      // New product - generate ID
       productId = `new-${Date.now()}-${Math.random()
         .toString(36)
         .substr(2, 9)}`;
@@ -96,6 +111,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
       name: productName,
       qty: poQty,
       costPrice: buyingPrice,
+      unit: selectedUnit,
       note: poItemNote,
     };
 
@@ -104,6 +120,8 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     setPONewProductName("");
     setPOQty(1);
     setPOItemNote("");
+    setSelectedUnit("piece");
+    setProductSearchQuery("");
   };
 
   const removePOItem = (index: number) => {
@@ -116,7 +134,6 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
       return;
     }
 
-    // Calculate total amount
     const totalAmount = poItems.reduce(
       (sum, item) => sum + item.qty * item.costPrice,
       0,
@@ -126,6 +143,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
       products: poItems.map((item) => ({
         inventoryId: item.productId,
         purchaseQuantity: item.qty,
+        ...(item.unit && { unit: item.unit }),
       })),
       supplierId: poSupplierId,
       note: poNote,
@@ -151,6 +169,14 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
       );
     }
   };
+
+  const selectedProduct = getSelectedProduct();
+  const unitOptions = selectedProduct
+    ? getUnitOptions(
+        selectedProduct.unitOfMeasure || "piece",
+        selectedProduct.uomConversions,
+      )
+    : [];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create Purchase Order">
@@ -213,11 +239,11 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">
-                  Quantity
-                </label>
-                <div className="flex  gap-2">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-slate-500 mb-2">
+                    Quantity
+                  </label>
                   <input
                     type="number"
                     className="w-full border rounded p-2 text-sm"
@@ -226,6 +252,26 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                     onChange={(e) => setPOQty(Number(e.target.value))}
                     min="1"
                   />
+                </div>
+                {unitOptions.length > 1 && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2">
+                      Unit
+                    </label>
+                    <select
+                      className="w-full border rounded p-2 text-sm"
+                      value={selectedUnit}
+                      onChange={(e) => setSelectedUnit(e.target.value)}
+                    >
+                      {unitOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="flex items-end">
                   <button
                     onClick={addPOItem}
                     className="bg-green-100 text-green-700 p-2 rounded hover:bg-green-200"
@@ -259,7 +305,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                 <tr className="border-b">
                   <th className="py-2 px-1">Item</th>
                   <th className="py-2 px-1">Qty</th>
-                  <th className="py-2 px-1">Unit Price</th>
+                  <th className="py-2 px-1">Unit</th>
                   <th className="py-2 px-1">Cost Price</th>
                   <th className="py-2 px-1 w-12">Action</th>
                 </tr>
@@ -269,7 +315,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                   <tr key={i} className="border-b">
                     <td className="py-2">{item.name}</td>
                     <td className="py-2">{item.qty}</td>
-                    <td className="py-2">{item.costPrice.toLocaleString()}</td>
+                    <td className="py-2">{item.unit || "—"}</td>
                     <td className="py-2">
                       {(item.costPrice * item.qty).toLocaleString()}
                     </td>
@@ -292,7 +338,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                   </tr>
                 )}
                 <tr>
-                  <td colSpan={5} className="text-right py-2">
+                  <td colSpan={4} className="text-right py-2">
                     Total:{" "}
                     {poItems
                       .reduce(

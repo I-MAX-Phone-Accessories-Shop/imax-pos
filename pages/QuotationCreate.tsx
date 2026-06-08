@@ -738,6 +738,8 @@ export const QuotationCreate: React.FC = () => {
                       conversions={conversions}
                       selectedUnit={item.selectedUnit}
                       onUnitChange={(unit) => setCartLineUnit(lineId, unit)}
+                      availableQuantity={item.stockItem.availableQuantity}
+                      quantityByUnit={item.stockItem.quantityByUnit}
                     />
                     <div className="flex items-center gap-2 ml-auto">
                       <button

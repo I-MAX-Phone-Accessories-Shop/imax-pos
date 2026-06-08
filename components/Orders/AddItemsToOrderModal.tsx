@@ -767,6 +767,8 @@ export const AddItemsToOrderModal: React.FC<AddItemsToOrderModalProps> = ({
                             onUnitChange={(unit) =>
                               handleUnitChange(item.lineId, unit)
                             }
+                            availableQuantity={item.availableQuantity}
+                            quantityByUnit={item.quantityByUnit}
                           />
                           <div className="flex items-center gap-1 ml-auto">
                             <button

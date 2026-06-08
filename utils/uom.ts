@@ -61,7 +61,7 @@ export function getUnitPrice(
   ) {
     return sellingPrice;
   }
-  return sellingPrice / factor;
+  return sellingPrice * factor;
 }
 
 export function getAvailableQuantityInUnit(
@@ -79,7 +79,7 @@ export function getAvailableQuantityInUnit(
   if (normalizeUnit(selectedUnit) === normalizeUnit(baseUnit)) {
     return availableQuantity;
   }
-  return availableQuantity * factor;
+  return availableQuantity / factor;
 }
 
 export function formatQuantityByUnit(

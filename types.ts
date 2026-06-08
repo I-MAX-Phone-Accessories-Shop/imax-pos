@@ -35,8 +35,11 @@ export interface Product {
   stockShop: number;
   costPrice: number;
   sellingPrice: number;
+  buyingPrice?: number;
   lowStockThreshold: number;
   status?: "active" | "inactive";
+  unitOfMeasure?: string;
+  uomConversions?: { unit: string; factor: number; isDefaultSellingUnit?: boolean }[];
 }
 
 export interface CartItem extends Product {
@@ -102,6 +105,7 @@ export interface PurchaseOrderProduct {
   productName: string;
   buyingPrice: number;
   purchaseQuantity: number;
+  unit?: string;
   productCode?: string;
   _id?: string;
 }
@@ -129,6 +133,7 @@ export interface PurchaseOrderItem {
   name: string;
   qty: number;
   costPrice: number;
+  unit?: string;
   note?: string;
 }
 
