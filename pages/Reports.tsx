@@ -38,7 +38,10 @@ import {
   fetchAllStorefrontsFOCOrders,
   FOCOrder,
 } from "../services/Reports/fetchFOCOrders";
-import { ReportsHeader, ReportsDataSource } from "../components/Reports/ReportsHeader";
+import {
+  ReportsHeader,
+  ReportsDataSource,
+} from "../components/Reports/ReportsHeader";
 import { ReportTabs } from "../components/Reports/ReportTabs";
 import { OverallReportTab } from "../components/Reports/OverallReportTab";
 import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
@@ -108,7 +111,7 @@ export const Reports: React.FC = () => {
     useState<ReportsDataSource>("storefront");
 
   const reportSaleType =
-    reportsDataSource === "direct-sale" ? "direct-sale" : null;
+    reportsDataSource === "direct-sale" ? "direct-sale" : "storefront";
 
   useEffect(() => {
     loadReports();
@@ -257,6 +260,7 @@ export const Reports: React.FC = () => {
         selectedStorefront,
         startDateStr,
         endDateStr,
+        reportSaleType,
       );
       setCreditOrdersReport(response);
     } catch (error) {
@@ -275,6 +279,7 @@ export const Reports: React.FC = () => {
       const response = await fetchAllStorefrontsCreditOrdersReport(
         startDateStr,
         endDateStr,
+        reportSaleType,
       );
       setAllStorefrontsCreditOrdersReport(response);
     } catch (error) {
@@ -436,7 +441,7 @@ export const Reports: React.FC = () => {
           cumulativeCreditRecordsResponse,
         ] = await Promise.all([
           fetchStorefrontStock(),
-          fetchAllStorefrontsCreditOrdersReport(fixedStartStr, chosenDateStr),
+          fetchAllStorefrontsCreditOrdersReport(fixedStartStr, chosenDateStr, reportSaleType),
           fetchAllStorefrontsPaidOrdersReport(
             chosenDateStr,
             chosenDateStr,
@@ -472,6 +477,7 @@ export const Reports: React.FC = () => {
             selectedStorefront,
             fixedStartStr,
             chosenDateStr,
+            reportSaleType,
           ),
           fetchPaidOrdersReport(
             selectedStorefront,
@@ -618,8 +624,8 @@ export const Reports: React.FC = () => {
           (report) =>
             report.data.storefront?._id === selectedStorefront ||
             // Some responses might use `id` instead of `_id`
-            (report.data.storefront as unknown as { id?: string } | null)?.id ===
-              selectedStorefront ||
+            (report.data.storefront as unknown as { id?: string } | null)
+              ?.id === selectedStorefront ||
             // Direct-sale aggregate responses may not include storefront at all
             report.data.storefront == null,
         );

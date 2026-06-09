@@ -55,7 +55,8 @@ export interface CreditOrdersReportResponse {
 export const fetchCreditOrdersReport = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null
 ): Promise<CreditOrdersReportResponse> => {
   try {
     let url = `/sale-report/credit-orders?storefrontId=${storefrontId}`;
@@ -66,6 +67,9 @@ export const fetchCreditOrdersReport = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {
@@ -114,7 +118,8 @@ export const fetchCreditOrdersReport = async (
  */
 export const fetchAllStorefrontsCreditOrdersReport = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
+  saleType?: string | null
 ): Promise<CreditOrdersReportResponse> => {
   try {
     let url = `/sale-report/credit-orders`;
@@ -125,6 +130,9 @@ export const fetchAllStorefrontsCreditOrdersReport = async (
     }
     if (endDate) {
       params.append("endDate", endDate);
+    }
+    if (saleType) {
+      params.append("saleType", saleType);
     }
 
     if (params.toString()) {

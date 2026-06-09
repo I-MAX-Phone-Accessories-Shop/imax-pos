@@ -22,6 +22,7 @@ There is no lint, typecheck, or test script. No formatter config. The project re
 - **i18n**: English + Myanmar via `context/LanguageContext.tsx`. Default language is Myanmar (`my`). Translation keys are dot-separated (e.g. `sales.title`).
 - **Styling**: Tailwind CSS loaded via CDN in `index.html` (not PostCSS). Custom theme colors defined inline in `tailwind.config` inside the HTML. Use the `brand`, `primary`, `btn`, `status` color tokens.
 - **Deploy**: Netlify (SPA redirect in `netlify.toml`). No CI workflows in this repo.
+- **AI Chat**: `pages/AIChat.tsx` + `services/Chatbot/` use the Vercel AI SDK (`ai` + `@ai-sdk/react`). `vite.config.ts` exposes `GEMINI_API_KEY` as `process.env.API_KEY` and `process.env.GEMINI_API_KEY`.
 
 ## Path alias
 
@@ -38,6 +39,7 @@ There is no lint, typecheck, or test script. No formatter config. The project re
 | `services/dataService.ts` | localStorage read/write |
 | `context/AppContext.tsx` | Global state + actions |
 | `context/LanguageContext.tsx` | i18n provider |
+| `pages/AIChat.tsx` | AI chat interface (Vercel AI SDK) |
 | `.env` | API base URL and env-specific config |
 
 ## Conventions
@@ -55,3 +57,7 @@ There is no lint, typecheck, or test script. No formatter config. The project re
 - The `@` path alias is configured in both `tsconfig.json` (for TS) and `vite.config.ts` (for bundler). If you add new aliases, update both.
 - `.env` contains multiple commented-out API URLs. The active one is `http://localhost:5000/api/v1/`. Do not commit real API keys.
 - Auth token is in `localStorage` under key `authToken`. The `ProtectedRoute` component validates it at most once per tab session (30 min TTL cached in `utils/authSession.ts`).
+- `index.html` has an import map mapping `uuid`, `react`, `lucide-react`, `recharts` to CDN URLs from `aistudiocdn.com`. These are vestigial — Vite resolves from `node_modules`. Just `npm install` new packages; don't touch the import map.
+- `vite.config.ts` binds dev server to `0.0.0.0` (all interfaces), not just localhost.
+- Duplicate `PaymentMethod` enum: `types.ts` (root, canonical for most types) and `types/pos.ts` (POS-specific, adds `MMQR`, `NORMAL`, `HOT`). When modifying payment methods, update the relevant file.
+- `index.html` references `/index.css` but the file doesn't exist in the repo (silent 404 in dev, not a build error).

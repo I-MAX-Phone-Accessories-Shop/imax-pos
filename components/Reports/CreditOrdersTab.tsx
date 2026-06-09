@@ -1,5 +1,12 @@
 import React from "react";
-import { Loader2, Receipt, DollarSign, AlertCircle, CreditCard, TrendingUp } from "lucide-react";
+import {
+  Loader2,
+  Receipt,
+  DollarSign,
+  AlertCircle,
+  CreditCard,
+  TrendingUp,
+} from "lucide-react";
 import { CreditOrdersReportResponse } from "../../services/Reports/fetchCreditOrdersReport";
 import { getPaymentMethodLabel } from "../Orders/orderUtils";
 import { PAYMENT_METHOD_COLORS } from "./reportUtils";
@@ -34,7 +41,7 @@ export const CreditOrdersTab: React.FC<CreditOrdersTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Credit Orders Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl shadow-sm border border-orange-200">
           <div className="flex items-center justify-between">
             <div>
@@ -184,7 +191,7 @@ export const CreditOrdersTab: React.FC<CreditOrdersTabProps> = ({
                     <td className="px-4 py-3 text-right font-bold text-slate-800">
                       {creditOrdersReport.data.initialPayments.reduce(
                         (sum, pm) => sum + pm.orderCount,
-                        0
+                        0,
                       )}
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-blue-700 text-lg">
@@ -274,7 +281,7 @@ export const CreditOrdersTab: React.FC<CreditOrdersTabProps> = ({
                     <td className="px-4 py-3 text-right font-bold text-slate-800">
                       {creditOrdersReport.data.creditPayments.reduce(
                         (sum, pm) => sum + pm.recordCount,
-                        0
+                        0,
                       )}
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-green-700 text-lg">
@@ -291,4 +298,3 @@ export const CreditOrdersTab: React.FC<CreditOrdersTabProps> = ({
     </div>
   );
 };
-
