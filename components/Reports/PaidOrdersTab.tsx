@@ -25,10 +25,10 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
   const paymentMethodChartData =
     paidOrdersReport?.success && paidOrdersReport.data.paymentMethods.length > 0
       ? paidOrdersReport.data.paymentMethods.map((pm) => ({
-        name: getPaymentMethodLabel(pm.paymentMethod),
-        value: pm.totalPaidAmount,
-        orderCount: pm.orderCount,
-      }))
+          name: getPaymentMethodLabel(pm.paymentMethod),
+          value: pm.totalPaidAmount,
+          orderCount: pm.orderCount,
+        }))
       : [];
 
   if (loading) {
@@ -49,12 +49,10 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
     );
   }
 
-
-
   return (
     <div className="space-y-6">
       {/* Paid Orders Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow-sm border border-green-200">
           <div className="flex items-center justify-between">
             <div>
@@ -136,9 +134,7 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
                 })}
               </Pie>
               <Tooltip
-                formatter={(value: number) =>
-                  `${value.toLocaleString()} MMK`
-                }
+                formatter={(value: number) => `${value.toLocaleString()} MMK`}
               />
               <Legend />
             </PieChart>
@@ -174,8 +170,7 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
               <tbody className="divide-y">
                 {paidOrdersReport.data.paymentMethods.map((pm, index) => {
                   const methodName = pm.paymentMethod.toLowerCase();
-                  const color =
-                    PAYMENT_METHOD_COLORS[methodName] || "#6366f1";
+                  const color = PAYMENT_METHOD_COLORS[methodName] || "#6366f1";
                   return (
                     <tr key={index} className="hover:bg-slate-50">
                       <td className="px-4 py-3">
@@ -225,4 +220,3 @@ export const PaidOrdersTab: React.FC<PaidOrdersTabProps> = ({
     </div>
   );
 };
-

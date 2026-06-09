@@ -48,6 +48,7 @@ export const fetchPaidOrdersReport = async (
   endDate?: string | null,
   saleType?: string | null,
 ): Promise<PaidOrdersReportResponse> => {
+  console.log(startDate, endDate, saleType);
   try {
     let url = `/sale-report/paid-orders?storefrontId=${storefrontId}`;
     const params = new URLSearchParams();

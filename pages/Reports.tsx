@@ -108,10 +108,14 @@ export const Reports: React.FC = () => {
   >([]);
 
   const [reportsDataSource, setReportsDataSource] =
-    useState<ReportsDataSource>("storefront");
+    useState<ReportsDataSource>("all");
 
   const reportSaleType =
-    reportsDataSource === "direct-sale" ? "direct-sale" : "storefront";
+    reportsDataSource === "all"
+      ? null
+      : reportsDataSource === "direct-sale"
+        ? "direct-sale"
+        : "storefront";
 
   useEffect(() => {
     loadReports();
@@ -319,29 +323,15 @@ export const Reports: React.FC = () => {
   const loadAllStorefrontsProductSalesStatistics = async () => {
     setLoadingStatistics(true);
     try {
-      const today = getToday();
-      const startDateToUse = startDate || today;
-      const endDateToUse = endDate || today;
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
 
-      const startDateStr = formatDateForAPI(startDateToUse);
-      const endDateStr = formatDateForAPI(endDateToUse);
-
-      if (!startDateStr || !endDateStr) {
-        const todayStr = formatDateForAPI(today);
-        const response = await fetchAllStorefrontsProductSalesStatistics(
-          todayStr,
-          todayStr,
-          reportSaleType,
-        );
-        setAllStorefrontsProductSalesStatistics(response);
-      } else {
-        const response = await fetchAllStorefrontsProductSalesStatistics(
-          startDateStr,
-          endDateStr,
-          reportSaleType,
-        );
-        setAllStorefrontsProductSalesStatistics(response);
-      }
+      const response = await fetchAllStorefrontsProductSalesStatistics(
+        startDateStr,
+        endDateStr,
+        reportSaleType,
+      );
+      setAllStorefrontsProductSalesStatistics(response);
     } catch (error) {
       console.error(
         "Error loading all storefronts product sales statistics:",
@@ -394,8 +384,9 @@ export const Reports: React.FC = () => {
       const endDateStr = formatDateForAPI(endDate);
       const response = await fetchFOCOrders(
         selectedStorefront,
-        startDateStr!,
-        endDateStr!,
+        startDateStr,
+        endDateStr,
+        reportSaleType,
       );
       setFocOrders(response);
     } catch (error) {
@@ -412,8 +403,9 @@ export const Reports: React.FC = () => {
       const startDateStr = formatDateForAPI(startDate);
       const endDateStr = formatDateForAPI(endDate);
       const response = await fetchAllStorefrontsFOCOrders(
-        startDateStr!,
-        endDateStr!,
+        startDateStr,
+        endDateStr,
+        reportSaleType,
       );
       setAllStorefrontsFocOrders(response);
     } catch (error) {
@@ -441,7 +433,11 @@ export const Reports: React.FC = () => {
           cumulativeCreditRecordsResponse,
         ] = await Promise.all([
           fetchStorefrontStock(),
-          fetchAllStorefrontsCreditOrdersReport(fixedStartStr, chosenDateStr, reportSaleType),
+          fetchAllStorefrontsCreditOrdersReport(
+            fixedStartStr,
+            chosenDateStr,
+            reportSaleType,
+          ),
           fetchAllStorefrontsPaidOrdersReport(
             chosenDateStr,
             chosenDateStr,
@@ -638,17 +634,6 @@ export const Reports: React.FC = () => {
         allStorefrontsReport?.data.report ||
         aggregatedReport;
 
-  if (loading) {
-    return (
-      <div className="p-4 sm:p-6 flex items-center justify-center h-96">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-slate-600">Loading reports...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <ReportsHeader
@@ -673,6 +658,7 @@ export const Reports: React.FC = () => {
           saleReports={saleReports}
           allStorefrontsReport={allStorefrontsReport}
           selectedStorefront={selectedStorefront}
+          loading={loading}
         />
       )}
 

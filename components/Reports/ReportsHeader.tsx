@@ -3,7 +3,7 @@ import { LocationProfile } from "../../services/Location/fetchLocationProfiles";
 import { DateRangePicker } from "./DateRangePicker";
 import { useLanguage } from "../../context/LanguageContext";
 
-export type ReportsDataSource = "storefront" | "direct-sale";
+export type ReportsDataSource = "all" | "storefront" | "direct-sale";
 
 interface ReportsHeaderProps {
   storefronts: LocationProfile[];
@@ -36,7 +36,7 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
 }) => {
   const { t } = useLanguage();
   return (
-    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+    <div className="flex flex-col md:flex-row sm:justify-between sm:items-start gap-4">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
         Financial Reports
       </h1>
@@ -49,6 +49,7 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
           className="px-3 py-2 sm:px-4 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm sm:text-base bg-white"
           aria-label={t("reports.dataSourceAria")}
         >
+          <option value="all">All</option>
           <option value="storefront">{t("reports.storefrontSales")}</option>
           <option value="direct-sale">{t("reports.directSale")}</option>
         </select>
@@ -64,13 +65,15 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
             </option>
           ))}
         </select>
-        <DateRangePicker
-          startDate={startDate}
-          endDate={endDate}
-          onChange={onDateRangeChange}
-          fixedStartDate={fixedStartDate}
-          singleDate={singleDate}
-        />
+        <div className="w-[260px] lg:w-auto">
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onChange={onDateRangeChange}
+            fixedStartDate={fixedStartDate}
+            singleDate={singleDate}
+          />
+        </div>
         {/* <button
           onClick={onRefresh}
           disabled={loading}

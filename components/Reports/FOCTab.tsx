@@ -16,6 +16,7 @@ interface AggregatedProduct {
 }
 
 export const FOCTab: React.FC<FOCTabProps> = ({ focOrders, loading }) => {
+  console.log("focOrders", focOrders);
   // Aggregate products by name and calculate total quantities
   const aggregatedProducts = focOrders.reduce(
     (acc, order) => {

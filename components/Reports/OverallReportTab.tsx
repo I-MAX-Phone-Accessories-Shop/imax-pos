@@ -1,5 +1,5 @@
 import React from "react";
-import { Store } from "lucide-react";
+import { Loader2, Store } from "lucide-react";
 import { SaleReportResponse } from "../../services/Reports/fetchSaleReport";
 
 interface OverallReportTabProps {
@@ -16,6 +16,7 @@ interface OverallReportTabProps {
   saleReports: SaleReportResponse[];
   allStorefrontsReport: SaleReportResponse | null;
   selectedStorefront: string;
+  loading: boolean;
 }
 
 export const OverallReportTab: React.FC<OverallReportTabProps> = ({
@@ -23,10 +24,8 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   saleReports,
   allStorefrontsReport,
   selectedStorefront,
+  loading,
 }) => {
-  // console.log(saleReports);
-  // console.log(allStorefrontsReport);
-
   // Determine which reports to show in the breakdown table
   const reportsToShow =
     selectedStorefront === "all"
@@ -39,6 +38,16 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
               (report.data.storefront as unknown as { id?: string } | null)
                 ?.id === selectedStorefront),
         );
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+        <p className="text-slate-600">Loading payment methods...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -161,42 +170,39 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                     (storefront as unknown as { id?: string } | null)?.id ??
                     `no-storefront-${idx}`;
                   return (
-                  <tr
-                    key={rowKey}
-                    className="hover:bg-slate-50"
-                  >
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium text-slate-800">
-                          {storefront?.locationName || "Direct Sale"}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {storefront?.locationCode || "-"}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-800">
-                      {report.data.report.finalAmount.toLocaleString()} MMK
-                    </td>
-                    <td className="px-4 py-3 text-right text-green-600">
-                      {report.data.report.paidAmount.toLocaleString()} MMK
-                    </td>
-                    <td className="px-4 py-3 text-right text-slate-600">
-                      {report.data.report.subTotal.toLocaleString()} MMK
-                    </td>
-                    <td className="px-4 py-3 text-right text-amber-600">
-                      {report.data.report.discount.toLocaleString()} MMK
-                    </td>
-                    <td className="px-4 py-3 text-right text-blue-600">
-                      {report.data.report.orderCount}
-                    </td>
-                    <td className="px-4 py-3 text-right text-green-600">
-                      {report.data.report.paidOrderCount}
-                    </td>
-                    <td className="px-4 py-3 text-right text-red-600">
-                      {report.data.report.creditOrderCount}
-                    </td>
-                  </tr>
+                    <tr key={rowKey} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-medium text-slate-800">
+                            {storefront?.locationName || "Direct Sale"}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {storefront?.locationCode || "-"}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-slate-800">
+                        {report.data.report.finalAmount.toLocaleString()} MMK
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-600">
+                        {report.data.report.paidAmount.toLocaleString()} MMK
+                      </td>
+                      <td className="px-4 py-3 text-right text-slate-600">
+                        {report.data.report.subTotal.toLocaleString()} MMK
+                      </td>
+                      <td className="px-4 py-3 text-right text-amber-600">
+                        {report.data.report.discount.toLocaleString()} MMK
+                      </td>
+                      <td className="px-4 py-3 text-right text-blue-600">
+                        {report.data.report.orderCount}
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-600">
+                        {report.data.report.paidOrderCount}
+                      </td>
+                      <td className="px-4 py-3 text-right text-red-600">
+                        {report.data.report.creditOrderCount}
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
