@@ -221,7 +221,7 @@ export const QuotationCreate: React.FC = () => {
           );
         }
 
-        await loadStockItems();
+        // await loadStockItems();
       } catch {
         toast.error(t("pos.failedToLoadData"));
       } finally {
@@ -233,7 +233,9 @@ export const QuotationCreate: React.FC = () => {
   }, [editId, isEdit]);
 
   useEffect(() => {
-    if (!loading) loadStockItems();
+    if (selectedStorefrontId) {
+      loadStockItems();
+    }
   }, [selectedStorefrontId, search, selectedCategory, currentPage, saleMode]);
 
   const filteredProducts = allStockItems.filter(
@@ -640,7 +642,7 @@ export const QuotationCreate: React.FC = () => {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-4">
+        <div className="overflow-y-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-4">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-400">
               {saleMode === "storefront" && !selectedStorefrontId
