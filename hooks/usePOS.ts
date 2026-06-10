@@ -34,7 +34,8 @@ export const usePOS = () => {
   const navigate = useNavigate();
 
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
-  const [selectedStorefrontId, setSelectedStorefrontId] = useState<string>("");
+  const [selectedStorefrontId, setSelectedStorefrontId] =
+    useState<string>(null);
   const [allStockItems, setAllStockItems] = useState<StorefrontStockItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,8 @@ export const usePOS = () => {
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState<"paid" | "credit">("paid");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
-  const [selectedCreditPersonId, setSelectedCreditPersonId] = useState<string>("");
+  const [selectedCreditPersonId, setSelectedCreditPersonId] =
+    useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState("");
@@ -71,10 +73,7 @@ export const usePOS = () => {
     new Date().toISOString().split("T")[0],
   );
   const devices = detectDevice();
-
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  const DIRECT_SALE_STOREFRONT_ID = "6a28df12c5cf1644db3c35a1";
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -82,12 +81,15 @@ export const usePOS = () => {
       const sfResponse = await fetchStorefrontProfiles();
       if (sfResponse.success && sfResponse.data) {
         const activeStorefronts = sfResponse.data.filter(
-          (sf) => sf.status === "active",
+          (sf) =>
+            sf.status === "active" && sf._id !== DIRECT_SALE_STOREFRONT_ID,
         );
+
         setStorefronts(activeStorefronts);
 
         if (activeStorefronts.length > 0) {
           const firstId = activeStorefronts[0]._id;
+          console.log(firstId);
           setSelectedStorefrontId(firstId);
         }
       }
@@ -97,7 +99,7 @@ export const usePOS = () => {
         setCategories(catResponse.data);
       }
 
-      await loadStockItems();
+      // await loadStockItems();
     } catch (error) {
       toast.error(t("pos.failedToLoadData"));
     } finally {
@@ -121,12 +123,18 @@ export const usePOS = () => {
   };
 
   useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  useEffect(() => {
+    console.log("work", selectedStorefrontId);
     if (selectedStorefrontId) {
       loadStockItems();
     }
   }, [selectedStorefrontId, search, selectedCategory, currentPage]);
 
   const loadStockItems = async () => {
+    console.log("load", selectedStorefrontId);
     try {
       const response = await fetchStorefrontStock(
         selectedStorefrontId,
@@ -178,7 +186,9 @@ export const usePOS = () => {
           return prev;
         }
         return prev.map((item) =>
-          getCartLineId(item) === lineId ? { ...item, qty: item.qty + 1 } : item,
+          getCartLineId(item) === lineId
+            ? { ...item, qty: item.qty + 1 }
+            : item,
         );
       }
       return [...prev, newLine];
@@ -330,7 +340,9 @@ export const usePOS = () => {
         [PaymentMethod.MMQR]: "MMQR",
       };
 
-      const discountAmount = useMarkup ? 0 : Math.round(subtotal - totalAfterDiscount);
+      const discountAmount = useMarkup
+        ? 0
+        : Math.round(subtotal - totalAfterDiscount);
 
       const orderPayload = {
         storefrontId: selectedStorefrontId,
