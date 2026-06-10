@@ -14,7 +14,7 @@ export const fetchCreditOrders = async (
   dueDays?: number | null,
 ): Promise<FetchCreditOrdersResponse> => {
   try {
-    let url = "/order";
+    let url = "/order?saleType=storefront&";
     const params = new URLSearchParams();
 
     // Add paymentType=credit to query params
@@ -41,7 +41,7 @@ export const fetchCreditOrders = async (
     }
 
     if (params.toString()) {
-      url += `?${params.toString()}`;
+      url += `${params.toString()}`;
     }
 
     const response = await axios.get(url);
