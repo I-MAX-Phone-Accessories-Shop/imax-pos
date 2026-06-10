@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Search,
-  RefreshCw,
-  Store,
-  ChevronDown,
-  Scan,
-} from "lucide-react";
+import { Search, RefreshCw, Store, ChevronDown, Scan } from "lucide-react";
 import { StorefrontProfile } from "../../services/Storefront/fetchStorefrontProfiles";
 import { StorefrontStockItem } from "../../services/Storefront/fetchStorefrontStock";
 
@@ -48,12 +42,7 @@ export const DirectSaleProductGrid: React.FC<DirectSaleProductGridProps> = ({
   filteredProducts,
   addToCart,
   handleBarcodeScan,
-  storefronts,
   selectedStorefrontId,
-  showStorefrontMenu,
-  setShowStorefrontMenu,
-  handleStorefrontChange,
-  handleRefresh,
   loading,
   t,
   p,
@@ -105,7 +94,7 @@ export const DirectSaleProductGrid: React.FC<DirectSaleProductGridProps> = ({
             ))}
           </select>
 
-          <div className="relative">
+          {/* <div className="relative">
             <button
               onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
               className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
@@ -185,7 +174,7 @@ export const DirectSaleProductGrid: React.FC<DirectSaleProductGridProps> = ({
                 </div>
               </>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -237,10 +226,11 @@ export const DirectSaleProductGrid: React.FC<DirectSaleProductGridProps> = ({
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${currentPage === pageNum
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${
+                      currentPage === pageNum
                         ? "bg-primary text-white border-primary"
                         : "hover:bg-gray-50 border-gray-200"
-                      }`}
+                    }`}
                   >
                     {pageNum}
                   </button>

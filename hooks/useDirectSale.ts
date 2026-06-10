@@ -88,9 +88,14 @@ export const useDirectSale = () => {
           (sf) => sf.status === "active",
         );
         setStorefronts(activeStorefronts);
-        if (activeStorefronts.length > 0) {
-          const firstId = activeStorefronts[0]._id;
-          setSelectedStorefrontId(firstId);
+        const DIRECT_SALE_STOREFRONT_ID = "6a28df12c5cf1644db3c35a1";
+        const match = activeStorefronts.find(
+          (sf) => sf._id === DIRECT_SALE_STOREFRONT_ID,
+        );
+        if (match) {
+          setSelectedStorefrontId(match._id);
+        } else if (activeStorefronts.length > 0) {
+          setSelectedStorefrontId(activeStorefronts[0]._id);
         }
       }
 
@@ -129,9 +134,10 @@ export const useDirectSale = () => {
   }, [selectedStorefrontId, search, selectedCategory, currentPage]);
 
   const loadStockItems = async () => {
+    const DIRECT_SALE_STOREFRONT_ID = "6a28df12c5cf1644db3c35a1";
     try {
       const response = await fetchStorefrontStock(
-        selectedStorefrontId,
+        selectedStorefrontId || DIRECT_SALE_STOREFRONT_ID,
         currentPage,
         itemsPerPage,
         selectedCategory === "All" ? undefined : selectedCategory,
@@ -369,7 +375,9 @@ export const useDirectSale = () => {
           change: finalPaidAmount - total,
           paymentMethod,
           note,
-          creditPersonName: creditPersonas.find(cp => cp._id === selectedCreditPersonId)?.name,
+          creditPersonName: creditPersonas.find(
+            (cp) => cp._id === selectedCreditPersonId,
+          )?.name,
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -387,17 +395,13 @@ export const useDirectSale = () => {
         setCustomerPhone("");
         setPaidAmount(0);
         setPaymentMethod(
-          paymentType === "credit"
-            ? PaymentMethod.NORMAL
-            : PaymentMethod.CASH,
+          paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
         );
         setPaymentType("paid");
         setSelectedCreditPersonId("");
         setCreatedAt(new Date().toISOString().split("T")[0]);
 
-        setSuccessOrderNumber(
-          result.data?.orderNumber || `INV-${Date.now()}`,
-        );
+        setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
         setShowSuccessModal(true);
 
         await loadStockItems();
