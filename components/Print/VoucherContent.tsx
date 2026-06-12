@@ -90,8 +90,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
         0,
       )
     : 0;
-  const effectiveTransportFee = totalPerItemFees > 0 ? 0 : transportFee;
-  const adjustedSubtotal = receiptData.subtotal + (totalPerItemFees > 0 ? totalPerItemFees : transportFee);
+  const hasPerItemFees = totalPerItemFees > 0;
+  const effectiveTransportFee = hasPerItemFees ? 0 : transportFee;
+  const adjustedSubtotal = receiptData.subtotal + totalPerItemFees;
   const contactParts = [
     shopBranding.phone && `Tel: ${shopBranding.phone}`,
     shopBranding.website,
@@ -281,6 +282,12 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
                   100
                 ).toLocaleString()}
               </span>
+            </div>
+          )}
+          {effectiveTransportFee > 0 && (
+            <div className="flex justify-between mb-1 sm:mb-2">
+              <span>TRANSPORT FEE:</span>
+              <span>+{effectiveTransportFee.toLocaleString()}</span>
             </div>
           )}
           <div

@@ -369,8 +369,6 @@ export const usePOS = () => {
           (sf) => sf._id === selectedStorefrontId,
         );
 
-        const receiptTotal = total - transportFee;
-
         const receiptData = {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
@@ -384,9 +382,10 @@ export const usePOS = () => {
           })),
           subtotal,
           discountPercent: discount,
-          total: receiptTotal,
+          transportFee,
+          total,
           paidAmount: finalPaidAmount,
-          change: finalPaidAmount - receiptTotal,
+          change: finalPaidAmount - total,
           paymentMethod,
           note,
         };
