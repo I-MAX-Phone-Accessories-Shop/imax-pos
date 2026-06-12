@@ -12,6 +12,8 @@ import {
   Plus,
   Minus,
   Printer,
+  Truck,
+  Pencil,
 } from "lucide-react";
 import { Order } from "../../services/Order/fetchOrders";
 import {
@@ -28,8 +30,12 @@ import { useLanguage } from "../../context/LanguageContext";
 import { getSavedPrintPaperSize } from "../../utils/printPaperSize";
 import { detectDevice } from "../../utils/deviceDetect";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
 import { RemoveItemsFromOrderModal } from "./RemoveItemsFromOrderModal";
+import { CustomPrintModal } from "./CustomPrintModal";
+import { TransportFeeEditModal } from "./TransportFeeEditModal";
+import { updateTransportFee } from "../../services/Order/updateTransportFee";
 
 interface OrderDetailModalProps {
   isOpen: boolean;
@@ -53,6 +59,8 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const userRole = adminData.role;
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
   const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
+  const [showCustomPrintModal, setShowCustomPrintModal] = useState(false);
+  const [showTransportFeeModal, setShowTransportFeeModal] = useState(false);
 
   const handlePrintOrder = () => {
     if (!order) return;
@@ -91,6 +99,31 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     );
   };
 
+  const handleSaveTransportFee = async (
+    transportFee: number,
+    finalAmount: number,
+    paidAmount: number,
+  ) => {
+    if (!order) return;
+    try {
+      const result = await updateTransportFee(
+        order._id,
+        transportFee,
+        finalAmount,
+        paidAmount,
+      );
+      if (result.success) {
+        toast.success("Transport fee updated");
+        setShowTransportFeeModal(false);
+        if (onOrderUpdate) onOrderUpdate();
+      } else {
+        toast.error(result.message || "Failed to update transport fee");
+      }
+    } catch {
+      toast.error("Failed to update transport fee");
+    }
+  };
+
   if (!isOpen) return null;
 
   const isDirectSale =
@@ -109,7 +142,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
         <div className="flex flex-row justify-between items-start gap-4 p-4 border-b bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -118,14 +151,24 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           </h3>
           <div className="flex flex-row items-center gap-2">
             {order && (
-              <button
-                onClick={handlePrintOrder}
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                title="Print Order"
-              >
-                <Printer className="w-4 h-4" />
-                <span className="hidden sm:inline">Print</span>
-              </button>
+              <>
+                <button
+                  onClick={handlePrintOrder}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  title="Print Order"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">Print</span>
+                </button>
+                <button
+                  onClick={() => setShowCustomPrintModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                  title="Custom Print with Transport Fee"
+                >
+                  <Truck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Custom Print</span>
+                </button>
+              </>
             )}
             {order && userRole === "owner" && (
               <>
@@ -387,7 +430,40 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       <span>-{order.discount?.toLocaleString()} MMK</span>
                     </div>
                   )}
+                  {(order.transportFee ?? 0) > 0 ? (
+                    <div className="flex justify-between items-center text-purple-600">
+                      <span>Transport Fee</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          +{order.transportFee?.toLocaleString()} MMK
+                        </span>
+                        {userRole === "owner" && (
+                          <button
+                            onClick={() => setShowTransportFeeModal(true)}
+                            className="p-1 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                            title="Edit transport fee"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    userRole === "owner" && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Transport Fee</span>
+                        <button
+                          onClick={() => setShowTransportFeeModal(true)}
+                          className="text-xs text-slate-400 hover:text-purple-600 hover:bg-purple-50 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Add
+                        </button>
+                      </div>
+                    )
+                  )}
                   {order.discount === 0 &&
+                    (order.transportFee ?? 0) === 0 &&
                     order.finalAmount > order.subTotal && (
                       <div className="flex justify-between text-green-600">
                         <span>Markup</span>
@@ -470,6 +546,22 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           }
         }}
       />
+
+      {/* Custom Print Modal */}
+      <CustomPrintModal
+        isOpen={showCustomPrintModal}
+        order={order}
+        onClose={() => setShowCustomPrintModal(false)}
+      />
+
+      {/* Transport Fee Edit Modal */}
+      {showTransportFeeModal && order && (
+        <TransportFeeEditModal
+          order={order}
+          onSave={handleSaveTransportFee}
+          onClose={() => setShowTransportFeeModal(false)}
+        />
+      )}
     </div>
   );
 };

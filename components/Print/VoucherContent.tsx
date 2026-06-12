@@ -26,7 +26,16 @@ function adjustItemPriceForTransport(
   item: VoucherReceiptItem,
   transportFee: number,
   subtotal: number,
+  perItemFees?: Record<string, number>,
 ): number {
+  const code = item.code || "";
+  // Per-item fees take priority
+  if (perItemFees && code && (perItemFees[code] ?? 0) > 0) {
+    const lineTotal = item.price * item.qty;
+    const fee = perItemFees[code];
+    return Math.round((lineTotal + fee) / item.qty);
+  }
+  // Fallback to proportional distribution
   if (transportFee <= 0 || subtotal <= 0) return item.price;
   const lineTotal = item.price * item.qty;
   const share = (lineTotal / subtotal) * transportFee;
@@ -52,7 +61,10 @@ export interface VoucherReceiptData {
   note?: string;
   documentType?: VoucherDocumentType;
   creditPersonName?: string;
+  /** Global transport fee (used for proportional distribution fallback) */
   transportFee?: number;
+  /** Per-item transport fees keyed by product code */
+  perItemTransportFees?: Record<string, number>;
 }
 
 interface VoucherContentProps {
@@ -71,7 +83,15 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   const isThermal = paperSize === "thermal-80mm";
   const isQuotation = receiptData.documentType === "quotation";
   const transportFee = receiptData.transportFee ?? 0;
-  const adjustedSubtotal = receiptData.subtotal + transportFee;
+  const perItemFees = receiptData.perItemTransportFees;
+  const totalPerItemFees = perItemFees
+    ? receiptData.items.reduce(
+        (sum, item) => sum + (perItemFees[item.code ?? ""] ?? 0),
+        0,
+      )
+    : 0;
+  const effectiveTransportFee = totalPerItemFees > 0 ? 0 : transportFee;
+  const adjustedSubtotal = receiptData.subtotal + (totalPerItemFees > 0 ? totalPerItemFees : transportFee);
   const contactParts = [
     shopBranding.phone && `Tel: ${shopBranding.phone}`,
     shopBranding.website,
@@ -135,7 +155,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <div className="voucher-thermal-col-total">TOTAL</div>
           </div>
           {receiptData.items.map((item, index) => {
-            const adjPrice = adjustItemPriceForTransport(item, transportFee, receiptData.subtotal);
+            const adjPrice = adjustItemPriceForTransport(item, effectiveTransportFee, receiptData.subtotal, perItemFees);
             return (
               <div key={index} className="voucher-thermal-item">
                 <div>{index + 1}</div>
@@ -177,7 +197,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             </thead>
             <tbody>
               {receiptData.items.map((item, index) => {
-                const adjPrice = adjustItemPriceForTransport(item, transportFee, receiptData.subtotal);
+                const adjPrice = adjustItemPriceForTransport(item, effectiveTransportFee, receiptData.subtotal, perItemFees);
                 return (
                   <tr key={index}>
                     <td>{index + 1}</td>
