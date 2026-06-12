@@ -614,33 +614,30 @@ export const POS: React.FC = () => {
               <Scan className="absolute right-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none opacity-50" />
               <input
                 type="text"
-                placeholder={
-                  t("pos.searchOrScanBarcode") ||
-                  "Search products or scan barcode..."
-                }
+                placeholder={"Search products"}
                 className="search-input w-full pl-10 pr-10 py-2.5 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                onKeyDown={(e) => {
-                  // When Enter is pressed, try to scan barcode first
-                  if (e.key === "Enter" && search.trim()) {
-                    e.preventDefault();
-                    handleBarcodeScan(search);
-                    // If barcode was found and added, search is already cleared
-                    // If not found, continue with regular search (filtering happens automatically)
-                  }
-                }}
-                onBlur={() => {
-                  // Auto-process barcode when input loses focus (useful for barcode scanners that auto-tab)
-                  // Only if search value exists and looks like it could be a barcode (length >= 3)
-                  // This helps with barcode scanners that send data on blur
-                  if (search.trim() && search.trim().length >= 3) {
-                    handleBarcodeScan(search);
-                  }
-                }}
+                // onKeyDown={(e) => {
+                //   // When Enter is pressed, try to scan barcode first
+                //   if (e.key === "Enter" && search.trim()) {
+                //     e.preventDefault();
+                //     handleBarcodeScan(search);
+                //     // If barcode was found and added, search is already cleared
+                //     // If not found, continue with regular search (filtering happens automatically)
+                //   }
+                // }}
+                // onBlur={() => {
+                //   // Auto-process barcode when input loses focus (useful for barcode scanners that auto-tab)
+                //   // Only if search value exists and looks like it could be a barcode (length >= 3)
+                //   // This helps with barcode scanners that send data on blur
+                //   if (search.trim() && search.trim().length >= 3) {
+                //     handleBarcodeScan(search);
+                //   }
+                // }}
                 autoFocus
               />
             </div>
