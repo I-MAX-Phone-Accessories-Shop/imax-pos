@@ -22,6 +22,17 @@ function formatReceiptUnit(item: VoucherReceiptItem): string {
 /** Item names longer than this get underline + 2-line wrap on 80mm thermal. */
 const THERMAL_ITEM_LONG_CHARS = 12;
 
+function adjustItemPriceForTransport(
+  item: VoucherReceiptItem,
+  transportFee: number,
+  subtotal: number,
+): number {
+  if (transportFee <= 0 || subtotal <= 0) return item.price;
+  const lineTotal = item.price * item.qty;
+  const share = (lineTotal / subtotal) * transportFee;
+  return Math.round((lineTotal + share) / item.qty);
+}
+
 export type VoucherDocumentType = "invoice" | "quotation";
 
 export interface VoucherReceiptData {
@@ -41,6 +52,7 @@ export interface VoucherReceiptData {
   note?: string;
   documentType?: VoucherDocumentType;
   creditPersonName?: string;
+  transportFee?: number;
 }
 
 interface VoucherContentProps {
@@ -58,6 +70,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
 }) => {
   const isThermal = paperSize === "thermal-80mm";
   const isQuotation = receiptData.documentType === "quotation";
+  const transportFee = receiptData.transportFee ?? 0;
+  const adjustedSubtotal = receiptData.subtotal + transportFee;
   const contactParts = [
     shopBranding.phone && `Tel: ${shopBranding.phone}`,
     shopBranding.website,
@@ -120,29 +134,32 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <div>UNIT</div>
             <div className="voucher-thermal-col-total">TOTAL</div>
           </div>
-          {receiptData.items.map((item, index) => (
-            <div key={index} className="voucher-thermal-item">
-              <div>{index + 1}</div>
-              <div
-                className={`voucher-thermal-col-item ${
-                  item.name.length > THERMAL_ITEM_LONG_CHARS ? "is-long" : ""
-                }`}
-                title={item.name}
-              >
-                {item.name}
+          {receiptData.items.map((item, index) => {
+            const adjPrice = adjustItemPriceForTransport(item, transportFee, receiptData.subtotal);
+            return (
+              <div key={index} className="voucher-thermal-item">
+                <div>{index + 1}</div>
+                <div
+                  className={`voucher-thermal-col-item ${
+                    item.name.length > THERMAL_ITEM_LONG_CHARS ? "is-long" : ""
+                  }`}
+                  title={item.name}
+                >
+                  {item.name}
+                </div>
+                <div className="voucher-thermal-col-price">
+                  {adjPrice.toLocaleString()}
+                </div>
+                <div className="voucher-thermal-col-qty">
+                  {formatReceiptQty(item)}
+                </div>
+                <div className="break-words">{formatReceiptUnit(item)}</div>
+                <div className="voucher-thermal-col-total">
+                  {(adjPrice * item.qty).toLocaleString()}
+                </div>
               </div>
-              <div className="voucher-thermal-col-price">
-                {item.price.toLocaleString()}
-              </div>
-              <div className="voucher-thermal-col-qty">
-                {formatReceiptQty(item)}
-              </div>
-              <div className="break-words">{formatReceiptUnit(item)}</div>
-              <div className="voucher-thermal-col-total">
-                {(item.price * item.qty).toLocaleString()}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="mb-6 sm:mb-8">
@@ -159,17 +176,20 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               </tr>
             </thead>
             <tbody>
-              {receiptData.items.map((item, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{item.code}</td>
-                  <td>{item.name}</td>
-                  <td>{item.price.toLocaleString()}</td>
-                  <td>{formatReceiptQty(item)}</td>
-                  <td>{formatReceiptUnit(item)}</td>
-                  <td>{(item.price * item.qty).toLocaleString()}</td>
-                </tr>
-              ))}
+              {receiptData.items.map((item, index) => {
+                const adjPrice = adjustItemPriceForTransport(item, transportFee, receiptData.subtotal);
+                return (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{item.code}</td>
+                    <td>{item.name}</td>
+                    <td>{adjPrice.toLocaleString()}</td>
+                    <td>{formatReceiptQty(item)}</td>
+                    <td>{formatReceiptUnit(item)}</td>
+                    <td>{(adjPrice * item.qty).toLocaleString()}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -217,7 +237,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
         <div>
           <div className="flex justify-between mb-1 sm:mb-2">
             <span>SUB TOTAL:</span>
-            <span>{receiptData.subtotal.toLocaleString()}</span>
+            <span>{adjustedSubtotal.toLocaleString()}</span>
           </div>
           {(receiptData.tax ?? 0) > 0 && (
             <div className="flex justify-between mb-1 sm:mb-2">

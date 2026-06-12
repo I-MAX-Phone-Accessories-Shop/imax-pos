@@ -69,6 +69,7 @@ export const usePOS = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
+  const [transportFee, setTransportFee] = useState(0);
   const [createdAt, setCreatedAt] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -294,7 +295,7 @@ export const usePOS = () => {
   );
   const totalAfterMarkup = subtotal + markupAmount;
 
-  const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
+  const total = (useMarkup ? totalAfterMarkup : totalAfterDiscount) + transportFee;
   const combinedDiscountAmount = useMarkup
     ? 0
     : Math.round(subtotal - totalAfterDiscount);
@@ -351,6 +352,7 @@ export const usePOS = () => {
         discount: discountAmount,
         finalAmount: total,
         paidAmount: finalPaidAmount,
+        transportFee: transportFee,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
@@ -380,6 +382,7 @@ export const usePOS = () => {
           })),
           subtotal,
           discountPercent: discount,
+          transportFee,
           total,
           paidAmount: finalPaidAmount,
           change: finalPaidAmount - total,
@@ -399,6 +402,7 @@ export const usePOS = () => {
         setDiscount(0);
         setMarkup(0);
         setMarkupAmount(0);
+        setTransportFee(0);
         setNote("");
         setPaidAmount(0);
         setPaymentMethod(
@@ -475,6 +479,8 @@ export const usePOS = () => {
     setShowMarkupCalculator,
     discountAmount,
     setDiscountAmount,
+    transportFee,
+    setTransportFee,
     createdAt,
     setCreatedAt,
     devices,

@@ -57,6 +57,8 @@ export const POS: React.FC = () => {
     setShowMarkupCalculator,
     discountAmount,
     setDiscountAmount,
+    transportFee,
+    setTransportFee,
     createdAt,
     setCreatedAt,
     devices,
@@ -190,6 +192,8 @@ export const POS: React.FC = () => {
         handleCheckout={handleCheckout}
         setShowDiscountCalculator={setShowDiscountCalculator}
         setShowMarkupCalculator={setShowMarkupCalculator}
+        transportFee={transportFee}
+        setTransportFee={setTransportFee}
         t={t}
       />
 

@@ -16,6 +16,7 @@ interface CreateOrderRequest {
   subTotal?: number;
   tax?: number;
   discount?: number;
+  transportFee?: number;
   finalAmount?: number;
   paidAmount: number;
   paymentType: "credit" | "paid";
