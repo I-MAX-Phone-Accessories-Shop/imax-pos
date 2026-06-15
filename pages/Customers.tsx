@@ -1,5 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Users, RefreshCw, UserPlus, X, Loader2, Edit2, Plus, Trash2 } from "lucide-react";
+import {
+  Users,
+  RefreshCw,
+  UserPlus,
+  X,
+  Loader2,
+  Edit2,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
 import {
@@ -25,9 +34,7 @@ export const Customers: React.FC = () => {
   const { t } = useLanguage();
 
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [pagination, setPagination] = useState<CustomerPagination | null>(
-    null,
-  );
+  const [pagination, setPagination] = useState<CustomerPagination | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -47,7 +54,9 @@ export const Customers: React.FC = () => {
   });
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(
+    null,
+  );
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editFormData, setEditFormData] = useState<{
     name: string;
@@ -152,27 +161,25 @@ export const Customers: React.FC = () => {
       toast.error(t("customers.phoneRequired"));
       return;
     }
-    if (!formData.password.trim()) {
-      toast.error(t("customers.passwordRequired"));
-      return;
-    }
-    if (formData.password.trim().length < 6) {
-      toast.error(t("customers.passwordMinLength"));
-      return;
-    }
+    // if (!formData.password.trim()) {
+    //   toast.error(t("customers.passwordRequired"));
+    //   return;
+    // }
+    // if (formData.password.trim().length < 6) {
+    //   toast.error(t("customers.passwordMinLength"));
+    //   return;
+    // }
 
     setIsSubmitting(true);
     try {
       const response = await registerCustomer({
         name: formData.name.trim(),
         phone: formData.phone.trim(),
-        password: formData.password,
+        password: "password123",
       });
 
       if (response.success) {
-        toast.success(
-          response.message || t("customers.registerSuccess"),
-        );
+        toast.success(response.message || t("customers.registerSuccess"));
         handleCloseRegisterModal();
         setPage(1);
         loadCustomers();
@@ -181,9 +188,7 @@ export const Customers: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error registering customer:", error);
-      toast.error(
-        error?.message || t("customers.registerFailed"),
-      );
+      toast.error(error?.message || t("customers.registerFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -225,7 +230,12 @@ export const Customers: React.FC = () => {
       ...prev,
       addresses: [
         ...prev.addresses,
-        { label: "", addressLine: "", city: "", isDefault: prev.addresses.length === 0 },
+        {
+          label: "",
+          addressLine: "",
+          city: "",
+          isDefault: prev.addresses.length === 0,
+        },
       ],
     }));
   };
@@ -234,7 +244,9 @@ export const Customers: React.FC = () => {
     setEditFormData((prev) => {
       const next = prev.addresses.filter((_, i) => i !== idx);
       const hasDefault = next.some((a) => a.isDefault);
-      const normalized = hasDefault ? next : next.map((a, i) => ({ ...a, isDefault: i === 0 }));
+      const normalized = hasDefault
+        ? next
+        : next.map((a, i) => ({ ...a, isDefault: i === 0 }));
       return { ...prev, addresses: normalized };
     });
   };
@@ -253,7 +265,9 @@ export const Customers: React.FC = () => {
   ) => {
     setEditFormData((prev) => ({
       ...prev,
-      addresses: prev.addresses.map((a, i) => (i === idx ? { ...a, [field]: value } : a)),
+      addresses: prev.addresses.map((a, i) =>
+        i === idx ? { ...a, [field]: value } : a,
+      ),
     }));
   };
 
@@ -280,11 +294,7 @@ export const Customers: React.FC = () => {
       addresses[0].isDefault = true;
     }
 
-    if (
-      addresses.some(
-        (a) => !a.addressLine || !a.city,
-      )
-    ) {
+    if (addresses.some((a) => !a.addressLine || !a.city)) {
       toast.error(t("customers.addressFieldsRequired"));
       return;
     }
@@ -320,7 +330,9 @@ export const Customers: React.FC = () => {
             <Users className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
             {t("customers.title")}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">{t("customers.subtitle")}</p>
+          <p className="text-sm text-slate-500 mt-1">
+            {t("customers.subtitle")}
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <button
@@ -422,7 +434,9 @@ export const Customers: React.FC = () => {
                     <td className="px-3 py-2 font-medium text-slate-800">
                       {customer.name}
                     </td>
-                    <td className="px-3 py-2 text-slate-700">{customer.phone}</td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {customer.phone}
+                    </td>
                     <td className="px-3 py-2 text-slate-600 max-w-[200px] truncate">
                       {getDefaultAddressPreview(customer)}
                     </td>
@@ -459,7 +473,9 @@ export const Customers: React.FC = () => {
                           title={t("common.edit")}
                         >
                           <Edit2 className="w-3 h-3" />
-                          <span className="hidden sm:inline">{t("common.edit")}</span>
+                          <span className="hidden sm:inline">
+                            {t("common.edit")}
+                          </span>
                         </button>
                       </div>
                     </td>
@@ -558,7 +574,7 @@ export const Customers: React.FC = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {t("login.password")}{" "}
                   <span className="text-red-500">*</span>
@@ -572,7 +588,7 @@ export const Customers: React.FC = () => {
                     setFormData({ ...formData, password: e.target.value })
                   }
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="p-6 border-t bg-slate-50 rounded-b-xl flex flex-col sm:flex-row justify-end gap-3">
@@ -673,7 +689,10 @@ export const Customers: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {editFormData.addresses.map((addr, idx) => (
-                    <div key={idx} className="border border-slate-200 rounded-xl p-4 bg-white">
+                    <div
+                      key={idx}
+                      className="border border-slate-200 rounded-xl p-4 bg-white"
+                    >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
                           <label className="inline-flex items-center gap-2 text-sm text-slate-700">
@@ -705,7 +724,11 @@ export const Customers: React.FC = () => {
                             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary"
                             value={addr.label || ""}
                             onChange={(e) =>
-                              handleUpdateAddressField(idx, "label", e.target.value)
+                              handleUpdateAddressField(
+                                idx,
+                                "label",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
@@ -718,7 +741,11 @@ export const Customers: React.FC = () => {
                             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary"
                             value={addr.city || ""}
                             onChange={(e) =>
-                              handleUpdateAddressField(idx, "city", e.target.value)
+                              handleUpdateAddressField(
+                                idx,
+                                "city",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
@@ -731,7 +758,11 @@ export const Customers: React.FC = () => {
                             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary"
                             value={addr.addressLine || ""}
                             onChange={(e) =>
-                              handleUpdateAddressField(idx, "addressLine", e.target.value)
+                              handleUpdateAddressField(
+                                idx,
+                                "addressLine",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
