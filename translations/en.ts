@@ -124,6 +124,7 @@ export const en = {
     orderSuccess: "Order created successfully",
     orderFailed: "Failed to create order",
     selectCreditPerson: "Customer",
+    selectCustomer: "Select Customer",
     selectCreditPersonOptional: "Select Customer (Optional)",
     noCreditPersons: "No Customers Available",
     receipt: "Receipt",

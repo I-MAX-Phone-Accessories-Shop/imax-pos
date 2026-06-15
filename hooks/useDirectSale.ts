@@ -357,6 +357,10 @@ export const useDirectSale = () => {
       const result = await createDirectSale(orderPayload);
 
       if (result.success) {
+        const selectedPersona = creditPersonas.find(
+          (cp) => cp._id === selectedCreditPersonId,
+        );
+
         const receiptData = {
           date: new Date().toISOString(),
           invoiceNumber: result.data?.orderNumber || `INV-${Date.now()}`,
@@ -375,9 +379,9 @@ export const useDirectSale = () => {
           change: finalPaidAmount - total,
           paymentMethod,
           note,
-          creditPersonName: creditPersonas.find(
-            (cp) => cp._id === selectedCreditPersonId,
-          )?.name,
+          customerName: selectedPersona?.name,
+          customerPhone: selectedPersona?.phone,
+          creditPersonName: selectedPersona?.name,
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;

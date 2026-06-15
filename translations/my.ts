@@ -125,6 +125,7 @@ export const my = {
     orderSuccess: "အော်ဒါ အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ",
     orderFailed: "အော်ဒါ ဖန်တီးရန် မအောင်မြင်ပါ",
     selectCreditPerson: "customer",
+    selectCustomer: "customer ရွေးချယ်ပါ",
     selectCreditPersonOptional: "customer ရွေးချယ်ပါ (ရွေးချယ်ရန်)",
     noCreditPersons: "customerများ မရှိပါ",
     receipt: "ငွေရှင်းတမ်း",

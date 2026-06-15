@@ -58,6 +58,11 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     if (!order) return;
 
     // Transform order data to receipt format
+    const creditPersonName =
+      typeof order.creditPersonId === "object"
+        ? order.creditPersonId?.name
+        : undefined;
+
     const receiptData = {
       invoiceNumber: order.orderNumber,
       storefrontName: "HONGCHI Myanmar",
@@ -79,6 +84,8 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       paidAmount: order.paidAmount,
       change: order.extraChange,
       note: order.note || undefined,
+      customerName: order.customerName?.trim() || creditPersonName,
+      customerPhone: order.customerPhone?.trim(),
     };
 
     // Save receipt data to localStorage for A4 printing

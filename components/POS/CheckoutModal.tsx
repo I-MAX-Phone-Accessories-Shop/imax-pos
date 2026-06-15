@@ -104,7 +104,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               onChange={(e) => {
                 setPaymentType(e.target.value as "paid" | "credit");
                 if (e.target.value === "paid") {
-                  setSelectedCreditPersonId("");
                   setPaymentMethod(PaymentMethod.CASH);
                   setPaidAmount(Math.ceil(total));
                 } else if (e.target.value === "credit") {
@@ -133,11 +132,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           </div>
 
-          {paymentType === "credit" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("pos.selectCreditPerson")}
-              </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {paymentType === "credit" ? t("pos.selectCreditPerson") : t("pos.selectCustomer")}
+            </label>
               <div className="relative">
                 <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <select
@@ -158,7 +156,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </select>
               </div>
             </div>
-          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

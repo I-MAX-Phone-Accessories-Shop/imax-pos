@@ -354,7 +354,7 @@ export const usePOS = () => {
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
-        ...(paymentType === "credit" && selectedCreditPersonId
+        ...(selectedCreditPersonId
           ? { creditPersonId: selectedCreditPersonId }
           : {}),
         ...(note.trim() ? { note: note.trim() } : {}),
@@ -365,6 +365,10 @@ export const usePOS = () => {
       if (result.success) {
         const selectedStorefront = storefronts.find(
           (sf) => sf._id === selectedStorefrontId,
+        );
+
+        const selectedPersona = creditPersonas.find(
+          (cp) => cp._id === selectedCreditPersonId,
         );
 
         const receiptData = {
@@ -385,6 +389,8 @@ export const usePOS = () => {
           change: finalPaidAmount - total,
           paymentMethod,
           note,
+          customerName: selectedPersona?.name,
+          customerPhone: selectedPersona?.phone,
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;

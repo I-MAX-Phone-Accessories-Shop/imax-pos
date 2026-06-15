@@ -41,6 +41,8 @@ export interface VoucherReceiptData {
   note?: string;
   documentType?: VoucherDocumentType;
   creditPersonName?: string;
+  customerName?: string;
+  customerPhone?: string;
 }
 
 interface VoucherContentProps {
@@ -56,6 +58,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   paperSize,
   formatDate,
 }) => {
+  console.log("VoucherContent receiptData", receiptData);
   const isThermal = paperSize === "thermal-80mm";
   const isQuotation = receiptData.documentType === "quotation";
   const contactParts = [
@@ -93,10 +96,13 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           isThermal ? "flex-col gap-1" : ""
         }`}
       >
-        {receiptData.creditPersonName && (
+        {(receiptData.customerName || receiptData.creditPersonName) && (
           <div>
             <p className="font-bold mb-0.5">BILL TO:</p>
-            <p>{receiptData.creditPersonName}</p>
+            <p>{receiptData.customerName || receiptData.creditPersonName}</p>
+            {receiptData.customerPhone && (
+              <p className="text-xs">{receiptData.customerPhone}</p>
+            )}
           </div>
         )}
         <div className={isThermal ? "" : "text-right"}>
