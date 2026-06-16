@@ -108,11 +108,18 @@ export interface PurchaseOrderProduct {
   unit?: string;
   productCode?: string;
   _id?: string;
+  productStatus?: string;
+  receivedQuantity?: number;
+  remainingQuantity?: number;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApiPurchaseOrder {
   _id: string;
-  supplierId: string;
+  supplierId: Supplier;
   products: PurchaseOrderProduct[];
   status: string;
   note: string;
@@ -123,7 +130,7 @@ export interface ApiPurchaseOrder {
   id?: string;
   poNumber: string;
   totalRemainingQuantity?: number;
-  purchasedBy?: string;
+  purchasedBy?: { _id: string; name: string; role: string } | string;
   isDeleted?: boolean;
   deletedAt?: string;
 }

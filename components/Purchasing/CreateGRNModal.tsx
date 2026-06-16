@@ -37,7 +37,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
   const [grnItems, setGRNItems] = useState<ExtendedGRNItem[]>([]);
   const [grnNote, setGRNNote] = useState("");
   const [grnDate, setGrnDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,8 +76,8 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
         productCode: item.productCode || "",
         name: item.productName,
         qtyOrdered: item.purchaseQuantity,
-        qtyReceived: item.purchaseQuantity,
-        qtyGood: item.purchaseQuantity,
+        qtyReceived: item.remainingQuantity,
+        qtyGood: item.remainingQuantity,
         qtyBad: 0,
         costPrice: item.buyingPrice,
         isSelected: true,
@@ -89,7 +89,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
   const updateGRNItem = (
     index: number,
     field: keyof ExtendedGRNItem,
-    value: number | boolean
+    value: number | boolean,
   ) => {
     setGRNItems((prev) => {
       const updated = [...prev];
@@ -99,8 +99,8 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
         item.isSelected = value as boolean;
       } else if (field === "qtyReceived") {
         item.qtyReceived = value as number;
-        if (value < item.qtyGood) {
-          item.qtyGood = value;
+        if ((value as number) < item.qtyGood) {
+          item.qtyGood = value as number;
           item.qtyBad = 0;
         }
       } else if (field === "qtyGood") {
@@ -153,7 +153,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
     for (const item of itemsToProcess) {
       if (item.qtyReceived !== item.qtyGood + item.qtyBad) {
         toast.error(
-          `For ${item.name}: Received quantity must equal Good + Bad quantities`
+          `For ${item.name}: Received quantity must equal Good + Bad quantities`,
         );
         return;
       }
@@ -295,7 +295,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
               <button
                 onClick={() => {
                   setGRNItems((prev) =>
-                    prev.map((item) => ({ ...item, isSelected: true }))
+                    prev.map((item) => ({ ...item, isSelected: true })),
                   );
                 }}
                 className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
@@ -305,7 +305,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
               <button
                 onClick={() => {
                   setGRNItems((prev) =>
-                    prev.map((item) => ({ ...item, isSelected: false }))
+                    prev.map((item) => ({ ...item, isSelected: false })),
                   );
                 }}
                 className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
@@ -368,7 +368,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
                               updateGRNItem(
                                 index,
                                 "qtyReceived",
-                                Number(e.target.value)
+                                Number(e.target.value),
                               )
                             }
                             min="0"
@@ -388,7 +388,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
                                 updateGRNItem(
                                   index,
                                   "qtyGood",
-                                  Number(e.target.value)
+                                  Number(e.target.value),
                                 )
                               }
                               min="0"
@@ -407,7 +407,7 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
                                 updateGRNItem(
                                   index,
                                   "qtyBad",
-                                  Number(e.target.value)
+                                  Number(e.target.value),
                                 )
                               }
                               min="0"

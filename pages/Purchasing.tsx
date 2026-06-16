@@ -156,6 +156,7 @@ export const Purchasing: React.FC = () => {
   const handleGRNSuccess = () => {
     loadGRNs(grnPagination.currentPage);
     loadPurchases(poPagination.currentPage);
+    setActiveTab("grn");
   };
 
   const handleCreateGRNFromPO = (po: ApiPurchaseOrder) => {
