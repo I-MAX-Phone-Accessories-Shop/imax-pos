@@ -66,6 +66,7 @@ export interface Order {
   totalPaidAmount?: Record<string, unknown>;
   remainingBalance?: number;
   dueDate?: string | null;
+  transportFee?: number;
   id?: string;
 }
 
