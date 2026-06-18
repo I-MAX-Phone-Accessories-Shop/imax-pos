@@ -19,6 +19,7 @@ import {
 } from "../services/Customer/fetchCustomers";
 import { registerCustomer } from "../services/Customer/registerCustomer";
 import { updateCustomer } from "../services/Customer/updateCustomer";
+import { updateCustomerTier, CustomerTier } from "../services/Customer/updateCustomerTier";
 import { CustomerDetailModal } from "../components/Customer/CustomerDetailModal";
 
 const formatDate = (iso: string) => {
@@ -28,6 +29,18 @@ const formatDate = (iso: string) => {
     month: "short",
     year: "numeric",
   });
+};
+
+const TIER_OPTIONS: { value: CustomerTier | null; label: string; color: string; multiplier: string; factor: number }[] = [
+  { value: null, label: "Regular", color: "bg-slate-100 text-slate-700", multiplier: "1x", factor: 10 },
+  { value: "silver", label: "Silver", color: "bg-gray-100 text-gray-700", multiplier: "1.5x", factor: 15 },
+  { value: "gold", label: "Gold", color: "bg-yellow-100 text-yellow-700", multiplier: "2x", factor: 20 },
+  { value: "platinum", label: "Platinum", color: "bg-purple-100 text-purple-700", multiplier: "3x", factor: 30 },
+];
+
+const getTierDisplay = (tier?: string) => {
+  const found = TIER_OPTIONS.find((t) => t.value === tier);
+  return found || TIER_OPTIONS[0];
 };
 
 export const Customers: React.FC = () => {
@@ -67,6 +80,8 @@ export const Customers: React.FC = () => {
     phone: "",
     addresses: [],
   });
+
+  const [updatingTierCustomerId, setUpdatingTierCustomerId] = useState<string | null>(null);
 
   const totalItems = pagination?.totalItems ?? customers.length;
 
@@ -127,6 +142,23 @@ export const Customers: React.FC = () => {
   const handleOpenDetail = (customer: Customer) => {
     setSelectedCustomer(customer);
     setDetailOpen(true);
+  };
+
+  const handleTierChange = async (customerId: string, newTier: CustomerTier | null) => {
+    setUpdatingTierCustomerId(customerId);
+    try {
+      const result = await updateCustomerTier(customerId, newTier);
+      if (result.success) {
+        toast.success("Customer tier updated");
+        loadCustomers();
+      } else {
+        toast.error(result.message || "Failed to update tier");
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to update tier");
+    } finally {
+      setUpdatingTierCustomerId(null);
+    }
   };
 
   const handlePageChange = (nextPage: number) => {
@@ -525,6 +557,8 @@ export const Customers: React.FC = () => {
           setDetailOpen(false);
           setSelectedCustomer(null);
         }}
+        onTierChange={handleTierChange}
+        isUpdatingTier={updatingTierCustomerId === selectedCustomer?._id}
       />
 
       {isRegisterModalOpen && (

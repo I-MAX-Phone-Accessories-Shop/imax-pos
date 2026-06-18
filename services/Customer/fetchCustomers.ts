@@ -14,6 +14,7 @@ export interface Customer {
   phone: string;
   addresses: CustomerAddress[];
   isActive: boolean;
+  tier?: string;
   createdAt: string;
   updatedAt: string;
 }

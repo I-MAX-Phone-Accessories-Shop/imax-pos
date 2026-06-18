@@ -1,13 +1,27 @@
 import React from "react";
-import { X, User, Phone, MapPin, RefreshCw } from "lucide-react";
+import { X, User, Phone, MapPin, RefreshCw, Award, Loader2 } from "lucide-react";
 import type { Customer } from "../../services/Customer/fetchCustomers";
+import type { CustomerTier } from "../../services/Customer/updateCustomerTier";
 import { useLanguage } from "../../context/LanguageContext";
+
+const TIER_OPTIONS: { value: CustomerTier | null; label: string; color: string; multiplier: string; factor: number }[] = [
+  { value: null, label: "Regular", color: "bg-slate-100 text-slate-700 border-slate-300", multiplier: "1x", factor: 10 },
+  { value: "silver", label: "Silver", color: "bg-gray-100 text-gray-700 border-gray-300", multiplier: "1.5x", factor: 15 },
+  { value: "gold", label: "Gold", color: "bg-yellow-100 text-yellow-700 border-yellow-300", multiplier: "2x", factor: 20 },
+  { value: "platinum", label: "Platinum", color: "bg-purple-100 text-purple-700 border-purple-300", multiplier: "3x", factor: 30 },
+];
+
+const getTierOption = (tier?: string) => {
+  return TIER_OPTIONS.find((t) => t.value === tier) || TIER_OPTIONS[0];
+};
 
 interface CustomerDetailModalProps {
   isOpen: boolean;
   loading: boolean;
   customer: Customer | null;
   onClose: () => void;
+  onTierChange?: (customerId: string, tier: CustomerTier | null) => void;
+  isUpdatingTier?: boolean;
 }
 
 export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
@@ -15,6 +29,8 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
   loading,
   customer,
   onClose,
+  onTierChange,
+  isUpdatingTier,
 }) => {
   const { t } = useLanguage();
 
@@ -81,6 +97,41 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
                       : t("customers.inactive")}
                   </span>
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm text-slate-600">Tier</span>
+                </div>
+                {isUpdatingTier ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                    <span className="text-sm text-slate-500">Updating...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={customer.tier || ""}
+                      onChange={(e) =>
+                        onTierChange?.(
+                          customer._id,
+                          (e.target.value || null) as CustomerTier | null
+                        )
+                      }
+                      className={`text-sm font-semibold px-3 py-1.5 rounded-lg border cursor-pointer focus:ring-2 focus:ring-primary outline-none ${getTierOption(customer.tier).color}`}
+                    >
+                      {TIER_OPTIONS.map((opt) => (
+                        <option key={opt.value || "regular"} value={opt.value || ""}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-sm font-medium text-slate-600 whitespace-nowrap">
+                      {getTierOption(customer.tier).multiplier}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="mb-6 flex items-center gap-2 text-sm text-slate-600">
