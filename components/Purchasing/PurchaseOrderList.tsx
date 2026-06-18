@@ -367,7 +367,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                             <>
                               <button
                                 onClick={() => onViewPO?.(po)}
-                                className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                                className="text-xs bg-primary/50 text-green-900 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                               >
                                 <Eye className="w-3 h-3" /> View
                               </button>
@@ -382,7 +382,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                             <>
                               <button
                                 onClick={() => onViewPO?.(po)}
-                                className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                                className="text-xs bg-primary/50 text-green-900 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                               >
                                 <Eye className="w-3 h-3" /> View
                               </button>
@@ -393,7 +393,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
                                   }
                                   className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors"
                                 >
-                                  Mark Arrived
+                                  Arrived
                                 </button>
                               )}
                               {(po.status === "arrived" ||

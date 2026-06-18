@@ -12,6 +12,7 @@ import { Warehouse } from "./pages/Warehouse";
 import { WarehouseDetail } from "./pages/WarehouseDetail";
 import { Storefront } from "./pages/Storefront";
 import { StorefrontDetail } from "./pages/StorefrontDetail";
+import { StorefrontProductDetail } from "./pages/StorefrontProductDetail";
 import { Reports } from "./pages/Reports";
 import { PurchaseReport } from "./pages/PurchaseReport";
 import { Settings } from "./pages/Settings";
@@ -91,6 +92,7 @@ const AppLayout: React.FC = () => {
           <Route path="/warehouse/:id" element={<WarehouseDetail />} />
           <Route path="/storefront" element={<Storefront />} />
           <Route path="/storefront/:id" element={<StorefrontDetail />} />
+          <Route path="/storefront/:storeId/product/:productId" element={<StorefrontProductDetail />} />
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/orders" element={<Orders />} />

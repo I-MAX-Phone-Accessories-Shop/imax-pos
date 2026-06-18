@@ -17,6 +17,7 @@ import {
   Plus,
   Trash2,
   Shield,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -39,6 +40,7 @@ import { getUnitOptions } from "../utils/uom";
 import { fetchProductById } from "../services/Inventory/fetchProductById";
 import {
   updateInventoryEcommerceLimit,
+  removeEcommerceLimit,
   EcommercePurchaseResetMode,
 } from "../services/Inventory/updateInventoryEcommerceLimit";
 import type { StorefrontStockInventory } from "../services/Storefront/fetchStorefrontStock";
@@ -111,7 +113,14 @@ export const StorefrontDetail: React.FC = () => {
   useEffect(() => {
     loadStorefrontStock();
     loadWarehouses();
-  }, [id, currentPage, itemsPerPage, selectedCategory, searchTerm, limitedOnly]);
+  }, [
+    id,
+    currentPage,
+    itemsPerPage,
+    selectedCategory,
+    searchTerm,
+    limitedOnly,
+  ]);
 
   useEffect(() => {
     loadCategories();
@@ -419,6 +428,7 @@ export const StorefrontDetail: React.FC = () => {
   const [resetMode, setResetMode] =
     useState<EcommercePurchaseResetMode>("manual");
   const [resetDays, setResetDays] = useState(7);
+  const [limitUnit, setLimitUnit] = useState("");
   const [loadingEcommerceLimit, setLoadingEcommerceLimit] = useState(false);
   const [isSavingEcommerceLimit, setIsSavingEcommerceLimit] = useState(false);
 
@@ -426,16 +436,17 @@ export const StorefrontDetail: React.FC = () => {
     if (inv.ecommerceMaxPerUser == null || inv.ecommerceMaxPerUser <= 0) {
       return "—";
     }
+    const unitLabel = inv.limitUnit ? ` ${inv.limitUnit}` : "";
     if (
       inv.ecommercePurchaseResetMode === "timeline" &&
       inv.ecommercePurchaseResetDays
     ) {
-      return `${inv.ecommerceMaxPerUser} / ${inv.ecommercePurchaseResetDays}d`;
+      return `${inv.ecommerceMaxPerUser}${unitLabel} / ${inv.ecommercePurchaseResetDays}d`;
     }
     if (inv.ecommercePurchaseResetMode === "manual") {
-      return `${inv.ecommerceMaxPerUser} / manual`;
+      return `${inv.ecommerceMaxPerUser}${unitLabel} / manual`;
     }
-    return String(inv.ecommerceMaxPerUser);
+    return `${inv.ecommerceMaxPerUser}${unitLabel}`;
   };
 
   const applyEcommerceLimitForm = (
@@ -444,11 +455,13 @@ export const StorefrontDetail: React.FC = () => {
       | "ecommerceMaxPerUser"
       | "ecommercePurchaseResetMode"
       | "ecommercePurchaseResetDays"
+      | "limitUnit"
     >,
   ) => {
     setEcommerceMaxPerUser(source.ecommerceMaxPerUser ?? 1);
     setResetMode(source.ecommercePurchaseResetMode ?? "manual");
     setResetDays(source.ecommercePurchaseResetDays ?? 7);
+    setLimitUnit(source.limitUnit ?? "");
   };
 
   const openEcommerceLimitModal = async (item: StorefrontStockItem) => {
@@ -500,16 +513,20 @@ export const StorefrontDetail: React.FC = () => {
 
     setIsSavingEcommerceLimit(true);
     try {
+      const limitUnitPayload =
+        limitUnit && limitUnit.trim() ? { limitUnit: limitUnit.trim() } : {};
       const payload =
         resetMode === "manual"
           ? {
               ecommerceMaxPerUser,
               ecommercePurchaseResetMode: "manual" as const,
+              ...limitUnitPayload,
             }
           : {
               ecommerceMaxPerUser,
               ecommercePurchaseResetMode: "timeline" as const,
               ecommercePurchaseResetDays: resetDays,
+              ...limitUnitPayload,
             };
 
       const result = await updateInventoryEcommerceLimit(inventoryId, payload);
@@ -530,6 +547,30 @@ export const StorefrontDetail: React.FC = () => {
       toast.error(message);
     } finally {
       setIsSavingEcommerceLimit(false);
+    }
+  };
+
+  const handleRemoveEcommerceLimit = async (item: StorefrontStockItem) => {
+    const inventoryId = item.inventoryId._id;
+    if (!inventoryId) {
+      toast.error("Cannot remove limit — missing product id");
+      return;
+    }
+
+    try {
+      const result = await removeEcommerceLimit(inventoryId);
+      if (result.success) {
+        toast.success("Ecommerce limit removed");
+        loadStorefrontStock();
+      } else {
+        toast.error(result.message || "Failed to remove ecommerce limit");
+      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to remove ecommerce limit";
+      toast.error(message);
     }
   };
 
@@ -864,46 +905,23 @@ export const StorefrontDetail: React.FC = () => {
 
             {/* Table container with horizontal scroll on mobile */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left min-w-[1000px]">
+              <table className="w-full text-sm text-left min-w-[600px]">
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
                       <span className="hidden sm:inline">Product Name</span>
                       <span className="sm:hidden">Name</span>
                     </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
-                      <span className="hidden sm:inline">Product Code</span>
-                      <span className="sm:hidden">Code</span>
-                    </th>
-                    {/* <th className="px-4 py-3 font-medium text-slate-600">SKU</th> */}
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
-                      Category
-                    </th>
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       Qty
-                    </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
-                      <span className="hidden sm:inline">Available</span>
-                      <span className="sm:hidden">Avail</span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       <span className="hidden sm:inline">Price</span>
                       <span className="sm:hidden">$</span>
                     </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
-                      <span className="hidden sm:inline">Total</span>
-                      <span className="sm:hidden">T</span>
-                    </th>
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
                       <span className="hidden sm:inline">Status</span>
                       <span className="sm:hidden">S</span>
-                    </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
-                      E-Limit
-                    </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
-                      <span className="hidden sm:inline">Updated</span>
-                      <span className="sm:hidden">U</span>
                     </th>
                     {userRole === "owner" && (
                       <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
@@ -918,24 +936,11 @@ export const StorefrontDetail: React.FC = () => {
                     <tr key={item._id} className="hover:bg-slate-50">
                       <td className="px-2 sm:px-4 py-3 font-medium text-slate-800">
                         <div
-                          className="max-w-[150px] sm:max-w-none truncate"
+                          className="max-w-[200px] sm:max-w-none truncate"
                           title={item.inventoryId.productName}
                         >
                           {item.inventoryId.productName}
                         </div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-3 text-slate-600">
-                        <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">
-                          {item.inventoryId.productCode}
-                        </span>
-                      </td>
-                      {/* <td className="px-4 py-3 text-slate-500 font-mono text-xs">
-                        {item.inventoryId.SKU}
-                      </td> */}
-                      <td className="px-2 sm:px-4 py-3">
-                        <span className="bg-primary/20 text-primary-700 px-2 py-1 rounded text-xs font-medium">
-                          {item.inventoryId.category}
-                        </span>
                       </td>
                       <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
                         <QuantityByUnitDisplay
@@ -943,17 +948,8 @@ export const StorefrontDetail: React.FC = () => {
                           quantityByUnit={item.quantityByUnit}
                         />
                       </td>
-                      <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
-                        {item.availableQuantity}
-                      </td>
                       <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
                         {(item.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
-                        <span className="hidden sm:inline">MMK</span>
-                      </td>
-                      <td className="px-2 sm:px-4 py-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
-                        {(
-                          item.quantity * (item.inventoryId.sellingPrice || 0)
-                        ).toLocaleString()}{" "}
                         <span className="hidden sm:inline">MMK</span>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
@@ -977,73 +973,27 @@ export const StorefrontDetail: React.FC = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-2 sm:px-4 py-3 text-slate-600 text-xs whitespace-nowrap">
-                        {formatEcommerceLimit(item.inventoryId)}
-                      </td>
-                      <td className="px-2 sm:px-4 py-3 text-slate-500 text-xs">
-                        <span className="hidden sm:inline">
-                          {new Date(item.lastUpdated).toLocaleDateString()}{" "}
-                          {new Date(item.lastUpdated).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <span className="sm:hidden">
-                          {new Date(item.lastUpdated).toLocaleDateString()}
-                        </span>
-                      </td>
+                      {/* {userRole === "owner" && ( */}
                       <td className="px-2 sm:px-4 py-3">
-                        {userRole === "owner" &&
-                          id === "6a167599b9e1cd8ad1a15661" && (
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              <button
-                                type="button"
-                                onClick={() => openEcommerceLimitModal(item)}
-                                className="text-xs bg-blue-50 text-blue-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-blue-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
-                                title="Ecommerce purchase limit"
-                              >
-                                <Shield className="w-3 h-3" />
-                                <span className="hidden sm:inline">
-                                  E-Limit
-                                </span>
-                                <span className="sm:hidden">E</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openTransferModal(item)}
-                                disabled={item.quantity === 0}
-                                className="text-xs bg-purple-50 text-primary-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-purple-100 border border-purple-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <ArrowRightLeft className="w-3 h-3" />
-                                <span className="hidden sm:inline">
-                                  Transfer
-                                </span>
-                                <span className="sm:hidden">T</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openAdjustmentModal(item, "increase")
-                                }
-                                className="text-xs bg-green-50 text-green-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
-                                title="Increase Stock"
-                              >
-                                <TrendingUp className="w-3 h-3" /> +
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openAdjustmentModal(item, "decrease")
-                                }
-                                disabled={item.quantity === 0}
-                                className="text-xs bg-red-50 text-red-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-red-100 border border-red-200 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Decrease Stock"
-                              >
-                                <TrendingDown className="w-3 h-3" /> -
-                              </button>
-                            </div>
-                          )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              `/storefront/${id}/product/${item.inventoryId._id}`,
+                              {
+                                state: {
+                                  productName: item.inventoryId.productName,
+                                  productCode: item.inventoryId.productCode,
+                                },
+                              },
+                            )
+                          }
+                          className="text-xs bg-primary/50 text-green-900 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" /> View
+                        </button>
                       </td>
+                      {/* )} */}
                     </tr>
                   ))}
                 </tbody>
@@ -1479,7 +1429,8 @@ export const StorefrontDetail: React.FC = () => {
                   Unit
                 </label>
                 {(() => {
-                  const { baseUnit, conversions } = getInventoryUomFromStock(selectedStockItem);
+                  const { baseUnit, conversions } =
+                    getInventoryUomFromStock(selectedStockItem);
                   const unitOptions = getUnitOptions(baseUnit, conversions);
                   if (unitOptions.length <= 1) {
                     return (
@@ -1492,7 +1443,9 @@ export const StorefrontDetail: React.FC = () => {
                     <select
                       className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
                       value={selectedAdjustmentUnit}
-                      onChange={(e) => setSelectedAdjustmentUnit(e.target.value)}
+                      onChange={(e) =>
+                        setSelectedAdjustmentUnit(e.target.value)
+                      }
                     >
                       {unitOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -1613,6 +1566,45 @@ export const StorefrontDetail: React.FC = () => {
                         setEcommerceMaxPerUser(Number(e.target.value) || 0)
                       }
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Limit unit{" "}
+                      <span className="text-xs text-slate-400">(optional)</span>
+                    </label>
+                    {(() => {
+                      const { baseUnit, conversions } =
+                        getInventoryUomFromStock(selectedStockItem);
+                      const unitOptions = getUnitOptions(baseUnit, conversions);
+                      if (unitOptions.length <= 1) {
+                        return (
+                          <div className="w-full border rounded-lg p-3 bg-slate-50 text-slate-500 text-sm">
+                            No additional units available
+                          </div>
+                        );
+                      }
+                      return (
+                        <select
+                          className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
+                          value={limitUnit}
+                          onChange={(e) => setLimitUnit(e.target.value)}
+                        >
+                          <option value="">Base unit ({baseUnit})</option>
+                          {unitOptions
+                            .filter((opt) => !opt.isBase)
+                            .map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                        </select>
+                      );
+                    })()}
+                    <p className="text-xs text-slate-500 mt-1">
+                      Leave as base unit to count directly. Select a unit to
+                      multiply by its conversion factor.
+                    </p>
                   </div>
 
                   <div>

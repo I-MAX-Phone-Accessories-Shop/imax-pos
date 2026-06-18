@@ -8,6 +8,7 @@ export interface PurchaseProduct {
   purchaseQuantity: number;
   receivedQuantity: number;
   unit?: string;
+  baseQuantity?: number;
   productCode: string;
   isDeleted: boolean;
   deletedAt: string | null;

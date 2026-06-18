@@ -2,14 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "../Modal";
 import {
   fetchPurchaseById,
-  PurchaseProduct,
   PurchaseDetail,
 } from "../../services/Purchase/fetchPurchaseById";
-import { updatePurchaseProductUnit } from "../../services/Purchase/updatePurchaseProductUnit";
-import { fetchProductById } from "../../services/Inventory/fetchProductById";
 import { Supplier } from "../../types";
-import { getUnitOptions } from "../../utils/uom";
-import { toast } from "sonner";
 import {
   Package,
   Calendar,
@@ -19,7 +14,6 @@ import {
   User,
   CheckCircle,
   Clock,
-  Loader2,
 } from "lucide-react";
 
 interface PODetailModalProps {
@@ -39,11 +33,6 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
 }) => {
   const [purchase, setPurchase] = useState<PurchaseDetail | null>(null);
   const [loading, setLoading] = useState(false);
-  const [editingUnit, setEditingUnit] = useState<string | null>(null);
-  const [unitOptionsMap, setUnitOptionsMap] = useState<
-    Record<string, { value: string; label: string; isBase: boolean }[]>
-  >({});
-  const [updatingUnit, setUpdatingUnit] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && purchaseId) {
@@ -58,7 +47,6 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
       const res = await fetchPurchaseById(purchaseId);
       if (res.success && res.data) {
         setPurchase(res.data);
-        loadUnitOptions(res.data.products);
       }
     } catch (error) {
       console.error("Failed to load purchase details", error);
@@ -67,59 +55,9 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
     }
   };
 
-  const loadUnitOptions = async (products: PurchaseProduct[]) => {
-    const optionsMap: Record<string, { value: string; label: string; isBase: boolean }[]> = {};
-    for (const product of products) {
-      try {
-        const res = await fetchProductById(product.inventoryId);
-        if (res.success && res.data) {
-          const baseUnit = res.data.unitOfMeasure || "piece";
-          const conversions = res.data.uomConversions;
-          optionsMap[product._id] = getUnitOptions(baseUnit, conversions);
-        }
-      } catch {
-        optionsMap[product._id] = [{ value: "piece", label: "piece", isBase: true }];
-      }
-    }
-    setUnitOptionsMap(optionsMap);
-  };
-
-  const handleUnitChange = async (productId: string, newUnit: string) => {
-    if (!purchaseId || !purchase) return;
-
-    setUpdatingUnit(productId);
-    try {
-      const result = await updatePurchaseProductUnit(purchaseId, {
-        productId,
-        unit: newUnit,
-      });
-
-      if (result.success) {
-        setPurchase((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            products: prev.products.map((p) =>
-              p._id === productId ? { ...p, unit: newUnit } : p
-            ),
-          };
-        });
-        toast.success("Unit updated successfully");
-        onUpdate?.();
-      } else {
-        toast.error(result.message || "Failed to update unit");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update unit");
-    } finally {
-      setUpdatingUnit(null);
-      setEditingUnit(null);
-    }
-  };
-
   const getSupplierName = (supplierId: string) => {
     const supplier = suppliers.find(
-      (s) => s.id === supplierId || s._id === supplierId
+      (s) => s.id === supplierId || s._id === supplierId,
     );
     return supplier ? supplier.supplierName : "Unknown Supplier";
   };
@@ -154,8 +92,6 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
 
   const handleClose = () => {
     setPurchase(null);
-    setEditingUnit(null);
-    setUnitOptionsMap({});
     onClose();
   };
 
@@ -200,7 +136,7 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                 Total Amount
               </div>
               <div className="font-bold text-lg text-green-600">
-                {purchase.totalAmount.toLocaleString()}
+                {purchase.totalAmount.toLocaleString()} MMK
               </div>
             </div>
             <div className="bg-slate-50 p-4 rounded-lg border">
@@ -210,7 +146,7 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
               </div>
               <span
                 className={`inline-block px-3 py-1 rounded-full text-sm font-bold border ${getStatusColor(
-                  purchase.status
+                  purchase.status,
                 )}`}
               >
                 {purchase.status.toUpperCase()}
@@ -264,7 +200,7 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
           </div>
 
           {/* Notes */}
-          {purchase.note && (
+          {purchase.note !== "No note available" && (
             <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
               <div className="flex items-center gap-2 text-amber-700 text-sm font-semibold mb-2">
                 <FileText className="w-4 h-4" />
@@ -289,8 +225,8 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                       <th className="p-3 text-left">Product Code</th>
                       <th className="p-3 text-center">Status</th>
                       <th className="p-3 text-center">Quantity</th>
-                      <th className="p-3 text-center">Unit</th>
-                      <th className="p-3 text-center">Received</th>
+                      <th className="p-3 text-center">Unit (Base Qty)</th>
+                      {/* <th className="p-3 text-center">Received</th> */}
                       <th className="p-3 text-right">Buying Price</th>
                       <th className="p-3 text-right">Subtotal</th>
                     </tr>
@@ -298,14 +234,16 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                   <tbody className="divide-y">
                     {purchase.products.map((product) => (
                       <tr key={product._id} className="hover:bg-slate-50">
-                        <td className="p-3 font-medium">{product.productName}</td>
+                        <td className="p-3 font-medium">
+                          {product.productName}
+                        </td>
                         <td className="p-3 text-slate-600">
                           {product.productCode}
                         </td>
                         <td className="p-3 text-center">
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getProductStatusColor(
-                              product.productStatus
+                              product.productStatus,
                             )}`}
                           >
                             {product.productStatus === "received" ? (
@@ -322,52 +260,23 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                           </span>
                         </td>
                         <td className="p-3 text-center">
-                          {editingUnit === product._id ? (
-                            <div className="flex items-center justify-center gap-1">
-                              {updatingUnit === product._id ? (
-                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                              ) : (
-                                <select
-                                  className="text-xs border rounded px-1 py-0.5 bg-white focus:ring-1 focus:ring-primary outline-none"
-                                  value={product.unit || "piece"}
-                                  onChange={(e) =>
-                                    handleUnitChange(product._id, e.target.value)
-                                  }
-                                  onBlur={() => setEditingUnit(null)}
-                                  autoFocus
-                                >
-                                  {(unitOptionsMap[product._id] || [
-                                    { value: "piece", label: "piece" },
-                                  ]).map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setEditingUnit(product._id)}
-                              className="px-2 py-1 rounded text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-                              title="Click to edit unit"
-                            >
-                              {product.unit || "—"}
-                            </button>
-                          )}
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-slate-50 text-slate-600">
+                            {product.unit || "—"} x{product.baseQuantity ?? 1}
+                          </span>
                         </td>
-                        <td className="p-3 text-center">
+                        {/* <td className="p-3 text-center">
                           <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
                             {product.receivedQuantity}
                           </span>
-                        </td>
+                        </td> */}
                         <td className="p-3 text-right text-slate-600">
-                          {product.buyingPrice.toLocaleString()}
+                          {product.buyingPrice.toLocaleString()} MMK
                         </td>
                         <td className="p-3 text-right font-medium">
                           {(
-                            product.buyingPrice * product.purchaseQuantity
-                          ).toLocaleString()}
+                            product.buyingPrice * product.baseQuantity
+                          ).toLocaleString()}{" "}
+                          MMK
                         </td>
                       </tr>
                     ))}
@@ -378,7 +287,7 @@ export const PODetailModal: React.FC<PODetailModalProps> = ({
                         Total Amount:
                       </td>
                       <td className="p-3 text-right font-bold text-green-600">
-                        {purchase.totalAmount.toLocaleString()}
+                        {purchase.totalAmount.toLocaleString()} MMK
                       </td>
                     </tr>
                   </tfoot>

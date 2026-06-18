@@ -16,11 +16,11 @@ export const QuantityByUnitDisplay: React.FC<QuantityByUnitDisplayProps> = ({
   return (
     <span className={className} title={breakdown || undefined}>
       {quantity.toLocaleString()}
-      {breakdown ? (
+      {/* {breakdown ? (
         <span className="block text-[10px] text-slate-500 font-normal mt-0.5 max-w-[140px] truncate">
           {breakdown}
         </span>
-      ) : null}
+      ) : null} */}
     </span>
   );
 };

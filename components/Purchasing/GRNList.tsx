@@ -31,7 +31,6 @@ interface GRNListProps {
 
 export const GRNList: React.FC<GRNListProps> = ({
   grnList,
-  setIsCreateModalOpen,
   onViewGRN,
   onStatusChange,
   onTransferGRN,
@@ -39,7 +38,7 @@ export const GRNList: React.FC<GRNListProps> = ({
   pagination,
 }) => {
   const [grnFilter, setGrnFilter] = useState<"pending" | "completed">(
-    "pending"
+    "pending",
   );
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -73,6 +72,8 @@ export const GRNList: React.FC<GRNListProps> = ({
       );
     }
   });
+
+  console.log("filteredGRNs", filteredGRNs);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
@@ -209,13 +210,14 @@ export const GRNList: React.FC<GRNListProps> = ({
             <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>
                 <th className="p-4">GRN Number</th>
+                <th className="p-4">Supplier</th>
                 <th className="p-4">Date</th>
                 <th className="p-4">Items</th>
                 <th className="p-4">Received Qty</th>
                 <th className="p-4">Good / Bad</th>
                 <th className="p-4">Total Amount</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">Notes</th>
+                {/* <th className="p-4">Notes</th> */}
                 <th className="p-4">Actions</th>
               </tr>
             </thead>
@@ -231,6 +233,9 @@ export const GRNList: React.FC<GRNListProps> = ({
                   <tr key={grn._id} className="hover:bg-slate-50">
                     <td className="p-4 font-medium text-blue-600">
                       {grn.grnNumber}
+                    </td>
+                    <td className="p-4">
+                      {grn.purchasingId?.supplierId?.supplierName || "N/A"}
                     </td>
                     <td className="p-4">
                       {new Date(grn.grnDate).toLocaleDateString()}
@@ -258,20 +263,20 @@ export const GRNList: React.FC<GRNListProps> = ({
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                          grn.status
+                          grn.status,
                         )}`}
                       >
                         {grn.status.toUpperCase()}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-500 truncate max-w-xs">
+                    {/* <td className="p-4 text-slate-500 truncate max-w-xs">
                       {grn.notes || "-"}
-                    </td>
+                    </td> */}
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onViewGRN?.(grn)}
-                          className="text-xs bg-primary/50 text-yellow-800 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
+                          className="text-xs bg-primary/50 text-green-900 px-3 py-1.5 rounded hover:bg-yellow-100 border border-blue-200 font-medium transition-colors flex items-center gap-1"
                         >
                           <Eye className="w-3 h-3" /> View
                         </button>
@@ -289,7 +294,7 @@ export const GRNList: React.FC<GRNListProps> = ({
                         )}
                         {grn.status?.toLowerCase() === "verified" &&
                           grn.lineItems.some(
-                            (item) => item.availableQuantity > 0
+                            (item) => item.availableQuantity > 0,
                           ) && (
                             <>
                               <button
@@ -300,7 +305,8 @@ export const GRNList: React.FC<GRNListProps> = ({
                                 }}
                                 className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded hover:bg-green-100 border border-green-200 font-medium transition-colors flex items-center gap-1"
                               >
-                                <Warehouse className="w-3 h-3" /> To Warehouse
+                                <Warehouse className="hidden md:block w-3 h-3" />{" "}
+                                Warehouse
                               </button>
                               <button
                                 type="button"
@@ -310,13 +316,14 @@ export const GRNList: React.FC<GRNListProps> = ({
                                     onTransferGRNToStorefront(grn);
                                   } else {
                                     toast.error(
-                                      "Transfer to storefront is not available"
+                                      "Transfer to storefront is not available",
                                     );
                                   }
                                 }}
                                 className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded hover:bg-orange-100 border border-orange-200 font-medium transition-colors flex items-center gap-1"
                               >
-                                <Store className="w-3 h-3" /> To Storefront
+                                <Store className="hidden md:block w-3 h-3" />
+                                Storefront
                               </button>
                             </>
                           )}

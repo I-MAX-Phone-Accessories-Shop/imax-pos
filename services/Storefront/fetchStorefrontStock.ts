@@ -15,6 +15,7 @@ export interface StorefrontStockInventory {
   ecommerceMaxPerUser?: number;
   ecommercePurchaseResetMode?: "manual" | "timeline";
   ecommercePurchaseResetDays?: number;
+  limitUnit?: string;
 }
 
 export interface StorefrontStockStorefront {
