@@ -26,6 +26,7 @@ interface EcommerceOrderDetailModalProps {
 export const EcommerceOrderDetailModal: React.FC<
   EcommerceOrderDetailModalProps
 > = ({ isOpen, loading, order, onClose, onOrderUpdate }) => {
+  console.log("order", order);
   const { t } = useLanguage();
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
   const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
@@ -54,8 +55,7 @@ export const EcommerceOrderDetailModal: React.FC<
 
   const primaryProductImage =
     order?.products[0]?.inventoryId?.images?.find((img) => img.isPrimary)
-      ?.url ||
-    order?.products[0]?.inventoryId?.images?.[0]?.url;
+      ?.url || order?.products[0]?.inventoryId?.images?.[0]?.url;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -124,12 +124,12 @@ export const EcommerceOrderDetailModal: React.FC<
                       order.status === "pending"
                         ? "bg-amber-100 text-amber-800"
                         : order.status === "confirmed"
-                        ? "bg-blue-100 text-blue-800"
-                        : order.status === "shipped"
-                        ? "bg-purple-100 text-purple-800"
-                        : order.status === "delivered"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-rose-100 text-rose-800"
+                          ? "bg-blue-100 text-blue-800"
+                          : order.status === "shipped"
+                            ? "bg-purple-100 text-purple-800"
+                            : order.status === "delivered"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-rose-100 text-rose-800"
                     }`}
                   >
                     {statusLabelMm}
@@ -200,6 +200,9 @@ export const EcommerceOrderDetailModal: React.FC<
                         <th className="p-3 text-center font-medium text-slate-600">
                           {t("common.quantity")}
                         </th>
+                        <th className="p-3 text-center font-medium text-slate-600">
+                          Unit
+                        </th>
                         <th className="p-3 text-right font-medium text-slate-600">
                           {t("common.price")}
                         </th>
@@ -215,8 +218,9 @@ export const EcommerceOrderDetailModal: React.FC<
                             {p.inventoryId.images?.[0]?.url ? (
                               <img
                                 src={
-                                  p.inventoryId.images.find((img) => img.isPrimary)
-                                    ?.url || p.inventoryId.images[0].url
+                                  p.inventoryId.images.find(
+                                    (img) => img.isPrimary,
+                                  )?.url || p.inventoryId.images[0].url
                                 }
                                 alt={p.inventoryId.productName}
                                 className="w-10 h-10 rounded object-cover border"
@@ -233,6 +237,9 @@ export const EcommerceOrderDetailModal: React.FC<
                           </td>
                           <td className="p-3 text-center font-medium">
                             {p.quantity.toLocaleString()}
+                          </td>
+                          <td className="p-3 text-center text-slate-600">
+                            {p.unit}
                           </td>
                           <td className="p-3 text-right text-slate-600">
                             {p.unitPrice.toLocaleString()} MMK
@@ -255,7 +262,9 @@ export const EcommerceOrderDetailModal: React.FC<
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">{t("ecommerceOrders.total")}</span>
+                    <span className="text-slate-500">
+                      {t("ecommerceOrders.total")}
+                    </span>
                     <span className="font-semibold">
                       {order.totalAmount.toLocaleString()} MMK
                     </span>
@@ -329,4 +338,3 @@ export const EcommerceOrderDetailModal: React.FC<
     </div>
   );
 };
-

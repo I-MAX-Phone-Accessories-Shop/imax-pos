@@ -16,14 +16,15 @@ import {
   Tag,
 } from "lucide-react";
 import { toast } from "sonner";
-import { fetchProductById, ProductDetail } from "../services/Inventory/fetchProductById";
+import {
+  fetchProductById,
+  ProductDetail,
+} from "../services/Inventory/fetchProductById";
 import {
   fetchStorefrontStock,
   StorefrontStockItem,
 } from "../services/Storefront/fetchStorefrontStock";
-import {
-  updateStorefrontStockQuantity,
-} from "../services/Storefront/updateStorefrontStockQuantity";
+import { updateStorefrontStockQuantity } from "../services/Storefront/updateStorefrontStockQuantity";
 import {
   updateInventoryEcommerceLimit,
   removeEcommerceLimit,
@@ -33,7 +34,10 @@ import { QuantityByUnitDisplay } from "../components/UOM/QuantityByUnitDisplay";
 import { getUnitOptions } from "../utils/uom";
 
 export const StorefrontProductDetail: React.FC = () => {
-  const { storeId, productId } = useParams<{ storeId: string; productId: string }>();
+  const { storeId, productId } = useParams<{
+    storeId: string;
+    productId: string;
+  }>();
   const navigate = useNavigate();
 
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
@@ -45,16 +49,20 @@ export const StorefrontProductDetail: React.FC = () => {
 
   // Stock adjustment modal state
   const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
-  const [adjustmentType, setAdjustmentType] = useState<"increase" | "decrease">("increase");
+  const [adjustmentType, setAdjustmentType] = useState<"increase" | "decrease">(
+    "increase",
+  );
   const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
-  const [adjustmentUnit, setAdjustmentUnit] = useState("piece");
+  const [adjustmentUnit, setAdjustmentUnit] = useState("");
   const [adjustmentReason, setAdjustmentReason] = useState("");
   const [isAdjusting, setIsAdjusting] = useState(false);
 
   // Ecommerce limit modal state
-  const [isEcommerceLimitModalOpen, setIsEcommerceLimitModalOpen] = useState(false);
+  const [isEcommerceLimitModalOpen, setIsEcommerceLimitModalOpen] =
+    useState(false);
   const [ecommerceMaxPerUser, setEcommerceMaxPerUser] = useState(1);
-  const [resetMode, setResetMode] = useState<EcommercePurchaseResetMode>("manual");
+  const [resetMode, setResetMode] =
+    useState<EcommercePurchaseResetMode>("manual");
   const [resetDays, setResetDays] = useState(7);
   const [limitUnit, setLimitUnit] = useState("");
   const [isSavingEcommerceLimit, setIsSavingEcommerceLimit] = useState(false);
@@ -71,10 +79,19 @@ export const StorefrontProductDetail: React.FC = () => {
       const productRes = await fetchProductById(productId);
       if (productRes.success && productRes.data) {
         setProduct(productRes.data);
+
+        setAdjustmentUnit(productRes.data.unitOfMeasure || "");
+        console.log(productRes.data.unitOfMeasure);
       }
 
       // Fetch stock item for this product in this storefront
-      const stockRes = await fetchStorefrontStock(storeId, 1, 100, undefined, productRes.data?.productCode);
+      const stockRes = await fetchStorefrontStock(
+        storeId,
+        1,
+        100,
+        undefined,
+        productRes.data?.productCode,
+      );
       if (stockRes.success && stockRes.data.length > 0) {
         setStockItem(stockRes.data[0]);
       }
@@ -93,24 +110,34 @@ export const StorefrontProductDetail: React.FC = () => {
   const openAdjustmentModal = (type: "increase" | "decrease") => {
     setAdjustmentType(type);
     setAdjustmentQuantity(0);
-    setAdjustmentUnit("piece");
     setAdjustmentReason("");
     setIsAdjustmentModalOpen(true);
   };
 
   const handleSubmitAdjustment = async () => {
+    console.log("api", adjustmentUnit);
+    console.log("local", product?.unitOfMeasure);
+    console.log("unit", adjustmentUnit);
     if (!stockItem || adjustmentQuantity <= 0) return;
 
     setIsAdjusting(true);
     try {
       const payload = {
-        quantityChange: adjustmentType === "increase" ? adjustmentQuantity : -adjustmentQuantity,
-        unit: adjustmentUnit,
+        quantityChange:
+          adjustmentType === "increase"
+            ? adjustmentQuantity
+            : -adjustmentQuantity,
+        unit: adjustmentUnit || product?.unitOfMeasure,
         reason: adjustmentReason,
       };
-      const result = await updateStorefrontStockQuantity(stockItem._id, payload);
+      const result = await updateStorefrontStockQuantity(
+        stockItem._id,
+        payload,
+      );
       if (result.success) {
-        toast.success(`Stock ${adjustmentType === "increase" ? "increased" : "decreased"} successfully`);
+        toast.success(
+          `Stock ${adjustmentType === "increase" ? "increased" : "decreased"} successfully`,
+        );
         setIsAdjustmentModalOpen(false);
         loadData();
       } else {
@@ -149,7 +176,8 @@ export const StorefrontProductDetail: React.FC = () => {
 
     setIsSavingEcommerceLimit(true);
     try {
-      const limitUnitPayload = limitUnit && limitUnit.trim() ? { limitUnit: limitUnit.trim() } : {};
+      const limitUnitPayload =
+        limitUnit && limitUnit.trim() ? { limitUnit: limitUnit.trim() } : {};
       const payload =
         resetMode === "manual"
           ? {
@@ -173,7 +201,10 @@ export const StorefrontProductDetail: React.FC = () => {
         toast.error(result.message || "Failed to update ecommerce limit");
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to update ecommerce limit";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to update ecommerce limit";
       toast.error(message);
     } finally {
       setIsSavingEcommerceLimit(false);
@@ -192,22 +223,31 @@ export const StorefrontProductDetail: React.FC = () => {
         toast.error(result.message || "Failed to remove ecommerce limit");
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to remove ecommerce limit";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to remove ecommerce limit";
       toast.error(message);
     }
   };
 
   // Transfer handler
   const handleTransfer = () => {
-    navigate(`/storefront/${storeId}`, { state: { openTransfer: true, productId } });
+    navigate(`/storefront/${storeId}`, {
+      state: { openTransfer: true, productId },
+    });
   };
 
   // Format ecommerce limit for display
   const formatEcommerceLimit = () => {
     if (!product) return "—";
-    if (product.ecommerceMaxPerUser == null || product.ecommerceMaxPerUser <= 0) return "—";
+    if (product.ecommerceMaxPerUser == null || product.ecommerceMaxPerUser <= 0)
+      return "—";
     const unitLabel = product.limitUnit ? ` ${product.limitUnit}` : "";
-    if (product.ecommercePurchaseResetMode === "timeline" && product.ecommercePurchaseResetDays) {
+    if (
+      product.ecommercePurchaseResetMode === "timeline" &&
+      product.ecommercePurchaseResetDays
+    ) {
       return `${product.ecommerceMaxPerUser}${unitLabel} / ${product.ecommercePurchaseResetDays}d`;
     }
     if (product.ecommercePurchaseResetMode === "manual") {
@@ -228,7 +268,9 @@ export const StorefrontProductDetail: React.FC = () => {
       <div className="p-4 sm:p-6">
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="ml-3 text-slate-500">Loading product details...</span>
+          <span className="ml-3 text-slate-500">
+            Loading product details...
+          </span>
         </div>
       </div>
     );
@@ -244,7 +286,9 @@ export const StorefrontProductDetail: React.FC = () => {
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
-          <h1 className="text-xl font-bold text-slate-800">Product Not Found</h1>
+          <h1 className="text-xl font-bold text-slate-800">
+            Product Not Found
+          </h1>
         </div>
         <div className="text-center py-12 text-slate-400">
           <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -285,7 +329,8 @@ export const StorefrontProductDetail: React.FC = () => {
               )}
             </h1>
             <p className="text-slate-500 text-sm mt-1">
-              {product.category} · {stockItem.storefrontId?.locationName || "Storefront"}
+              {product.category} ·{" "}
+              {stockItem.storefrontId?.locationName || "Storefront"}
             </p>
           </div>
         </div>
@@ -369,39 +414,56 @@ export const StorefrontProductDetail: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-slate-500">Product Name</p>
-                <p className="font-medium text-slate-800 truncate">{product.productName}</p>
+                <p className="font-medium text-slate-800 truncate">
+                  {product.productName}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Product Code</p>
-                <p className="font-medium text-slate-800 font-mono">{product.productCode}</p>
+                <p className="font-medium text-slate-800 font-mono">
+                  {product.productCode}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">SKU</p>
-                <p className="font-medium text-slate-800">{product.SKU || "—"}</p>
+                <p className="font-medium text-slate-800">
+                  {product.SKU || "—"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Category</p>
-                <p className="font-medium text-slate-800">{product.category || "—"}</p>
+                <p className="font-medium text-slate-800">
+                  {product.category || "—"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Base Unit</p>
-                <p className="font-medium text-slate-800">{product.unitOfMeasure || "piece"}</p>
+                <p className="font-medium text-slate-800">
+                  {product.unitOfMeasure || "piece"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Selling Price</p>
-                <p className="font-medium text-green-600">{(product.sellingPrice || 0).toLocaleString()} MMK</p>
+                <p className="font-medium text-green-600">
+                  {(product.sellingPrice || 0).toLocaleString()} MMK
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Buying Price</p>
-                <p className="font-medium text-slate-800">{(product.buyingPrice || 0).toLocaleString()} MMK</p>
+                <p className="font-medium text-slate-800">
+                  {(product.buyingPrice || 0).toLocaleString()} MMK
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Profit</p>
                 <p className="font-medium text-slate-800">
-                  {((product.sellingPrice || 0) - (product.buyingPrice || 0)).toLocaleString()} MMK
+                  {(
+                    (product.sellingPrice || 0) - (product.buyingPrice || 0)
+                  ).toLocaleString()}{" "}
+                  MMK
                   {product.sellingPrice ? (
                     <span className="text-xs text-slate-500 ml-1">
-                      ({((product.profitMargin || 0)).toFixed(1)}%)
+                      ({(product.profitMargin || 0).toFixed(1)}%)
                     </span>
                   ) : null}
                 </p>
@@ -428,25 +490,37 @@ export const StorefrontProductDetail: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-slate-500">Current Quantity</p>
-                <p className="font-bold text-xl text-slate-800">{stockItem.quantity.toLocaleString()}</p>
+                <p className="font-bold text-xl text-slate-800">
+                  {stockItem.quantity.toLocaleString()}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Available Quantity</p>
-                <p className="font-bold text-xl text-slate-800">{stockItem.availableQuantity.toLocaleString()}</p>
+                <p className="font-bold text-xl text-slate-800">
+                  {stockItem.availableQuantity.toLocaleString()}
+                </p>
               </div>
             </div>
-            {stockItem.quantityByUnit && Object.keys(stockItem.quantityByUnit).length > 0 && (
-              <div className="pt-2 border-t">
-                <p className="text-xs text-slate-500 mb-2">Quantity by Unit</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(stockItem.quantityByUnit).map(([unit, qty]) => (
-                    <span key={unit} className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm">
-                      {qty.toLocaleString()} {unit}
-                    </span>
-                  ))}
+            {stockItem.quantityByUnit &&
+              Object.keys(stockItem.quantityByUnit).length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="text-xs text-slate-500 mb-2">
+                    Quantity by Unit
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(stockItem.quantityByUnit).map(
+                      ([unit, qty]) => (
+                        <span
+                          key={unit}
+                          className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm"
+                        >
+                          {qty.toLocaleString()} {unit}
+                        </span>
+                      ),
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             <div className="pt-2 border-t">
               <p className="text-xs text-slate-500">Last Updated</p>
               <p className="text-sm text-slate-700">
@@ -467,7 +541,9 @@ export const StorefrontProductDetail: React.FC = () => {
           <div className="p-4">
             <div className="mb-3">
               <p className="text-xs text-slate-500 mb-1">Current Limit</p>
-              <p className="text-lg font-bold text-slate-800">{formatEcommerceLimit()}</p>
+              <p className="text-lg font-bold text-slate-800">
+                {formatEcommerceLimit()}
+              </p>
             </div>
             {userRole === "owner" && (
               <div className="flex gap-2">
@@ -502,18 +578,27 @@ export const StorefrontProductDetail: React.FC = () => {
             <div className="p-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-slate-600">{product.unitOfMeasure || "piece"} (base)</span>
+                  <span className="text-sm text-slate-600">
+                    {product.unitOfMeasure || "piece"} (base)
+                  </span>
                   <span className="text-sm font-medium text-slate-800">1</span>
                 </div>
                 {product.uomConversions.map((conv, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-1 border-t">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between py-1 border-t"
+                  >
                     <span className="text-sm text-slate-600">
                       {conv.unit}
                       {conv.isDefaultSellingUnit && (
-                        <span className="ml-1 text-xs text-primary">(default)</span>
+                        <span className="ml-1 text-xs text-primary">
+                          (default)
+                        </span>
                       )}
                     </span>
-                    <span className="text-sm font-medium text-slate-800">{conv.factor}</span>
+                    <span className="text-sm font-medium text-slate-800">
+                      {conv.factor}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -562,7 +647,9 @@ export const StorefrontProductDetail: React.FC = () => {
                 ) : (
                   <TrendingDown className="w-5 h-5 text-red-600" />
                 )}
-                {adjustmentType === "increase" ? "Increase Stock" : "Decrease Stock"}
+                {adjustmentType === "increase"
+                  ? "Increase Stock"
+                  : "Decrease Stock"}
               </h2>
               <button
                 onClick={() => setIsAdjustmentModalOpen(false)}
@@ -574,7 +661,9 @@ export const StorefrontProductDetail: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-sm text-slate-500 mb-1">Product</p>
-                <p className="font-bold text-slate-800">{product.productName}</p>
+                <p className="font-bold text-slate-800">
+                  {product.productName}
+                </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {product.productCode} | Current Quantity: {stockItem.quantity}
                 </p>
@@ -587,15 +676,23 @@ export const StorefrontProductDetail: React.FC = () => {
                 <input
                   type="number"
                   min="1"
-                  max={adjustmentType === "decrease" ? stockItem.quantity : undefined}
+                  max={
+                    adjustmentType === "decrease"
+                      ? stockItem.quantity
+                      : undefined
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
                   placeholder="Enter quantity"
                   value={adjustmentQuantity || ""}
-                  onChange={(e) => setAdjustmentQuantity(Number(e.target.value) || 0)}
+                  onChange={(e) =>
+                    setAdjustmentQuantity(Number(e.target.value) || 0)
+                  }
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Unit</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Unit
+                </label>
                 {(() => {
                   const unitOptions = getAdjustmentUnitOptions();
                   if (unitOptions.length <= 1) {
@@ -621,7 +718,9 @@ export const StorefrontProductDetail: React.FC = () => {
                 })()}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Reason (optional)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Reason (optional)
+                </label>
                 <textarea
                   rows={3}
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
@@ -657,7 +756,9 @@ export const StorefrontProductDetail: React.FC = () => {
                       ) : (
                         <TrendingDown className="w-4 h-4" />
                       )}{" "}
-                      {adjustmentType === "increase" ? "Increase Stock" : "Decrease Stock"}
+                      {adjustmentType === "increase"
+                        ? "Increase Stock"
+                        : "Decrease Stock"}
                     </>
                   )}
                 </button>
@@ -686,7 +787,9 @@ export const StorefrontProductDetail: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-sm text-slate-500 mb-1">Product</p>
-                <p className="font-bold text-slate-800">{product.productName}</p>
+                <p className="font-bold text-slate-800">
+                  {product.productName}
+                </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {product.productCode} | Current Qty: {stockItem.quantity}
                 </p>
@@ -701,12 +804,15 @@ export const StorefrontProductDetail: React.FC = () => {
                   step="1"
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary outline-none"
                   value={ecommerceMaxPerUser || ""}
-                  onChange={(e) => setEcommerceMaxPerUser(Number(e.target.value) || 0)}
+                  onChange={(e) =>
+                    setEcommerceMaxPerUser(Number(e.target.value) || 0)
+                  }
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Limit unit <span className="text-xs text-slate-400">(optional)</span>
+                  Limit unit{" "}
+                  <span className="text-xs text-slate-400">(optional)</span>
                 </label>
                 {(() => {
                   const unitOptions = getAdjustmentUnitOptions();
@@ -723,7 +829,9 @@ export const StorefrontProductDetail: React.FC = () => {
                       value={limitUnit}
                       onChange={(e) => setLimitUnit(e.target.value)}
                     >
-                      <option value="">Base unit ({product.unitOfMeasure || "piece"})</option>
+                      <option value="">
+                        Base unit ({product.unitOfMeasure || "piece"})
+                      </option>
                       {unitOptions
                         .filter((opt) => !opt.isBase)
                         .map((opt) => (
@@ -735,7 +843,8 @@ export const StorefrontProductDetail: React.FC = () => {
                   );
                 })()}
                 <p className="text-xs text-slate-500 mt-1">
-                  Leave as base unit to count directly. Select a unit to multiply by its conversion factor.
+                  Leave as base unit to count directly. Select a unit to
+                  multiply by its conversion factor.
                 </p>
               </div>
               <div>
@@ -765,7 +874,8 @@ export const StorefrontProductDetail: React.FC = () => {
                   </label>
                 </div>
                 <p className="text-xs text-slate-500 mt-2">
-                  Manual: admin resets limit. Timeline: auto-resets every N days.
+                  Manual: admin resets limit. Timeline: auto-resets every N
+                  days.
                 </p>
               </div>
               {resetMode === "timeline" && (
@@ -792,7 +902,11 @@ export const StorefrontProductDetail: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSaveEcommerceLimit}
-                  disabled={isSavingEcommerceLimit || ecommerceMaxPerUser <= 0 || (resetMode === "timeline" && resetDays < 1)}
+                  disabled={
+                    isSavingEcommerceLimit ||
+                    ecommerceMaxPerUser <= 0 ||
+                    (resetMode === "timeline" && resetDays < 1)
+                  }
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {isSavingEcommerceLimit ? (

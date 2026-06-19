@@ -385,7 +385,7 @@ export const StorefrontDetail: React.FC = () => {
     (sum, item) => sum + item.quantity,
     0,
   );
-  const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
+  // const lowStockCount = stockItems.filter((item) => item.isLowStock).length;
 
   // Filter stock items (search and category filtering handled by API)
   const filteredStockItems = stockItems.filter((item) => {
@@ -616,7 +616,7 @@ export const StorefrontDetail: React.FC = () => {
 
       const payload: UpdateStorefrontStockQuantityPayload = {
         quantityChange,
-        unit: selectedAdjustmentUnit,
+        // unit: selectedAdjustmentUnit,
         reason: adjustmentReason.trim() || "",
       };
 
@@ -919,6 +919,10 @@ export const StorefrontDetail: React.FC = () => {
                       <span className="hidden sm:inline">Price</span>
                       <span className="sm:hidden">$</span>
                     </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                      <span className="hidden sm:inline">E-limit</span>
+                      <span className="sm:hidden">E</span>
+                    </th>
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
                       <span className="hidden sm:inline">Status</span>
                       <span className="sm:hidden">S</span>
@@ -951,6 +955,10 @@ export const StorefrontDetail: React.FC = () => {
                       <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
                         {(item.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
                         <span className="hidden sm:inline">MMK</span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
+                        {formatEcommerceLimit(item.inventoryId)}
+                        {/* <span>{formatEcommerceLimit(item.inventoryId.ecommerceLimit)}</span> */}
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         {item.isLowStock ? (

@@ -29,6 +29,7 @@ export interface EcommerceOrderProductInventory {
 export interface EcommerceOrderProduct {
   inventoryId: EcommerceOrderProductInventory;
   quantity: number;
+  unit: string;
   unitPrice: number;
   subtotal: number;
 }
