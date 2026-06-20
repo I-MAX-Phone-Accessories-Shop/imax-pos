@@ -1,5 +1,5 @@
 import React from "react";
-import { X, User, Calendar, Loader2, Calculator } from "lucide-react";
+import { X, User, Calendar, Loader2, Calculator, Truck } from "lucide-react";
 import { CreditPersona } from "../../services/Credit/fetchCreditPersonas";
 import { DirectSaleCartItem } from "../../utils/directSaleCart";
 import { PaymentMethod } from "../../types/pos";
@@ -39,6 +39,8 @@ interface DirectSaleCheckoutModalProps {
   handleCheckout: () => void;
   setShowDiscountCalculator: (val: boolean) => void;
   setShowMarkupCalculator: (val: boolean) => void;
+  transportFee: number;
+  setTransportFee: (val: number) => void;
   t: (key: string) => string;
 }
 
@@ -79,6 +81,8 @@ export const DirectSaleCheckoutModal: React.FC<
   handleCheckout,
   setShowDiscountCalculator,
   setShowMarkupCalculator,
+  transportFee,
+  setTransportFee,
   t,
 }) => {
   if (!showCheckoutModal) return null;
@@ -356,6 +360,23 @@ export const DirectSaleCheckoutModal: React.FC<
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Transport Fee (MMK)
+            </label>
+            <div className="relative">
+              <Truck className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <input
+                type="number"
+                min="0"
+                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                value={transportFee || ""}
+                onChange={(e) => setTransportFee(Number(e.target.value) || 0)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
           <div className="bg-gray-50 p-4 rounded-lg border space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{t("common.subtotal")}</span>
@@ -373,6 +394,12 @@ export const DirectSaleCheckoutModal: React.FC<
               <div className="flex justify-between text-sm text-blue-600">
                 <span>Markup Amount</span>
                 <span>+{markupAmount.toLocaleString()} MMK</span>
+              </div>
+            )}
+            {transportFee > 0 && (
+              <div className="flex justify-between text-sm text-orange-600">
+                <span>Transport Fee</span>
+                <span>+{transportFee.toLocaleString()} MMK</span>
               </div>
             )}
             <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">

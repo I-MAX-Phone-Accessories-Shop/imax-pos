@@ -62,6 +62,8 @@ export const DirectSale: React.FC = () => {
     setShowMarkupCalculator,
     discountAmount,
     setDiscountAmount,
+    transportFee,
+    setTransportFee,
     createdAt,
     setCreatedAt,
     devices,
@@ -202,6 +204,8 @@ export const DirectSale: React.FC = () => {
         handleCheckout={handleCheckout}
         setShowDiscountCalculator={setShowDiscountCalculator}
         setShowMarkupCalculator={setShowMarkupCalculator}
+        transportFee={transportFee}
+        setTransportFee={setTransportFee}
         t={t}
       />
 

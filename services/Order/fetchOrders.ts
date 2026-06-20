@@ -45,6 +45,7 @@ export interface Order {
   saleType?: "storefront" | "direct-sale";
   customerName?: string | null;
   customerPhone?: string | null;
+  customerAddress?: string | null;
   note?: string | null;
   storefrontId: OrderStorefront | null;
   ordersProducts: OrderProduct[];

@@ -67,6 +67,7 @@ export interface VoucherReceiptData {
   perItemTransportFees?: Record<string, number>;
   customerName?: string;
   customerPhone?: string;
+  customerAddress?: string;
 }
 
 interface VoucherContentProps {
@@ -135,19 +136,24 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <div>
             <p className="font-bold mb-0.5">BILL TO:</p>
             <p>{receiptData.customerName || receiptData.creditPersonName}</p>
-            {receiptData.customerPhone && (
+            {/* {receiptData.customerPhone && (
               <p className="text-xs">{receiptData.customerPhone}</p>
+            )} */}
+            {receiptData.customerAddress && (
+              <p className="text-xs">{receiptData.customerAddress}</p>
             )}
           </div>
         )}
-        <div className={isThermal ? "" : "text-right"}>
-          <p className="font-bold mb-0.5">
-            {isQuotation ? "QUOTATION NO" : "INVOICE NO"} :{" "}
-            {receiptData.invoiceNumber}
-          </p>
-        </div>
-        <div>
-          <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
+        <div className="flex flex-col items-end">
+          <div>
+            <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
+          </div>
+          <div className={isThermal ? "" : "text-right"}>
+            <p className="font-bold mb-0.5">
+              {isQuotation ? "QUOTATION NO" : "INVOICE NO"} :{" "}
+              {receiptData.invoiceNumber}
+            </p>
+          </div>
         </div>
       </div>
 

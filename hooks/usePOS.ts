@@ -394,6 +394,7 @@ export const usePOS = () => {
           note,
           customerName: selectedPersona?.name,
           customerPhone: selectedPersona?.phone,
+          customerAddress: selectedPersona?.address,
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;

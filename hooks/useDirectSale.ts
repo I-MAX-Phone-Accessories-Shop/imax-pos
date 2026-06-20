@@ -70,6 +70,7 @@ export const useDirectSale = () => {
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
+  const [transportFee, setTransportFee] = useState(0);
   const [createdAt, setCreatedAt] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -277,7 +278,7 @@ export const useDirectSale = () => {
   );
   const totalAfterMarkup = subtotal + markupAmount;
 
-  const total = useMarkup ? totalAfterMarkup : totalAfterDiscount;
+  const total = (useMarkup ? totalAfterMarkup : totalAfterDiscount) + transportFee;
   const combinedDiscountAmount = useMarkup
     ? 0
     : Math.round(subtotal - totalAfterDiscount);
@@ -349,6 +350,7 @@ export const useDirectSale = () => {
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
+        transportFee: transportFee,
         ...(selectedCreditPersonId
           ? { creditPersonId: selectedCreditPersonId }
           : {}),
@@ -374,6 +376,7 @@ export const useDirectSale = () => {
           })),
           subtotal,
           discountPercent: discount,
+          transportFee,
           total,
           paidAmount: finalPaidAmount,
           change: finalPaidAmount - total,
@@ -381,6 +384,7 @@ export const useDirectSale = () => {
           note,
           customerName: selectedPersona?.name,
           customerPhone: selectedPersona?.phone,
+          customerAddress: selectedPersona?.address,
           creditPersonName: selectedPersona?.name,
         };
 
@@ -394,6 +398,7 @@ export const useDirectSale = () => {
         setDiscount(0);
         setMarkup(0);
         setMarkupAmount(0);
+        setTransportFee(0);
         setNote("");
         setCustomerName("");
         setCustomerPhone("");
@@ -477,6 +482,8 @@ export const useDirectSale = () => {
     setShowMarkupCalculator,
     discountAmount,
     setDiscountAmount,
+    transportFee,
+    setTransportFee,
     createdAt,
     setCreatedAt,
     devices,

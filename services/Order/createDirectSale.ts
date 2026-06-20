@@ -22,6 +22,7 @@ export interface CreateDirectSaleRequest {
   paymentType: "credit" | "paid";
   paymentMethod: string;
   orderDate?: string;
+  transportFee?: number;
 }
 
 interface CreateDirectSaleResponse {

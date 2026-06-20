@@ -429,7 +429,7 @@ export const en = {
     blacklistReason: "Blacklist Reason",
     createdAt: "Created At",
     actions: "Actions",
-    searchPlaceholder: "Search by name or phone...",
+    searchPlaceholder: "Search by name, phone or address...",
     loading: "Loading Customer Profile...",
     noProfiles: "No Customer Profile found. Add your first credit profile.",
     noResults: "No Customer Profile found matching your search.",
@@ -455,6 +455,8 @@ export const en = {
     noCredits: "No credit sales found",
     creditLimit: "Credit Limit",
     creditLimitPlaceholder: "Enter credit limit (optional)",
+    address: "Address",
+    addressPlaceholder: "Enter address (optional)",
   },
   creditDetail: {
     title: "Credit",

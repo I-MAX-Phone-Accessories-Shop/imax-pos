@@ -94,6 +94,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       note: order.note || undefined,
       customerName: order.customerName?.trim() || creditPersonName,
       customerPhone: order.customerPhone?.trim(),
+      customerAddress: order.customerAddress?.trim() || undefined,
     };
 
     // Save receipt data to localStorage for A4 printing
