@@ -138,12 +138,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               userRole !== "owner"
             )
               return null;
-            if (
-              item.path === "/reports" &&
-              userRole !== "admin" &&
-              userRole !== "owner"
-            )
-              return null;
 
             return (
               <NavLink
