@@ -27,19 +27,20 @@ function adjustItemPriceForTransport(
   transportFee: number,
   subtotal: number,
   perItemFees?: Record<string, number>,
-): number {
+): { adjustedPrice: number; adjustedTotal: number } {
   const code = item.code || "";
-  // Per-item fees take priority
+  const originalLineTotal = item.price * item.qty;
+
+  // Per-item fees take priority (Custom Print)
   if (perItemFees && code && (perItemFees[code] ?? 0) > 0) {
-    const lineTotal = item.price * item.qty;
     const fee = perItemFees[code];
-    return Math.round((lineTotal + fee) / item.qty);
+    const adjustedTotal = Math.round(originalLineTotal + fee);
+    const adjustedPrice = Math.round(adjustedTotal / item.qty);
+    return { adjustedPrice, adjustedTotal };
   }
-  // Fallback to proportional distribution
-  if (transportFee <= 0 || subtotal <= 0) return item.price;
-  const lineTotal = item.price * item.qty;
-  const share = (lineTotal / subtotal) * transportFee;
-  return Math.round((lineTotal + share) / item.qty);
+
+  // Normal Print: No per-item fees, return original prices
+  return { adjustedPrice: item.price, adjustedTotal: originalLineTotal };
 }
 
 export type VoucherDocumentType = "invoice" | "quotation";
@@ -168,7 +169,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <div className="voucher-thermal-col-total">TOTAL</div>
           </div>
           {receiptData.items.map((item, index) => {
-            const adjPrice = adjustItemPriceForTransport(
+            const { adjustedPrice, adjustedTotal } = adjustItemPriceForTransport(
               item,
               effectiveTransportFee,
               receiptData.subtotal,
@@ -186,14 +187,14 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
                   {item.name}
                 </div>
                 <div className="voucher-thermal-col-price">
-                  {adjPrice.toLocaleString()}
+                  {adjustedPrice.toLocaleString()}
                 </div>
                 <div className="voucher-thermal-col-qty">
                   {formatReceiptQty(item)}
                 </div>
                 <div className="break-words">{formatReceiptUnit(item)}</div>
                 <div className="voucher-thermal-col-total">
-                  {(adjPrice * item.qty).toLocaleString()}
+                  {adjustedTotal.toLocaleString()}
                 </div>
               </div>
             );
@@ -215,7 +216,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             </thead>
             <tbody>
               {receiptData.items.map((item, index) => {
-                const adjPrice = adjustItemPriceForTransport(
+                const { adjustedPrice, adjustedTotal } = adjustItemPriceForTransport(
                   item,
                   effectiveTransportFee,
                   receiptData.subtotal,
@@ -226,10 +227,10 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
                     <td>{index + 1}</td>
                     <td>{item.code}</td>
                     <td>{item.name}</td>
-                    <td>{adjPrice.toLocaleString()}</td>
+                    <td>{adjustedPrice.toLocaleString()}</td>
                     <td>{formatReceiptQty(item)}</td>
                     <td>{formatReceiptUnit(item)}</td>
-                    <td>{(adjPrice * item.qty).toLocaleString()}</td>
+                    <td>{adjustedTotal.toLocaleString()}</td>
                   </tr>
                 );
               })}

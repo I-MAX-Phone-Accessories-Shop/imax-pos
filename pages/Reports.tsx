@@ -592,6 +592,7 @@ export const Reports: React.FC = () => {
         acc.subTotal += report.data.report.subTotal;
         acc.tax += report.data.report.tax;
         acc.discount += report.data.report.discount;
+        acc.transportFee += report.data.report.transportFee;
         acc.extraChange += report.data.report.extraChange;
         acc.orderCount += report.data.report.orderCount;
         acc.creditOrderCount += report.data.report.creditOrderCount;
@@ -605,6 +606,7 @@ export const Reports: React.FC = () => {
       subTotal: 0,
       tax: 0,
       discount: 0,
+      transportFee: 0,
       extraChange: 0,
       orderCount: 0,
       creditOrderCount: 0,

@@ -9,6 +9,7 @@ interface OverallReportTabProps {
     subTotal: number;
     tax: number;
     discount: number;
+    transportFee: number;
     orderCount: number;
     creditOrderCount: number;
     paidOrderCount: number;
@@ -133,7 +134,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left min-w-[800px]">
+            <table className="w-full text-sm text-left min-w-[900px]">
               <thead className="bg-slate-50 border-b">
                 <tr>
                   <th className="px-4 py-3 font-medium text-slate-600">
@@ -150,6 +151,9 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                   </th>
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Discount
+                  </th>
+                  <th className="px-4 py-3 font-medium text-slate-600 text-right">
+                    Transport Fee
                   </th>
                   <th className="px-4 py-3 font-medium text-slate-600 text-right">
                     Total Orders
@@ -192,6 +196,9 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                       </td>
                       <td className="px-4 py-3 text-right text-amber-600">
                         {report.data.report.discount.toLocaleString()} MMK
+                      </td>
+                      <td className="px-4 py-3 text-right text-purple-600">
+                        {report.data.report.transportFee.toLocaleString()} MMK
                       </td>
                       <td className="px-4 py-3 text-right text-blue-600">
                         {report.data.report.orderCount}

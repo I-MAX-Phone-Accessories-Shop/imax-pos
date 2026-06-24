@@ -17,6 +17,7 @@ export interface SaleReportData {
   subTotal: number;
   tax: number;
   discount: number;
+  transportFee: number;
   extraChange: number;
   orderCount: number;
   creditOrderCount: number;
@@ -87,6 +88,7 @@ export const fetchSaleReport = async (
           subTotal: 0,
           tax: 0,
           discount: 0,
+          transportFee: 0,
           extraChange: 0,
           orderCount: 0,
           creditOrderCount: 0,
@@ -151,6 +153,7 @@ export const fetchAllStorefrontsSaleReport = async (
           subTotal: 0,
           tax: 0,
           discount: 0,
+          transportFee: 0,
           extraChange: 0,
           orderCount: 0,
           creditOrderCount: 0,
