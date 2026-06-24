@@ -278,7 +278,8 @@ export const useDirectSale = () => {
   );
   const totalAfterMarkup = subtotal + markupAmount;
 
-  const total = (useMarkup ? totalAfterMarkup : totalAfterDiscount) + transportFee;
+  const total =
+    (useMarkup ? totalAfterMarkup : totalAfterDiscount) + transportFee;
   const combinedDiscountAmount = useMarkup
     ? 0
     : Math.round(subtotal - totalAfterDiscount);
@@ -347,6 +348,7 @@ export const useDirectSale = () => {
         finalAmount: total,
         paidAmount: finalPaidAmount,
         extraChange,
+        storefrontId: selectedStorefrontId,
         paymentType: paymentType,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),

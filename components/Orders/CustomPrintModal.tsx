@@ -116,6 +116,8 @@ export const CustomPrintModal: React.FC<CustomPrintModalProps> = ({
       paidAmount: order.paidAmount,
       change: order.extraChange,
       note: order.note || undefined,
+      customerName: order.customerName?.trim() || undefined,
+      customerAddress: order.customerAddress?.trim() || undefined,
       perItemTransportFees,
     };
 

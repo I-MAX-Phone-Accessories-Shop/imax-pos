@@ -93,7 +93,6 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       change: order.extraChange,
       note: order.note || undefined,
       customerName: order.customerName?.trim() || creditPersonName,
-      customerPhone: order.customerPhone?.trim(),
       customerAddress: order.customerAddress?.trim() || undefined,
       transportFee: order.transportFee || 0,
     };

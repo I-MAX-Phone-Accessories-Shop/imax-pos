@@ -128,18 +128,19 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           isThermal ? "flex-col gap-1" : ""
         }`}
       >
-        {(receiptData.customerName || receiptData.creditPersonName) && (
-          <div>
-            <p className="font-bold mb-0.5">BILL TO:</p>
-            <p>{receiptData.customerName || receiptData.creditPersonName}</p>
-            {/* {receiptData.customerPhone && (
-              <p className="text-xs">{receiptData.customerPhone}</p>
-            )} */}
-            {receiptData.customerAddress && (
-              <p className="text-xs">{receiptData.customerAddress}</p>
-            )}
-          </div>
-        )}
+        <div
+          className={
+            receiptData.customerName || receiptData.creditPersonName
+              ? ""
+              : "invisible"
+          }
+        >
+          <p className="font-bold mb-0.5">BILL TO:</p>
+          <p>{receiptData.customerName || receiptData.creditPersonName}</p>
+          {receiptData.customerAddress && (
+            <p className="text-xs">{receiptData.customerAddress}</p>
+          )}
+        </div>
         <div className="flex flex-col items-end">
           <div>
             <p className="font-bold">DATE: {formatDate(receiptData.date)}</p>
