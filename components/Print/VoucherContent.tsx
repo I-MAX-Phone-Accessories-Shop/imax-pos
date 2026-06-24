@@ -1,6 +1,7 @@
 import React from "react";
 import { PrintShopBranding } from "../../utils/printShopBranding";
 import { PrintPaperSize } from "../../utils/printPaperSize";
+import logo from "./../../public/shewpyi.jpg";
 
 export interface VoucherReceiptItem {
   name: string;
@@ -107,17 +108,11 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   return (
     <div className="voucher-container" data-paper={paperSize}>
       <div className="text-center mb-4 sm:mb-8">
-        {shopBranding.logo ? (
-          <img
-            src={shopBranding.logo}
-            alt={shopBranding.shopName}
-            className="voucher-logo mx-auto object-contain"
-          />
-        ) : (
-          <div className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
-            {shopBranding.shopName.charAt(0)}
-          </div>
-        )}
+        <img
+          src={logo}
+          alt="Shwe Pyi"
+          className="voucher-logo mx-auto object-contain"
+        />
         <h2 className="voucher-shop-name font-bold text-slate-800 mt-3">
           {shopBranding.shopName}
         </h2>
@@ -169,12 +164,13 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <div className="voucher-thermal-col-total">TOTAL</div>
           </div>
           {receiptData.items.map((item, index) => {
-            const { adjustedPrice, adjustedTotal } = adjustItemPriceForTransport(
-              item,
-              effectiveTransportFee,
-              receiptData.subtotal,
-              perItemFees,
-            );
+            const { adjustedPrice, adjustedTotal } =
+              adjustItemPriceForTransport(
+                item,
+                effectiveTransportFee,
+                receiptData.subtotal,
+                perItemFees,
+              );
             return (
               <div key={index} className="voucher-thermal-item">
                 <div>{index + 1}</div>
@@ -216,12 +212,13 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             </thead>
             <tbody>
               {receiptData.items.map((item, index) => {
-                const { adjustedPrice, adjustedTotal } = adjustItemPriceForTransport(
-                  item,
-                  effectiveTransportFee,
-                  receiptData.subtotal,
-                  perItemFees,
-                );
+                const { adjustedPrice, adjustedTotal } =
+                  adjustItemPriceForTransport(
+                    item,
+                    effectiveTransportFee,
+                    receiptData.subtotal,
+                    perItemFees,
+                  );
                 return (
                   <tr key={index}>
                     <td>{index + 1}</td>
