@@ -75,6 +75,7 @@ export const POS: React.FC = () => {
     handleRefresh,
     handleBarcodeScan,
     handleCheckout,
+    handleAddCustomer,
   } = usePOS();
 
   if (loading) {
@@ -194,6 +195,7 @@ export const POS: React.FC = () => {
         setShowMarkupCalculator={setShowMarkupCalculator}
         transportFee={transportFee}
         setTransportFee={setTransportFee}
+        onAddCustomer={handleAddCustomer}
         t={t}
       />
 

@@ -81,6 +81,7 @@ export const DirectSale: React.FC = () => {
     handleRefresh,
     handleBarcodeScan,
     handleCheckout,
+    handleAddCustomer,
   } = useDirectSale();
 
   if (loading) {
@@ -206,6 +207,7 @@ export const DirectSale: React.FC = () => {
         setShowMarkupCalculator={setShowMarkupCalculator}
         transportFee={transportFee}
         setTransportFee={setTransportFee}
+        onAddCustomer={handleAddCustomer}
         t={t}
       />
 

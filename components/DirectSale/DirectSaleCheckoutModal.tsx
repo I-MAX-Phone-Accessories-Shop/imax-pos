@@ -1,8 +1,9 @@
-import React from "react";
-import { X, User, Calendar, Loader2, Calculator, Truck } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { X, User, Calendar, Loader2, Calculator, Truck, UserPlus, ChevronDown, Search } from "lucide-react";
 import { CreditPersona } from "../../services/Credit/fetchCreditPersonas";
 import { DirectSaleCartItem } from "../../utils/directSaleCart";
 import { PaymentMethod } from "../../types/pos";
+import { AddCustomerInline } from "../POS/AddCustomerInline";
 
 interface DirectSaleCheckoutModalProps {
   showCheckoutModal: boolean;
@@ -41,6 +42,7 @@ interface DirectSaleCheckoutModalProps {
   setShowMarkupCalculator: (val: boolean) => void;
   transportFee: number;
   setTransportFee: (val: number) => void;
+  onAddCustomer: (name: string, phone: string, address: string) => Promise<boolean>;
   t: (key: string) => string;
 }
 
@@ -83,8 +85,44 @@ export const DirectSaleCheckoutModal: React.FC<
   setShowMarkupCalculator,
   transportFee,
   setTransportFee,
+  onAddCustomer,
   t,
 }) => {
+  const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
+
+  const selectedPersona = creditPersonas.find((p) => p._id === selectedCreditPersonId);
+
+  const filteredPersonas = creditPersonas.filter(
+    (p) =>
+      p.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+      p.phone.includes(customerSearch),
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectCustomer = (persona: CreditPersona) => {
+    setSelectedCreditPersonId(persona._id);
+    setCustomerSearch("");
+    setShowDropdown(false);
+    setShowAddCustomerForm(false);
+  };
+
+  const handleClearCustomer = () => {
+    setSelectedCreditPersonId("");
+    setCustomerSearch("");
+  };
+
   if (!showCheckoutModal) return null;
 
   return (
@@ -178,25 +216,86 @@ export const DirectSaleCheckoutModal: React.FC<
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("directSale.selectCustomer")}
             </label>
-            <div className="relative">
-              <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <select
-                className="w-full pl-9 pr-4 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
-                value={selectedCreditPersonId}
-                onChange={(e) => setSelectedCreditPersonId(e.target.value)}
-              >
-                <option value="">
-                  {creditPersonas.length === 0
-                    ? `-- ${t("directSale.noCustomers")} --`
-                    : `-- ${t("directSale.selectCustomerOptional")} --`}
-                </option>
-                {creditPersonas.map((persona) => (
-                  <option key={persona._id} value={persona._id}>
-                    {persona.name} - {persona.phone}
-                  </option>
-                ))}
-              </select>
+            <div className="relative" ref={autocompleteRef}>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={selectedPersona ? selectedPersona.name : "Search by name or phone..."}
+                  value={showDropdown ? customerSearch : (selectedPersona ? selectedPersona.name : customerSearch)}
+                  onFocus={() => setShowDropdown(true)}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  className="w-full pl-9 pr-8 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
+                />
+                {selectedPersona && !showDropdown && (
+                  <button
+                    onClick={handleClearCustomer}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                {!selectedPersona && (
+                  <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+                )}
+              </div>
+              {showDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {filteredPersonas.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {customerSearch ? "No customers found" : "No customers available"}
+                    </div>
+                  )}
+                  {filteredPersonas.map((persona) => (
+                    <div
+                      key={persona._id}
+                      onClick={() => handleSelectCustomer(persona)}
+                      className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-orange-50 flex items-center gap-2 ${
+                        persona._id === selectedCreditPersonId ? "bg-orange-100 text-orange-800" : "text-gray-700"
+                      }`}
+                    >
+                      <User className="w-4 h-4 text-gray-400 shrink-0" />
+                      <div>
+                        <p className="font-medium">{persona.name}</p>
+                        <p className="text-xs text-gray-500">{persona.phone}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div
+                    onClick={() => {
+                      setShowAddCustomerForm(true);
+                      setShowDropdown(false);
+                      setCustomerSearch("");
+                    }}
+                    className="px-3 py-2.5 text-sm cursor-pointer hover:bg-orange-50 text-orange-600 font-medium border-t flex items-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    + Add New Customer
+                  </div>
+                </div>
+              )}
             </div>
+            {showAddCustomerForm && (
+              <div className="mt-2">
+                <AddCustomerInline
+                  onSave={async (name, phone, address) => {
+                    const success = await onAddCustomer(name, phone, address);
+                    if (success) {
+                      setShowAddCustomerForm(false);
+                      setCustomerSearch("");
+                    }
+                    return success;
+                  }}
+                  onCancel={() => {
+                    setShowAddCustomerForm(false);
+                    setCustomerSearch("");
+                  }}
+                />
+              </div>
+            )}
           </div>
           {/* // )} */}
 

@@ -18,6 +18,7 @@ import {
   fetchCreditPersonas,
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
+import { createCreditPersona } from "../services/Credit/createCreditPersona";
 import {
   UomCartItem,
   cartLineToOrderProduct,
@@ -120,6 +121,33 @@ export const usePOS = () => {
       }
     } catch (error) {
       console.error("Error loading credit personas:", error);
+    }
+  };
+
+  const handleAddCustomer = async (
+    name: string,
+    phone: string,
+    address: string,
+  ): Promise<boolean> => {
+    try {
+      const result = await createCreditPersona({
+        name,
+        phone,
+        address: address || undefined,
+      });
+      if (result.success && result.data) {
+        setCreditPersonas((prev) => [...prev, result.data!]);
+        setSelectedCreditPersonId(result.data._id);
+        toast.success("Customer added successfully");
+        return true;
+      } else {
+        toast.error(result.message || "Failed to add customer");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error adding customer:", error);
+      toast.error("Failed to add customer");
+      return false;
     }
   };
 
@@ -504,5 +532,6 @@ export const usePOS = () => {
     handleRefresh,
     handleBarcodeScan,
     handleCheckout,
+    handleAddCustomer,
   };
 };
