@@ -13,6 +13,7 @@
     "ai": "^6.0.191",
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
+    "docx": "^9.7.1",
     "lucide-react": "^0.554.0",
     "react": "19.2.6",
     "react-date-range": "^2.0.1",
