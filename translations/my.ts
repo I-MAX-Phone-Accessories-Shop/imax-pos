@@ -115,6 +115,7 @@ export const my = {
     selectCreditPerson: "အကြွေးပေးသူ",
     selectCreditPersonOptional: "အကြွေးပေးသူ ရွေးချယ်ပါ (ရွေးချယ်ရန်)",
     noCreditPersons: "အကြွေးပေးသူများ မရှိပါ",
+    addCreditPerson: "အသစ်ထည့်ရန်",
     receipt: "ငွေရှင်းတမ်း",
     receiptPreview: "ငွေရှင်းတမ်းအစမ်းကြည့်ရှုမှု",
     orderNumber: "အော်ဒါနံပါတ်",

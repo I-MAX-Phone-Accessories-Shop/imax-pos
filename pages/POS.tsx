@@ -13,7 +13,6 @@ import {
   Scan,
   X,
   User,
-  Phone,
   Calculator,
   Calendar,
 } from "lucide-react";
@@ -84,6 +83,11 @@ export const POS: React.FC = () => {
     useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showAddCreditPersonModal, setShowAddCreditPersonModal] =
+    useState(false);
+  const [newCreditPersonName, setNewCreditPersonName] = useState("");
+  const [newCreditPersonPhone, setNewCreditPersonPhone] = useState("");
+  const [isAddingCreditPerson, setIsAddingCreditPerson] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState("");
   const [discount, setDiscount] = useState(0);
   const [markup, setMarkup] = useState(0);
@@ -104,8 +108,6 @@ export const POS: React.FC = () => {
   const [createdAt, setCreatedAt] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
   const devices = detectDevice();
 
   // Load storefronts and stock on mount
@@ -469,28 +471,6 @@ export const POS: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Auto-create or match credit person from customer name/phone
-      let resolvedCreditPersonId = selectedCreditPersonId;
-
-      if (customerName.trim() && customerPhone.trim()) {
-        const existingPerson = creditPersonas.find(
-          (cp) => cp.phone.trim() === customerPhone.trim(),
-        );
-
-        if (existingPerson) {
-          resolvedCreditPersonId = existingPerson._id;
-        } else {
-          const createResult = await createCreditPersona({
-            name: customerName.trim(),
-            phone: customerPhone.trim(),
-          });
-          if (createResult.success && createResult.data) {
-            resolvedCreditPersonId = createResult.data._id;
-            loadCreditPersonas();
-          }
-        }
-      }
-
       // Map payment method to API format
       const paymentMethodMap: Record<PaymentMethod, string> = {
         [PaymentMethod.CASH]: "cash",
@@ -523,7 +503,7 @@ export const POS: React.FC = () => {
         note: note,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
-        ...(resolvedCreditPersonId ? { creditPersonId: resolvedCreditPersonId } : {}),
+        ...(selectedCreditPersonId ? { creditPersonId: selectedCreditPersonId } : {}),
       };
 
       const result = await createOrder(orderPayload);
@@ -554,8 +534,8 @@ export const POS: React.FC = () => {
           tax: 0,
           receiptSequenceNumber: parseInt(result.data?.orderNumber?.split("/").pop() || "0", 10) || Date.now() % 10000,
           cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
-          customerName,
-          customerPhone,
+          customerName: creditPersonas.find((cp) => cp._id === selectedCreditPersonId)?.name || "",
+          customerPhone: creditPersonas.find((cp) => cp._id === selectedCreditPersonId)?.phone || "",
         };
         // Save receipt data and redirect to receipt page
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -581,8 +561,6 @@ export const POS: React.FC = () => {
         setPaymentType("paid");
         setSelectedCreditPersonId("");
         setCreatedAt(new Date().toISOString().split("T")[0]);
-        setCustomerName("");
-        setCustomerPhone("");
 
         // Show success modal instead of toast
         setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
@@ -1142,7 +1120,6 @@ export const POS: React.FC = () => {
                   onChange={(e) => {
                     setPaymentType(e.target.value as "paid" | "credit");
                     if (e.target.value === "paid") {
-                      setSelectedCreditPersonId("");
                       setPaymentMethod(PaymentMethod.CASH);
                       // Reset to total when switching back to paid
                       setPaidAmount(Math.ceil(total));
@@ -1174,47 +1151,13 @@ export const POS: React.FC = () => {
                 </div>
               </div>
 
-              {/* Customer Info */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customer Name ({t("common.optional")})
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Customer name"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone ({t("common.optional")})
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                      type="tel"
-                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="Phone number"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Credit Person Selector - Only show when paymentType is credit */}
-              {paymentType === "credit" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t("pos.selectCreditPerson")}
-                  </label>
-                  <div className="relative">
+              {/* Credit Person Selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("pos.selectCreditPerson")}
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
                     <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                     <select
                       className="w-full pl-9 pr-4 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
@@ -1235,8 +1178,20 @@ export const POS: React.FC = () => {
                       ))}
                     </select>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewCreditPersonName("");
+                      setNewCreditPersonPhone("");
+                      setShowAddCreditPersonModal(true);
+                    }}
+                    className="px-3 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1 text-sm font-medium whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t("pos.addCreditPerson")}
+                  </button>
                 </div>
-              )}
+              </div>
 
               {/* Payment Method */}
               <div>
@@ -1689,6 +1644,108 @@ export const POS: React.FC = () => {
                   Apply Discount
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Credit Person Modal */}
+      {showAddCreditPersonModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="p-4 border-b bg-green-50">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-lg text-gray-800">
+                  {t("pos.addCreditPerson")}
+                </h3>
+                <button
+                  onClick={() => setShowAddCreditPersonModal(false)}
+                  className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form */}
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("credits.name")} *
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  value={newCreditPersonName}
+                  onChange={(e) => setNewCreditPersonName(e.target.value)}
+                  placeholder={t("credits.namePlaceholder")}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("credits.phone")} *
+                </label>
+                <input
+                  type="tel"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  value={newCreditPersonPhone}
+                  onChange={(e) => setNewCreditPersonPhone(e.target.value)}
+                  placeholder={t("credits.phonePlaceholder")}
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t flex gap-2">
+              <button
+                onClick={() => setShowAddCreditPersonModal(false)}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!newCreditPersonName.trim()) {
+                    toast.error(t("credits.nameRequired"));
+                    return;
+                  }
+                  if (!newCreditPersonPhone.trim()) {
+                    toast.error(t("credits.phoneRequired"));
+                    return;
+                  }
+                  setIsAddingCreditPerson(true);
+                  try {
+                    const result = await createCreditPersona({
+                      name: newCreditPersonName.trim(),
+                      phone: newCreditPersonPhone.trim(),
+                    });
+                    if (result.success && result.data) {
+                      toast.success(t("credits.profileCreated"));
+                      await loadCreditPersonas();
+                      setSelectedCreditPersonId(result.data._id);
+                      setShowAddCreditPersonModal(false);
+                    } else {
+                      toast.error(result.message || t("credits.failedToCreate"));
+                    }
+                  } catch {
+                    toast.error(t("credits.failedToCreate"));
+                  } finally {
+                    setIsAddingCreditPerson(false);
+                  }
+                }}
+                disabled={isAddingCreditPerson}
+                className="flex-1 px-4 py-2.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isAddingCreditPerson ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t("credits.creating")}
+                  </>
+                ) : (
+                  t("credits.createProfile")
+                )}
+              </button>
             </div>
           </div>
         </div>

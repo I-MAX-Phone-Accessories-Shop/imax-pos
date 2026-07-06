@@ -85,16 +85,16 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
 
         {/* Customer Info */}
         {(receiptData.customerName || receiptData.customerPhone) && (
-          <div className="voucher-thermal-customer mb-2 text-sm">
+          <div className="mb-2" style={{ fontSize: "11px" }}>
             {receiptData.customerName && (
               <div>
-                <span className="font-bold">Customer:</span>{" "}
+                <span>Customer:</span>{" "}
                 {receiptData.customerName}
               </div>
             )}
             {receiptData.customerPhone && (
               <div>
-                <span className="font-bold">Phone:</span>{" "}
+                <span>Phone:</span>{" "}
                 {receiptData.customerPhone}
               </div>
             )}

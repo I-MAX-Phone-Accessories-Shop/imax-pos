@@ -114,6 +114,7 @@ export const en = {
     selectCreditPerson: "Credit Person",
     selectCreditPersonOptional: "Select Credit Person (Optional)",
     noCreditPersons: "No Credit Persons Available",
+    addCreditPerson: "Add New",
     receipt: "Receipt",
     receiptPreview: "Receipt Preview",
     orderNumber: "Order Number",
