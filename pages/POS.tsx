@@ -15,6 +15,7 @@ import {
   User,
   Calculator,
   Calendar,
+  ShoppingCart,
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { getSavedPrintPaperSize } from "../utils/printPaperSize";
@@ -89,6 +90,7 @@ export const POS: React.FC = () => {
   const [newCreditPersonPhone, setNewCreditPersonPhone] = useState("");
   const [isAddingCreditPerson, setIsAddingCreditPerson] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState("");
+  const [showMobileCart, setShowMobileCart] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [markup, setMarkup] = useState(0);
   const [markupAmount, setMarkupAmount] = useState(0);
@@ -612,12 +614,12 @@ export const POS: React.FC = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
       {/* Product Grid */}
-      <div className="flex-1 flex flex-col px-6 py-4 overflow-hidden">
+      <div className="flex-1 flex flex-col px-3 py-3 lg:px-6 lg:py-4 overflow-hidden">
         {/* Search Bar with Storefront Badge */}
         <div className="mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             {/* Combined Search/Barcode Input */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none" />
@@ -654,7 +656,7 @@ export const POS: React.FC = () => {
 
             {/* Category Selector */}
             <select
-              className="border border-dark-200 rounded-xl px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none shadow-sm"
+              className="w-full sm:w-auto border border-dark-200 rounded-xl px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none shadow-sm"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
@@ -670,7 +672,7 @@ export const POS: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
-                className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
               >
                 <Store className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium max-w-[120px] truncate">
@@ -768,7 +770,7 @@ export const POS: React.FC = () => {
 
         {/* Pagination Controls */}
         {!loading && totalPages > 1 && (
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-2 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
             <div className="text-sm text-gray-600">
               {t("pos.showingProducts").replace(
                 "{count}",
@@ -842,7 +844,7 @@ export const POS: React.FC = () => {
         )}
 
         {/* Product Grid */}
-        <div className="flex overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 pb-20">
+        <div className="flex overflow-y-auto grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-4 pb-20">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-400">
               {selectedStorefrontId
@@ -854,25 +856,25 @@ export const POS: React.FC = () => {
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
+                className={`bg-white p-2 sm:p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${
                   stockItem.quantity === 0
                     ? "opacity-50 grayscale pointer-events-none"
                     : ""
                 }`}
               >
                 <div className="">
-                  <h3 className="font-medium text-gray-800 text-sm line-clamp-2">
+                  <h3 className="font-medium text-gray-800 text-xs sm:text-sm line-clamp-2">
                     {stockItem.inventoryId.productName}
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1 font-mono">
+                  <p className="text-[10px] sm:text-xs text-gray-400 mt-1 font-mono">
                     {stockItem.inventoryId.productCode}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                     {stockItem.inventoryId.category}
                   </p>
                 </div>
-                <div className="mt-4 flex justify-between items-end">
-                  <span className="font-bold text-primary-600">
+                <div className="mt-2 sm:mt-4 flex justify-between items-end">
+                  <span className="font-bold text-primary-600 text-xs sm:text-sm">
                     {getItemPrice(stockItem).toLocaleString()} MMK
                   </span>
                   {stockItem.inventoryId.wholesalePrices &&
@@ -946,8 +948,8 @@ export const POS: React.FC = () => {
         </div>
       </div>
 
-      {/* Cart Sidebar */}
-      <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
+      {/* Cart Sidebar - Desktop only */}
+      <div className="hidden lg:flex lg:w-96 bg-white flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
         <div className="p-4 border-b">
           <h2 className="font-bold text-lg">{t("pos.currentSale")}</h2>
           {selectedStorefrontId && (
@@ -1066,6 +1068,142 @@ export const POS: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Floating Cart Button */}
+      {cart.length > 0 && (
+        <div className="lg:hidden fixed bottom-4 right-4 z-40">
+          <button
+            onClick={() => setShowMobileCart(true)}
+            className="bg-primary text-white px-4 py-3 rounded-full shadow-xl flex items-center gap-2 font-bold text-sm"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            <span>
+              {cart.reduce((sum, item) => sum + getSafeQty(item.qty), 0)} |{" "}
+              {subtotal.toLocaleString()} MMK
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Cart Panel */}
+      {showMobileCart && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowMobileCart(false)}
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] flex flex-col">
+            {/* Mobile Cart Header */}
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="font-bold text-lg">{t("pos.currentSale")}</h2>
+              <button
+                onClick={() => setShowMobileCart(false)}
+                className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Mobile Cart Items */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {cart.length === 0 ? (
+                <div className="text-center text-gray-400 mt-10">
+                  {t("pos.emptyCart")}
+                </div>
+              ) : (
+                cart.map((item) => (
+                  <div
+                    key={item.stockItem._id}
+                    className="flex justify-between items-start border-b border-gray-200 pb-4"
+                  >
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        {item.stockItem.inventoryId.productName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {getItemPrice(
+                          item.stockItem,
+                          getSafeQty(item.qty) || 1,
+                        ).toLocaleString()}{" "}
+                        MMK x {getSafeQty(item.qty)} ={" "}
+                        {(
+                          getItemPrice(item.stockItem, getSafeQty(item.qty) || 1) *
+                          getSafeQty(item.qty)
+                        ).toLocaleString()}{" "}
+                        MMK
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-2">
+                      <button
+                        onClick={() => updateQty(item.stockItem._id, -1)}
+                        className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max={item.stockItem.availableQuantity}
+                        value={item.qty}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          setQty(item.stockItem._id, value);
+                        }}
+                        className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button
+                        onClick={() => updateQty(item.stockItem._id, 1)}
+                        className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => removeFromCart(item.stockItem._id)}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded ml-1 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Mobile Cart Summary & Checkout */}
+            <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{t("pos.items")}</span>
+                  <span>
+                    {cart.reduce((sum, item) => sum + getSafeQty(item.qty), 0)}{" "}
+                    {t("pos.itemsLower")}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xl font-bold text-gray-900">
+                  <span>{t("common.total")}</span>
+                  <span>{subtotal.toLocaleString()} MMK</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  const initialPaidAmount =
+                    paymentMethod === PaymentMethod.FOC || paymentType === "credit"
+                      ? 0
+                      : Math.ceil(total);
+                  setPaidAmount(initialPaidAmount);
+                  setShowMobileCart(false);
+                  setShowCheckoutModal(true);
+                }}
+                disabled={cart.length === 0}
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {t("pos.proceedToCheckout")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Loading Overlay */}
       {isProcessing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -1085,8 +1223,8 @@ export const POS: React.FC = () => {
 
       {/* Checkout Modal */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full max-w-md sm:mx-4 max-h-[100vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="p-4 border-b bg-primary/10">
               <div className="flex justify-between items-center">
