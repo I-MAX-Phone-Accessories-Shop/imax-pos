@@ -505,7 +505,9 @@ export const POS: React.FC = () => {
         note: note,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
-        ...(selectedCreditPersonId ? { creditPersonId: selectedCreditPersonId } : {}),
+        ...(selectedCreditPersonId
+          ? { creditPersonId: selectedCreditPersonId }
+          : {}),
       };
 
       const result = await createOrder(orderPayload);
@@ -534,10 +536,18 @@ export const POS: React.FC = () => {
           note,
           serviceCharge: 0,
           tax: 0,
-          receiptSequenceNumber: parseInt(result.data?.orderNumber?.split("/").pop() || "0", 10) || Date.now() % 10000,
-          cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
-          customerName: creditPersonas.find((cp) => cp._id === selectedCreditPersonId)?.name || "",
-          customerPhone: creditPersonas.find((cp) => cp._id === selectedCreditPersonId)?.phone || "",
+          receiptSequenceNumber:
+            parseInt(result.data?.orderNumber?.split("/").pop() || "0", 10) ||
+            Date.now() % 10000,
+          cashierName:
+            JSON.parse(localStorage.getItem("adminData") || "{}").name ||
+            "Cashier",
+          customerName:
+            creditPersonas.find((cp) => cp._id === selectedCreditPersonId)
+              ?.name || "",
+          customerPhone:
+            creditPersonas.find((cp) => cp._id === selectedCreditPersonId)
+              ?.phone || "",
         };
         // Save receipt data and redirect to receipt page
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -549,7 +559,7 @@ export const POS: React.FC = () => {
 
         // Navigate to professional A4 receipt page
         navigate(
-          `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}&autoprint=1`,
+          `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}`,
         );
         setCart([]);
         setDiscount(0);
@@ -1126,8 +1136,10 @@ export const POS: React.FC = () => {
                         ).toLocaleString()}{" "}
                         MMK x {getSafeQty(item.qty)} ={" "}
                         {(
-                          getItemPrice(item.stockItem, getSafeQty(item.qty) || 1) *
-                          getSafeQty(item.qty)
+                          getItemPrice(
+                            item.stockItem,
+                            getSafeQty(item.qty) || 1,
+                          ) * getSafeQty(item.qty)
                         ).toLocaleString()}{" "}
                         MMK
                       </p>
@@ -1187,7 +1199,8 @@ export const POS: React.FC = () => {
               <button
                 onClick={() => {
                   const initialPaidAmount =
-                    paymentMethod === PaymentMethod.FOC || paymentType === "credit"
+                    paymentMethod === PaymentMethod.FOC ||
+                    paymentType === "credit"
                       ? 0
                       : Math.ceil(total);
                   setPaidAmount(initialPaidAmount);
@@ -1864,7 +1877,9 @@ export const POS: React.FC = () => {
                       setSelectedCreditPersonId(result.data._id);
                       setShowAddCreditPersonModal(false);
                     } else {
-                      toast.error(result.message || t("credits.failedToCreate"));
+                      toast.error(
+                        result.message || t("credits.failedToCreate"),
+                      );
                     }
                   } catch {
                     toast.error(t("credits.failedToCreate"));

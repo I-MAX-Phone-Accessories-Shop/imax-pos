@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { fetchShopSettings } from "../services/ShopSettings/fetchShopSettings";
 import {
@@ -9,13 +9,8 @@ import {
 } from "../utils/printShopBranding";
 import {
   getPrintPaperStyles,
-  getSavedPrintPaperSize,
   getSharedTableStyles,
-  parsePrintPaperSize,
-  PrintPaperSize,
-  savePrintPaperSize,
 } from "../utils/printPaperSize";
-import { PrintPaperSizeSelector } from "../components/Print/PrintPaperSizeSelector";
 import {
   VoucherContent,
   VoucherReceiptData,
@@ -47,35 +42,23 @@ const loadReceiptData = (
   return null;
 };
 
-const PrintReceipt: React.FC = () => {
+const MobilePrint: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [receiptData, setReceiptData] = useState<VoucherReceiptData | null>(
     null,
   );
   const [shopBranding, setShopBranding] = useState<PrintShopBranding | null>(
     null,
   );
-  const [paperSize, setPaperSize] = useState<PrintPaperSize>(() => {
-    const fromUrl = parsePrintPaperSize(searchParams.get("size"));
-    return fromUrl ?? getSavedPrintPaperSize();
-  });
   const [loadingMessage, setLoadingMessage] = useState("Loading receipt...");
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const hasTriggeredPrint = useRef(false);
-  const shouldAutoPrint = searchParams.get("autoprint") === "1";
 
   const handleBack = useCallback(() => {
     navigate(-1);
     if (orderId) localStorage.removeItem(`receipt_${orderId}`);
   }, [navigate, orderId]);
-
-  const handlePaperSizeChange = (size: PrintPaperSize) => {
-    setPaperSize(size);
-    savePrintPaperSize(size);
-  };
 
   const handlePrint = () => {
     window.print();
@@ -102,12 +85,9 @@ const PrintReceipt: React.FC = () => {
 
       setLoadingMessage("Loading shop settings...");
       const shopResponse = await fetchShopSettings();
-      // console.log(shopResponse);
       const branding = getPrintShopBranding(shopResponse.data ?? null);
 
       if (!cancelled) setShopBranding(branding);
-
-      // console.log(branding);
 
       if (branding.logo) {
         setLoadingMessage("Loading shop logo...");
@@ -115,18 +95,14 @@ const PrintReceipt: React.FC = () => {
       }
 
       if (!cancelled) {
-        setLoadingMessage(
-          searchParams.get("autoprint") === "1"
-            ? "Preparing print..."
-            : "Ready to print",
-        );
+        setLoadingMessage("Preparing print...");
         setIsReady(true);
       }
     };
 
     preparePrint().catch(() => {
       if (!cancelled) {
-        toast.error("Failed to prepare voucher for printing");
+        toast.error("Failed to prepare receipt for printing");
         setLoadError("Failed to load print data");
       }
     });
@@ -135,28 +111,6 @@ const PrintReceipt: React.FC = () => {
       cancelled = true;
     };
   }, [orderId]);
-
-  useEffect(() => {
-    if (!shouldAutoPrint || !isReady || !receiptData || !shopBranding) return;
-    if (hasTriggeredPrint.current) return;
-
-    hasTriggeredPrint.current = true;
-
-    // const printTimer = window.setTimeout(() => {
-    //   window.print();
-    // }, 350);
-
-    const handleAfterPrint = () => {
-      handleBack();
-    };
-
-    window.addEventListener("afterprint", handleAfterPrint);
-
-    return () => {
-      // window.clearTimeout(printTimer);
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, [shouldAutoPrint, isReady, receiptData, shopBranding, handleBack]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -181,7 +135,7 @@ const PrintReceipt: React.FC = () => {
           <p className="text-gray-600 mb-6">
             {loadError === "Receipt not found"
               ? "The requested receipt could not be found or has expired."
-              : "Something went wrong while preparing the voucher."}
+              : "Something went wrong while preparing the receipt."}
           </p>
           <button
             onClick={handleBack}
@@ -208,16 +162,18 @@ const PrintReceipt: React.FC = () => {
   return (
     <div className="min-h-screen bg-white print:bg-white">
       <style>{`
-        ${getPrintPaperStyles(paperSize)}
+        ${getPrintPaperStyles("thermal-72mm")}
         ${getSharedTableStyles()}
+        @media screen {
+          .no-print { display: block !important; }
+        }
       `}</style>
 
-      {/* {!shouldAutoPrint && ( */}
       <div className="no-print bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 mb-6">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 space-y-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <h1 className="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">
-              Print Preview — {shopBranding.shopName}
+              Receipt #{receiptData.invoiceNumber}
             </h1>
             <div className="flex flex-wrap gap-2">
               <button
@@ -234,22 +190,14 @@ const PrintReceipt: React.FC = () => {
               </button>
             </div>
           </div>
-          <PrintPaperSizeSelector
-            value={paperSize}
-            onChange={handlePaperSizeChange}
-          />
-          <p className="text-xs text-slate-500">
-            Change default size in Shop Settings. Click Print when ready.
-          </p>
         </div>
       </div>
-      {/* )} */}
 
       <div className="pb-8">
         <VoucherContent
           receiptData={receiptData}
           shopBranding={shopBranding}
-          paperSize={paperSize}
+          paperSize="thermal-72mm"
           formatDate={formatDate}
         />
       </div>
@@ -257,4 +205,4 @@ const PrintReceipt: React.FC = () => {
   );
 };
 
-export default PrintReceipt;
+export default MobilePrint;

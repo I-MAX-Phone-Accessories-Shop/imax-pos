@@ -26,6 +26,7 @@ import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import PrintReceipt from "./pages/PrintReceipt";
 import { AIChat } from "./pages/AIChat";
+import MobilePrint from "./pages/mobilePrint";
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -225,7 +226,8 @@ const AppLayout: React.FC = () => {
             }
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
-          <Route path="/print-receipt/:orderId" element={<PrintReceipt />} />
+          <Route path="/print-receipt/:orderId" element={<MobilePrint />} />
+          {/* <Route path="/print-receipt/:orderId" element={<PrintReceipt />} /> */}
         </Routes>
       </main>
     </div>
