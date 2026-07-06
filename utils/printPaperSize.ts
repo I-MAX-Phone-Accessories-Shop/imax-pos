@@ -114,12 +114,12 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         }
         .voucher-container {
           font-family: Arial, sans-serif;
-          font-size: 10px;
+          font-size: 12px;
           line-height: 1.4;
         }
         .voucher-logo { width: 48px !important; height: 48px !important; }
         .voucher-shop-name { font-size: 16px !important; font-weight: 800 !important; }
-        .voucher-address { font-size: 9px !important; color: #333; }
+        .voucher-address { font-size: 11px !important; color: #333; }
         .voucher-dashed-separator {
           border-top: 1px dashed #999;
           margin: 2mm 0;
@@ -130,7 +130,7 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
           gap: 1mm;
           padding: 1mm 0;
           font-weight: bold;
-          font-size: 9px;
+          font-size: 11px;
           color: #000;
         }
         .voucher-thermal-items {
@@ -141,12 +141,12 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
           grid-template-columns: 45% 18% 12% 25%;
           gap: 1mm;
           padding: 1mm 0;
-          font-size: 9px;
+          font-size: 11px;
           color: #000;
         }
         .voucher-thermal-summary {
           text-align: right;
-          font-size: 9px;
+          font-size: 11px;
           padding: 1mm 0;
         }
         .voucher-summary-row {
@@ -166,22 +166,22 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
           padding: 2mm 0;
         }
         .voucher-total-label {
-          font-size: 18px;
-          font-weight: 900;
-          color: #000;
-        }
-        .voucher-total-amount {
           font-size: 20px;
           font-weight: 900;
           color: #000;
         }
+        .voucher-total-amount {
+          font-size: 22px;
+          font-weight: 900;
+          color: #000;
+        }
         .voucher-thermal-note {
-          font-size: 9px;
+          font-size: 11px;
           padding: 1mm 0;
           color: #333;
         }
         .voucher-thermal-receipt-info {
-          font-size: 9px;
+          font-size: 11px;
           padding: 1mm 0;
           color: #333;
         }
@@ -191,14 +191,14 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         }
         .voucher-thermal-sequence {
           text-align: center;
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 900;
           color: #000;
           padding: 2mm 0;
         }
         .voucher-thermal-printed-by {
           text-align: center;
-          font-size: 9px;
+          font-size: 11px;
           color: #333;
           padding-bottom: 2mm;
         }

@@ -27,6 +27,8 @@ export interface VoucherReceiptData {
   tax?: number;
   receiptSequenceNumber?: number;
   cashierName?: string;
+  customerName?: string;
+  customerPhone?: string;
 }
 
 interface VoucherContentProps {
@@ -81,12 +83,30 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
         {/* Dashed separator */}
         <div className="voucher-dashed-separator" />
 
+        {/* Customer Info */}
+        {(receiptData.customerName || receiptData.customerPhone) && (
+          <div className="voucher-thermal-customer mb-2 text-sm">
+            {receiptData.customerName && (
+              <div>
+                <span className="font-bold">Customer:</span>{" "}
+                {receiptData.customerName}
+              </div>
+            )}
+            {receiptData.customerPhone && (
+              <div>
+                <span className="font-bold">Phone:</span>{" "}
+                {receiptData.customerPhone}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Items header */}
         <div className="voucher-thermal-header">
           <div>Description</div>
           <div className="text-right">Price</div>
           <div className="text-center">Qty</div>
-          <div className="text-right">Total</div>
+          <div className="text-center">Total</div>
         </div>
 
         {/* Items */}
@@ -98,7 +118,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               </div>
               <div className="text-right">{item.price.toLocaleString()}</div>
               <div className="text-center">{item.qty}</div>
-              <div className="text-right font-semibold">
+              <div className="text-center font-semibold">
                 {(item.price * item.qty).toLocaleString()}
               </div>
             </div>

@@ -13,6 +13,7 @@ import {
   Scan,
   X,
   User,
+  Phone,
   Calculator,
   Calendar,
 } from "lucide-react";
@@ -33,6 +34,7 @@ import {
   fetchCreditPersonas,
   CreditPersona,
 } from "../services/Credit/fetchCreditPersonas";
+import { createCreditPersona } from "../services/Credit/createCreditPersona";
 import { deviceDetect } from "react-device-detect";
 
 // Payment methods
@@ -102,6 +104,8 @@ export const POS: React.FC = () => {
   const [createdAt, setCreatedAt] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const devices = detectDevice();
 
   // Load storefronts and stock on mount
@@ -465,6 +469,28 @@ export const POS: React.FC = () => {
     setIsProcessing(true);
 
     try {
+      // Auto-create or match credit person from customer name/phone
+      let resolvedCreditPersonId = selectedCreditPersonId;
+
+      if (customerName.trim() && customerPhone.trim()) {
+        const existingPerson = creditPersonas.find(
+          (cp) => cp.phone.trim() === customerPhone.trim(),
+        );
+
+        if (existingPerson) {
+          resolvedCreditPersonId = existingPerson._id;
+        } else {
+          const createResult = await createCreditPersona({
+            name: customerName.trim(),
+            phone: customerPhone.trim(),
+          });
+          if (createResult.success && createResult.data) {
+            resolvedCreditPersonId = createResult.data._id;
+            loadCreditPersonas();
+          }
+        }
+      }
+
       // Map payment method to API format
       const paymentMethodMap: Record<PaymentMethod, string> = {
         [PaymentMethod.CASH]: "cash",
@@ -497,9 +523,7 @@ export const POS: React.FC = () => {
         note: note,
         paymentMethod: paymentMethodMap[paymentMethod],
         orderDate: new Date(createdAt).toISOString(),
-        ...(paymentType === "credit" && selectedCreditPersonId
-          ? { creditPersonId: selectedCreditPersonId }
-          : {}),
+        ...(resolvedCreditPersonId ? { creditPersonId: resolvedCreditPersonId } : {}),
       };
 
       const result = await createOrder(orderPayload);
@@ -530,6 +554,8 @@ export const POS: React.FC = () => {
           tax: 0,
           receiptSequenceNumber: parseInt(result.data?.orderNumber?.split("/").pop() || "0", 10) || Date.now() % 10000,
           cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
+          customerName,
+          customerPhone,
         };
         // Save receipt data and redirect to receipt page
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -555,6 +581,8 @@ export const POS: React.FC = () => {
         setPaymentType("paid");
         setSelectedCreditPersonId("");
         setCreatedAt(new Date().toISOString().split("T")[0]);
+        setCustomerName("");
+        setCustomerPhone("");
 
         // Show success modal instead of toast
         setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
@@ -1143,6 +1171,40 @@ export const POS: React.FC = () => {
                     value={createdAt}
                     onChange={(e) => setCreatedAt(e.target.value)}
                   />
+                </div>
+              </div>
+
+              {/* Customer Info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Name ({t("common.optional")})
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Customer name"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone ({t("common.optional")})
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <input
+                      type="tel"
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="Phone number"
+                    />
+                  </div>
                 </div>
               </div>
 
