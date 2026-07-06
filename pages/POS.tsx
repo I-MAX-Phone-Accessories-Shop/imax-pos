@@ -555,12 +555,23 @@ export const POS: React.FC = () => {
 
         // Device detection for print method selection
         const device = detectDevice();
+
+        // Auto-print receipt based on device
+        if (device.isAndroid || device.isIOS) {
+          // For mobile devices (Android/iOS), navigate to receipt page
+          navigate(
+            `/mobile-print/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}`,
+          );
+        } else {
+          // For desktop/Windows, use thermal receipt function
+          navigate(
+            `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}`,
+          );
+        }
         // console.log("Device:", device);
 
         // Navigate to professional A4 receipt page
-        navigate(
-          `/print-receipt/${receiptData.invoiceNumber}?size=${getSavedPrintPaperSize()}`,
-        );
+
         setCart([]);
         setDiscount(0);
         setMarkup(0);
