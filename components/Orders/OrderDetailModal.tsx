@@ -75,6 +75,10 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       paidAmount: order.paidAmount,
       change: order.extraChange,
       note: order.note,
+      serviceCharge: 0,
+      tax: 0,
+      receiptSequenceNumber: parseInt(order.orderNumber?.split("/").pop() || "0", 10) || Date.now() % 10000,
+      cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
     };
 
     // Save receipt data to localStorage for A4 printing

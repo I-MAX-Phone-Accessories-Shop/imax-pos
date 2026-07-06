@@ -526,6 +526,10 @@ export const POS: React.FC = () => {
           change: finalPaidAmount - total,
           paymentMethod,
           note,
+          serviceCharge: 0,
+          tax: 0,
+          receiptSequenceNumber: parseInt(result.data?.orderNumber?.split("/").pop() || "0", 10) || Date.now() % 10000,
+          cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
         };
         // Save receipt data and redirect to receipt page
         const receiptId = `receipt_${receiptData.invoiceNumber}`;

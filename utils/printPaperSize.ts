@@ -1,4 +1,4 @@
-export type PrintPaperSize = "A4" | "A5" | "thermal-80mm";
+export type PrintPaperSize = "A4" | "A5" | "thermal-72mm";
 
 export const PRINT_PAPER_SIZE_KEY = "voucherPrintPaperSize";
 
@@ -12,19 +12,19 @@ export const PRINT_PAPER_OPTIONS: PrintPaperOption[] = [
   { id: "A4", label: "A4", description: "Standard invoice (210 × 297 mm)" },
   { id: "A5", label: "A5", description: "Compact invoice (148 × 210 mm)" },
   {
-    id: "thermal-80mm",
-    label: "Thermal 80mm",
-    description: "Receipt printer roll (80 mm wide)",
+    id: "thermal-72mm",
+    label: "Thermal 72mm",
+    description: "Receipt printer roll (72 mm wide)",
   },
 ];
 
 export const getSavedPrintPaperSize = (): PrintPaperSize => {
   const saved = localStorage.getItem(PRINT_PAPER_SIZE_KEY);
-  if (saved === "thermal-88mm") {
-    localStorage.setItem(PRINT_PAPER_SIZE_KEY, "thermal-80mm");
-    return "thermal-80mm";
+  if (saved === "thermal-88mm" || saved === "thermal-80mm") {
+    localStorage.setItem(PRINT_PAPER_SIZE_KEY, "thermal-72mm");
+    return "thermal-72mm";
   }
-  if (saved === "A4" || saved === "A5" || saved === "thermal-80mm") {
+  if (saved === "A4" || saved === "A5" || saved === "thermal-72mm") {
     return saved;
   }
   return "A4";
@@ -37,8 +37,8 @@ export const savePrintPaperSize = (size: PrintPaperSize) => {
 export const parsePrintPaperSize = (
   value: string | null,
 ): PrintPaperSize | null => {
-  if (value === "thermal-88mm") return "thermal-80mm";
-  if (value === "A4" || value === "A5" || value === "thermal-80mm") {
+  if (value === "thermal-88mm" || value === "thermal-80mm") return "thermal-72mm";
+  if (value === "A4" || value === "A5" || value === "thermal-72mm") {
     return value;
   }
   return null;
@@ -94,20 +94,20 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         .voucher-footer-title { font-size: 1rem !important; }
         .voucher-summary-grid { gap: 1rem !important; }
       `;
-    case "thermal-80mm":
+    case "thermal-72mm":
       return `
         ${base}
         @media print {
-          @page { size: 80mm auto; margin: 2mm; }
+          @page { size: 72mm auto; margin: 2mm; }
           .voucher-container {
-            width: 80mm !important;
-            max-width: 80mm !important;
+            width: 72mm !important;
+            max-width: 72mm !important;
             padding: 2mm !important;
           }
         }
         @media screen {
           .voucher-container {
-            max-width: 80mm;
+            max-width: 72mm;
             padding: 3mm;
             box-shadow: 0 2px 8px rgba(0,0,0,0.12);
           }
@@ -115,40 +115,92 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         .voucher-container {
           font-family: Arial, sans-serif;
           font-size: 10px;
-          line-height: 1.35;
+          line-height: 1.4;
         }
         .voucher-logo { width: 48px !important; height: 48px !important; }
-        .voucher-shop-name { font-size: 14px !important; font-weight: 800 !important; }
-        .voucher-address { font-size: 9px !important; }
-        .voucher-invoice-row { font-size: 9px !important; margin-bottom: 2mm; }
-        .voucher-thermal-item {
-          display: grid;
-          grid-template-columns: 8% 42% 18% 12% 20%;
-          gap: 1mm;
-          padding: 1.5mm 0;
-          border-bottom: 1px dashed #ccc;
-          font-size: 9px;
+        .voucher-shop-name { font-size: 16px !important; font-weight: 800 !important; }
+        .voucher-address { font-size: 9px !important; color: #333; }
+        .voucher-dashed-separator {
+          border-top: 1px dashed #999;
+          margin: 2mm 0;
         }
         .voucher-thermal-header {
           display: grid;
-          grid-template-columns: 8% 42% 18% 12% 20%;
+          grid-template-columns: 45% 18% 12% 25%;
           gap: 1mm;
-          background: #1E90FF !important;
-          color: white !important;
-          padding: 1.5mm 1mm;
+          padding: 1mm 0;
           font-weight: bold;
-          font-size: 8px;
+          font-size: 9px;
+          color: #000;
         }
-        .voucher-summary-grid { display: block !important; }
-        .voucher-summary-grid > div:last-child { margin-top: 3mm; }
-        .voucher-total-bar { font-size: 11px !important; padding: 2mm !important; }
-        .voucher-footer-title { font-size: 10px !important; margin-top: 4mm !important; }
-        .voucher-sign { display: none; }
-        .voucher-contact-bar {
-          flex-direction: column !important;
+        .voucher-thermal-items {
+          margin-bottom: 1mm;
+        }
+        .voucher-thermal-item {
+          display: grid;
+          grid-template-columns: 45% 18% 12% 25%;
           gap: 1mm;
-          font-size: 8px !important;
+          padding: 1mm 0;
+          font-size: 9px;
+          color: #000;
+        }
+        .voucher-thermal-summary {
+          text-align: right;
+          font-size: 9px;
+          padding: 1mm 0;
+        }
+        .voucher-summary-row {
+          display: flex;
+          justify-content: flex-end;
+          gap: 4mm;
+          padding: 0.5mm 0;
+        }
+        .voucher-summary-row span:first-child {
+          min-width: 25mm;
+          text-align: right;
+        }
+        .voucher-thermal-total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 2mm 0;
+        }
+        .voucher-total-label {
+          font-size: 18px;
+          font-weight: 900;
+          color: #000;
+        }
+        .voucher-total-amount {
+          font-size: 20px;
+          font-weight: 900;
+          color: #000;
+        }
+        .voucher-thermal-note {
+          font-size: 9px;
+          padding: 1mm 0;
+          color: #333;
+        }
+        .voucher-thermal-receipt-info {
+          font-size: 9px;
+          padding: 1mm 0;
+          color: #333;
+        }
+        .voucher-double-line {
+          border-top: 3px double #000;
+          margin: 2mm 0;
+        }
+        .voucher-thermal-sequence {
           text-align: center;
+          font-size: 24px;
+          font-weight: 900;
+          color: #000;
+          padding: 2mm 0;
+        }
+        .voucher-thermal-printed-by {
+          text-align: center;
+          font-size: 9px;
+          color: #333;
+          padding-bottom: 2mm;
         }
       `;
     case "A4":
