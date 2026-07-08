@@ -78,6 +78,9 @@ export const CreditPersonModal: React.FC<CreditPersonModalProps> = ({
                   <div className="flex-1">
                     <p className="font-medium text-slate-800">{persona.name}</p>
                     <p className="text-sm text-slate-500">{persona.phone}</p>
+                    {persona.address && (
+                      <p className="text-xs text-slate-400">{persona.address}</p>
+                    )}
                   </div>
                 </button>
               ))}

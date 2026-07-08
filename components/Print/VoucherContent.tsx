@@ -29,6 +29,7 @@ export interface VoucherReceiptData {
   cashierName?: string;
   customerName?: string;
   customerPhone?: string;
+  customerAddress?: string;
 }
 
 interface VoucherContentProps {
@@ -96,6 +97,12 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               <div>
                 <span>Phone:</span>{" "}
                 {receiptData.customerPhone}
+              </div>
+            )}
+            {receiptData.customerAddress && (
+              <div>
+                <span>Address:</span>{" "}
+                {receiptData.customerAddress}
               </div>
             )}
           </div>

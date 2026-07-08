@@ -1,4 +1,5 @@
 import React from "react";
+import { FileDown } from "lucide-react";
 import { LocationProfile } from "../../services/Location/fetchLocationProfiles";
 import { DateRangePicker } from "./DateRangePicker";
 
@@ -13,19 +14,21 @@ interface ReportsHeaderProps {
   onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
   fixedStartDate?: boolean;
   singleDate?: boolean;
+  onGeneratePDF: () => void;
 }
 
 export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   storefronts,
   selectedStorefront,
   onStorefrontChange,
-  // onRefresh,
-  // loading,
+  onRefresh,
+  loading,
   startDate,
   endDate,
   onDateRangeChange,
   fixedStartDate,
   singleDate,
+  onGeneratePDF,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -52,6 +55,13 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
           fixedStartDate={fixedStartDate}
           singleDate={singleDate}
         />
+        <button
+          onClick={onGeneratePDF}
+          className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+        >
+          <FileDown className="w-4 h-4" />
+          PDF
+        </button>
         {/* <button
           onClick={onRefresh}
           disabled={loading}

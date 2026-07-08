@@ -34,7 +34,7 @@ export const Credits: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", phone: "" });
+  const [formData, setFormData] = useState({ name: "", phone: "", address: "" });
 
   useEffect(() => {
     loadCreditPersonas();
@@ -64,20 +64,20 @@ export const Credits: React.FC = () => {
 
   const handleOpenAddModal = () => {
     setEditingId(null);
-    setFormData({ name: "", phone: "" });
+    setFormData({ name: "", phone: "", address: "" });
     setIsAddModalOpen(true);
   };
 
   const handleOpenEditModal = (persona: CreditPersona) => {
     setEditingId(persona._id);
-    setFormData({ name: persona.name, phone: persona.phone });
+    setFormData({ name: persona.name, phone: persona.phone, address: persona.address || "" });
     setIsAddModalOpen(true);
   };
 
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
     setEditingId(null);
-    setFormData({ name: "", phone: "" });
+    setFormData({ name: "", phone: "", address: "" });
   };
 
   const handleSubmitProfile = async () => {
@@ -97,6 +97,7 @@ export const Credits: React.FC = () => {
         const response = await updateCreditPersona(editingId, {
           name: formData.name.trim(),
           phone: formData.phone.trim(),
+          address: formData.address.trim() || undefined,
         });
 
         if (response.success) {
@@ -111,6 +112,7 @@ export const Credits: React.FC = () => {
         const response = await createCreditPersona({
           name: formData.name.trim(),
           phone: formData.phone.trim(),
+          address: formData.address.trim() || undefined,
         });
 
         if (response.success) {
@@ -141,7 +143,7 @@ export const Credits: React.FC = () => {
 
   const handleViewPersona = (persona: CreditPersona) => {
     navigate(`/credits/${persona._id}`, {
-      state: { name: persona.name, phone: persona.phone },
+      state: { name: persona.name, phone: persona.phone, address: persona.address },
     });
   };
 
@@ -150,7 +152,8 @@ export const Credits: React.FC = () => {
     const searchLower = search.toLowerCase();
     return (
       persona.name.toLowerCase().includes(searchLower) ||
-      persona.phone.includes(search)
+      persona.phone.includes(search) ||
+      (persona.address && persona.address.toLowerCase().includes(searchLower))
     );
   });
 
@@ -301,6 +304,12 @@ export const Credits: React.FC = () => {
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-medium">
                       <span className="hidden sm:inline">
+                        {t("credits.address")}
+                      </span>
+                      <span className="sm:hidden">Address</span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-medium">
+                      <span className="hidden sm:inline">
                         {t("credits.status")}
                       </span>
                       <span className="sm:hidden">Status</span>
@@ -340,6 +349,9 @@ export const Credits: React.FC = () => {
                           <Phone className="w-3.5 h-3.5 flex-shrink-0" />
                           <span className="truncate">{persona.phone}</span>
                         </div>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 text-slate-600 text-xs sm:text-sm">
+                        <span className="truncate">{persona.address || "-"}</span>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         {persona.blacklist ? (
@@ -467,6 +479,21 @@ export const Credits: React.FC = () => {
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  {t("credits.address")}
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  placeholder={t("credits.addressPlaceholder")}
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
                   }
                 />
               </div>

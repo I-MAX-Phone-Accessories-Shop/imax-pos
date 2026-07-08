@@ -88,6 +88,7 @@ export const POS: React.FC = () => {
     useState(false);
   const [newCreditPersonName, setNewCreditPersonName] = useState("");
   const [newCreditPersonPhone, setNewCreditPersonPhone] = useState("");
+  const [newCreditPersonAddress, setNewCreditPersonAddress] = useState("");
   const [isAddingCreditPerson, setIsAddingCreditPerson] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState("");
   const [showMobileCart, setShowMobileCart] = useState(false);
@@ -548,6 +549,9 @@ export const POS: React.FC = () => {
           customerPhone:
             creditPersonas.find((cp) => cp._id === selectedCreditPersonId)
               ?.phone || "",
+          customerAddress:
+            creditPersonas.find((cp) => cp._id === selectedCreditPersonId)
+              ?.address || "",
         };
         // Save receipt data and redirect to receipt page
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -1335,18 +1339,19 @@ export const POS: React.FC = () => {
                       </option>
                       {creditPersonas.map((persona) => (
                         <option key={persona._id} value={persona._id}>
-                          {persona.name} - {persona.phone}
+                          {persona.name} - {persona.phone}{persona.address ? ` - ${persona.address}` : ""}
                         </option>
                       ))}
                     </select>
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      setNewCreditPersonName("");
-                      setNewCreditPersonPhone("");
-                      setShowAddCreditPersonModal(true);
-                    }}
+                  onClick={() => {
+                    setNewCreditPersonName("");
+                    setNewCreditPersonPhone("");
+                    setNewCreditPersonAddress("");
+                    setShowAddCreditPersonModal(true);
+                  }}
                     className="px-3 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1 text-sm font-medium whitespace-nowrap"
                   >
                     <Plus className="w-4 h-4" />
@@ -1856,6 +1861,18 @@ export const POS: React.FC = () => {
                   placeholder={t("credits.phonePlaceholder")}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("credits.address")}
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  value={newCreditPersonAddress}
+                  onChange={(e) => setNewCreditPersonAddress(e.target.value)}
+                  placeholder={t("credits.addressPlaceholder")}
+                />
+              </div>
             </div>
 
             {/* Footer */}
@@ -1881,6 +1898,7 @@ export const POS: React.FC = () => {
                     const result = await createCreditPersona({
                       name: newCreditPersonName.trim(),
                       phone: newCreditPersonPhone.trim(),
+                      address: newCreditPersonAddress.trim() || undefined,
                     });
                     if (result.success && result.data) {
                       toast.success(t("credits.profileCreated"));

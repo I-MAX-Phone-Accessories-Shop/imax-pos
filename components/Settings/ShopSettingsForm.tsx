@@ -119,7 +119,7 @@ export const ShopSettingsForm: React.FC<ShopSettingsFormProps> = ({
             type="tel"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="+959123456789"
+            placeholder="097913790/094556253"
             className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isSubmitting}
           />

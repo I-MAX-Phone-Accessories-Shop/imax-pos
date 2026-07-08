@@ -39,6 +39,7 @@ import {
   FOCOrder,
 } from "../services/Reports/fetchFOCOrders";
 import { ReportsHeader } from "../components/Reports/ReportsHeader";
+import { generateReportPDF } from "../components/Reports/generateReportPDF";
 import { ReportTabs } from "../components/Reports/ReportTabs";
 import { OverallReportTab } from "../components/Reports/OverallReportTab";
 import { PaidOrdersTab } from "../components/Reports/PaidOrdersTab";
@@ -558,6 +559,43 @@ export const Reports: React.FC = () => {
     setEndDate(newEndDate);
   };
 
+  const handleGeneratePDF = () => {
+    const storefrontName =
+      selectedStorefront === "all"
+        ? "All Storefronts"
+        : storefronts.find((sf) => sf._id === selectedStorefront)
+            ?.locationName || "Unknown";
+
+    const effectivePaidReport =
+      selectedStorefront === "all"
+        ? allStorefrontsPaidOrdersReport
+        : paidOrdersReport;
+    const effectiveCreditReport =
+      selectedStorefront === "all"
+        ? allStorefrontsCreditOrdersReport
+        : creditOrdersReport;
+    const effectiveStatsReport =
+      selectedStorefront === "all"
+        ? allStorefrontsProductSalesStatistics
+        : productSalesStatistics;
+    const effectiveFOCOrders =
+      selectedStorefront === "all" ? allStorefrontsFocOrders : focOrders;
+
+    generateReportPDF({
+      activeTab,
+      displayReport,
+      saleReports,
+      paidOrdersReport: effectivePaidReport,
+      creditOrdersReport: effectiveCreditReport,
+      productSalesStatistics: effectiveStatsReport,
+      focOrders: effectiveFOCOrders,
+      selectedStorefront,
+      storefrontName,
+      startDate,
+      endDate,
+    });
+  };
+
   // Aggregate data from all storefronts (fallback)
   const aggregatedReport = saleReports.reduce(
     (acc, report) => {
@@ -623,6 +661,7 @@ export const Reports: React.FC = () => {
         startDate={startDate}
         endDate={endDate}
         onDateRangeChange={handleDateRangeChange}
+        onGeneratePDF={handleGeneratePDF}
         // singleDate={activeTab === "overall"}
       />
 

@@ -57,6 +57,7 @@ export const CreditDetail: React.FC = () => {
   const personInfo = location.state as {
     name?: string;
     phone?: string;
+    address?: string;
   } | null;
 
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,7 @@ export const CreditDetail: React.FC = () => {
     personInfo?.name || "Credit Person",
   );
   const [personPhone, setPersonPhone] = useState(personInfo?.phone || "");
+  const [personAddress, setPersonAddress] = useState(personInfo?.address || "");
 
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [paymentsPagination, setPaymentsPagination] =
@@ -154,6 +156,7 @@ export const CreditDetail: React.FC = () => {
         setPersonaDetail(personaResponse.data);
         setPersonName(personaResponse.data.creditPerson.name);
         setPersonPhone(personaResponse.data.creditPerson.phone);
+        setPersonAddress(personaResponse.data.creditPerson.address || "");
         setPaymentsPagination(personaResponse.pagination ?? null);
       } else {
         toast.error(personaResponse.message || "Failed to load credit details");
@@ -373,6 +376,11 @@ export const CreditDetail: React.FC = () => {
             <p className="text-slate-500 text-sm flex items-center gap-1 mt-1">
               <Phone className="w-4 h-4" />
               {personPhone}
+            </p>
+          )}
+          {personAddress && (
+            <p className="text-slate-500 text-sm flex items-center gap-1 mt-1">
+              {personAddress}
             </p>
           )}
         </div>

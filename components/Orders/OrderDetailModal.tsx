@@ -81,6 +81,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
       customerName: typeof order.creditPersonId === "object" ? order.creditPersonId?.name : "",
       customerPhone: typeof order.creditPersonId === "object" ? order.creditPersonId?.phone : "",
+      customerAddress: typeof order.creditPersonId === "object" ? order.creditPersonId?.address || "" : "",
     };
 
     // Save receipt data to localStorage for A4 printing
