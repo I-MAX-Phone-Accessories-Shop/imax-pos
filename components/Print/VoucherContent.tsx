@@ -89,20 +89,17 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <div className="mb-2" style={{ fontSize: "11px" }}>
             {receiptData.customerName && (
               <div>
-                <span>Customer:</span>{" "}
-                {receiptData.customerName}
+                <span>Customer:</span> {receiptData.customerName}
               </div>
             )}
             {receiptData.customerPhone && (
               <div>
-                <span>Phone:</span>{" "}
-                {receiptData.customerPhone}
+                <span>Phone:</span> {receiptData.customerPhone}
               </div>
             )}
             {receiptData.customerAddress && (
               <div>
-                <span>Address:</span>{" "}
-                {receiptData.customerAddress}
+                <span>Address:</span> {receiptData.customerAddress}
               </div>
             )}
           </div>
@@ -213,7 +210,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   return (
     <div className="voucher-container" data-paper={paperSize}>
       <div className="text-center mb-4 sm:mb-8">
-        {shopBranding.logo ? (
+        <img src={logo} alt="MMAH" className="mx-auto w-48" />
+        <img src={address} alt="Address" className="mx-auto w-48" />
+        {/* {shopBranding.logo ? (
           <img
             src={shopBranding.logo}
             alt={shopBranding.shopName}
@@ -223,18 +222,38 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <div className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
             {shopBranding.shopName.charAt(0)}
           </div>
-        )}
-        <h2 className="voucher-shop-name font-bold text-slate-800 mt-3">
+        )} */}
+        {/* <h2 className="voucher-shop-name font-bold text-slate-800 mt-3">
           {shopBranding.shopName}
-        </h2>
-        {shopBranding.address && (
+        </h2> */}
+        {/* {shopBranding.address && (
           <p className="voucher-address text-slate-600 mt-1">
             {shopBranding.address}
           </p>
-        )}
+        )} */}
       </div>
 
       <div className="flex justify-between items-start mb-4 sm:mb-6 voucher-invoice-row">
+        {/* Customer Info */}
+        {(receiptData.customerName ||
+          receiptData.customerPhone ||
+          receiptData.customerAddress) && (
+          <div className="mb-4 sm:mb-6">
+            <p className="font-bold mb-1">Customer Info:</p>
+            <div className="flex flex-col gap-1">
+              {receiptData.customerName && (
+                <p>Name: {receiptData.customerName}</p>
+              )}
+              {receiptData.customerPhone && (
+                <p>Phone: {receiptData.customerPhone}</p>
+              )}
+              {receiptData.customerAddress && (
+                <p>Address: {receiptData.customerAddress}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="text-right">
           <p className="font-bold mb-0.5">
             INVOICE NO : {receiptData.invoiceNumber}
@@ -248,7 +267,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <thead>
             <tr>
               <th style={{ width: "10%" }}>NO</th>
-              <th style={{ width: "45%" }}>ITEM DESCRIPTION</th>
+              <th style={{ width: "45%", textAlign: "left" }}>
+                <span>ITEM DESCRIPTION</span>
+              </th>
               <th style={{ width: "15%" }}>PRICE</th>
               <th style={{ width: "15%" }}>QTY.</th>
               <th style={{ width: "15%" }}>TOTAL</th>
@@ -258,7 +279,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             {receiptData.items.map((item, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
-                <td>{item.name}</td>
+                <td style={{ textAlign: "left" }}>{item.name}</td>
                 <td>{item.price.toLocaleString()}</td>
                 <td>{item.qty}</td>
                 <td>{(item.price * item.qty).toLocaleString()}</td>
@@ -317,18 +338,6 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               {receiptData.total.toLocaleString()} {shopBranding.currency}
             </span>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-8 sm:mt-16 text-center">
-        <p className="voucher-footer-title font-bold italic mb-1">
-          Please Keep Box, Warranty Card & Invoice. <br />
-          Thank you for Your Business!
-        </p>
-        <div className="voucher-sign border-t border-gray-300 mt-6 sm:mt-8 pt-4">
-          <p className="text-xs text-right">
-            Authorised Sign: _________________
-          </p>
         </div>
       </div>
 

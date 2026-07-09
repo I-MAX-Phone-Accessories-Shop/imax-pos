@@ -65,7 +65,7 @@ const PrintReceipt: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const hasTriggeredPrint = useRef(false);
-  const shouldAutoPrint = searchParams.get("autoprint") === "1";
+  const shouldAutoPrint = true;
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -142,9 +142,9 @@ const PrintReceipt: React.FC = () => {
 
     hasTriggeredPrint.current = true;
 
-    // const printTimer = window.setTimeout(() => {
-    //   window.print();
-    // }, 350);
+    const printTimer = window.setTimeout(() => {
+      window.print();
+    }, 350);
 
     const handleAfterPrint = () => {
       handleBack();
@@ -153,7 +153,7 @@ const PrintReceipt: React.FC = () => {
     window.addEventListener("afterprint", handleAfterPrint);
 
     return () => {
-      // window.clearTimeout(printTimer);
+      window.clearTimeout(printTimer);
       window.removeEventListener("afterprint", handleAfterPrint);
     };
   }, [shouldAutoPrint, isReady, receiptData, shopBranding, handleBack]);

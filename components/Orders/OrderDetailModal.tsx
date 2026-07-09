@@ -25,6 +25,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { getSavedPrintPaperSize } from "../../utils/printPaperSize";
 import { detectDevice } from "../../utils/deviceDetect";
 import { useNavigate } from "react-router-dom";
+import { fetchCreditPersonas } from "../../services/Credit/fetchCreditPersonas";
 import { AddItemsToOrderModal } from "./AddItemsToOrderModal";
 import { RemoveItemsFromOrderModal } from "./RemoveItemsFromOrderModal";
 
@@ -51,8 +52,22 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const [showAddItemsModal, setShowAddItemsModal] = useState(false);
   const [showRemoveItemsModal, setShowRemoveItemsModal] = useState(false);
 
-  const handlePrintOrder = () => {
+  const handlePrintOrder = async () => {
     if (!order) return;
+
+    // Fetch full credit person data to get address
+    let customerAddress = typeof order.creditPersonId === "object" ? order.creditPersonId?.address || "" : "";
+    if (!customerAddress && typeof order.creditPersonId === "object" && order.creditPersonId?._id) {
+      try {
+        const cpResponse = await fetchCreditPersonas();
+        if (cpResponse.success && cpResponse.data) {
+          const fullCP = cpResponse.data.find((cp) => cp._id === order.creditPersonId?._id);
+          customerAddress = fullCP?.address || "";
+        }
+      } catch {
+        // ignore fetch error, receipt still works without address
+      }
+    }
 
     // Transform order data to receipt format
     const receiptData = {
@@ -81,7 +96,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
       customerName: typeof order.creditPersonId === "object" ? order.creditPersonId?.name : "",
       customerPhone: typeof order.creditPersonId === "object" ? order.creditPersonId?.phone : "",
-      customerAddress: typeof order.creditPersonId === "object" ? order.creditPersonId?.address || "" : "",
+      customerAddress,
     };
 
     // Save receipt data to localStorage for A4 printing
