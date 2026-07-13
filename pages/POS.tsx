@@ -100,7 +100,7 @@ export const POS: React.FC = () => {
   const [showStorefrontMenu, setShowStorefrontMenu] = useState(false);
   const [useMarkup, setUseMarkup] = useState(false); // Toggle between discount and markup
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
+    paymentType === "credit" ? PaymentMethod.CASH : PaymentMethod.CASH,
   );
   const [showDiscountCalculator, setShowDiscountCalculator] = useState(false);
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
@@ -582,9 +582,7 @@ export const POS: React.FC = () => {
         setMarkupAmount(0);
         setNote("");
         setPaidAmount(0);
-        setPaymentMethod(
-          paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
-        );
+        setPaymentMethod(PaymentMethod.CASH);
         setPaymentType("paid");
         setSelectedCreditPersonId("");
         setCreatedAt(new Date().toISOString().split("T")[0]);
@@ -1290,7 +1288,7 @@ export const POS: React.FC = () => {
                       // Reset to total when switching back to paid
                       setPaidAmount(Math.ceil(total));
                     } else if (e.target.value === "credit") {
-                      setPaymentMethod(PaymentMethod.NORMAL);
+                      setPaymentMethod(PaymentMethod.CASH);
                       // Set initial value to zero for credit
                       setPaidAmount(0);
                     }
@@ -1339,19 +1337,20 @@ export const POS: React.FC = () => {
                       </option>
                       {creditPersonas.map((persona) => (
                         <option key={persona._id} value={persona._id}>
-                          {persona.name} - {persona.phone}{persona.address ? ` - ${persona.address}` : ""}
+                          {persona.name} - {persona.phone}
+                          {persona.address ? ` - ${persona.address}` : ""}
                         </option>
                       ))}
                     </select>
                   </div>
                   <button
                     type="button"
-                  onClick={() => {
-                    setNewCreditPersonName("");
-                    setNewCreditPersonPhone("");
-                    setNewCreditPersonAddress("");
-                    setShowAddCreditPersonModal(true);
-                  }}
+                    onClick={() => {
+                      setNewCreditPersonName("");
+                      setNewCreditPersonPhone("");
+                      setNewCreditPersonAddress("");
+                      setShowAddCreditPersonModal(true);
+                    }}
                     className="px-3 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1 text-sm font-medium whitespace-nowrap"
                   >
                     <Plus className="w-4 h-4" />
@@ -1372,7 +1371,31 @@ export const POS: React.FC = () => {
                     setPaymentMethod(e.target.value as PaymentMethod)
                   }
                 >
-                  {paymentType === "credit" ? (
+                  <>
+                    <option value={PaymentMethod.CASH}>{t("pos.cash")}</option>
+                    <option value={PaymentMethod.KBZ_PAY}>
+                      {t("pos.kbzPay")}
+                    </option>
+                    <option value={PaymentMethod.WAVE_PAY}>
+                      {t("pos.wavePay")}
+                    </option>
+                    <option value={PaymentMethod.AYA_PAY}>
+                      {t("pos.ayaPay")}
+                    </option>
+                    <option value={PaymentMethod.UAB_PAY}>
+                      {t("pos.uabPay")}
+                    </option>
+                    <option value={PaymentMethod.BANK_TRANSFER}>
+                      {t("pos.bankTransfer")}
+                    </option>
+                    <option value={PaymentMethod.MMQR}>
+                      <span>MMQR</span>
+                    </option>
+                    <option value={PaymentMethod.FOC}>
+                      <span>FOC</span>
+                    </option>
+                  </>
+                  {/* {paymentType === "credit" ? (
                     <>
                       <option value={PaymentMethod.NORMAL}>
                         <span>normal</span>
@@ -1408,7 +1431,7 @@ export const POS: React.FC = () => {
                         <span>FOC</span>
                       </option>
                     </>
-                  )}
+                  )} */}
                 </select>
               </div>
 

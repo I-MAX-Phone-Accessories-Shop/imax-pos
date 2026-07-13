@@ -2,8 +2,8 @@ import React from "react";
 import { Search } from "lucide-react";
 import { StorefrontProfile } from "../../services/Storefront/fetchStorefrontProfiles";
 import { Order } from "../../services/Order/fetchOrders";
-import { getPaymentMethodLabel } from "./orderUtils";
 import { useLanguage } from "@/context/LanguageContext";
+import { PaymentMethod } from "@/types";
 
 interface OrdersFiltersProps {
   search: string;
@@ -89,12 +89,22 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
               value={paymentMethodFilter}
               onChange={(e) => onPaymentMethodChange(e.target.value)}
             >
+              {/* <option value="all">{t("creditOrders.allmethod")}</option> */}
               <option value="all">{t("creditOrders.allmethod")}</option>
-              {uniquePaymentMethods.map((method) => (
-                <option key={String(method)} value={String(method)}>
-                  {getPaymentMethodLabel(String(method))}
-                </option>
-              ))}
+              <option value={PaymentMethod.CASH}>{t("pos.cash")}</option>
+              <option value={PaymentMethod.KBZ_PAY}>{t("pos.kbzPay")}</option>
+              <option value={PaymentMethod.WAVE_PAY}>{t("pos.wavePay")}</option>
+              <option value={PaymentMethod.AYA_PAY}>{t("pos.ayaPay")}</option>
+              <option value={PaymentMethod.UAB_PAY}>{t("pos.uabPay")}</option>
+              <option value={PaymentMethod.BANK_TRANSFER}>
+                {t("pos.bankTransfer")}
+              </option>
+              <option value={PaymentMethod.MMQR}>
+                <span>MMQR</span>
+              </option>
+              <option value={PaymentMethod.FOC}>
+                <span>FOC</span>
+              </option>
             </select>
           </div>
 

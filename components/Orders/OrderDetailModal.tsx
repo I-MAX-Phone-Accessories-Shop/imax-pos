@@ -44,7 +44,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   onClose,
   onOrderUpdate,
 }) => {
-  // console.log("orderdetail", order);
+  console.log("orderdetail", order);
   const { t } = useLanguage();
   const navigate = useNavigate();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
@@ -56,12 +56,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     if (!order) return;
 
     // Fetch full credit person data to get address
-    let customerAddress = typeof order.creditPersonId === "object" ? order.creditPersonId?.address || "" : "";
-    if (!customerAddress && typeof order.creditPersonId === "object" && order.creditPersonId?._id) {
+    let customerAddress =
+      typeof order.creditPersonId === "object"
+        ? order.creditPersonId?.address || ""
+        : "";
+    if (
+      !customerAddress &&
+      typeof order.creditPersonId === "object" &&
+      order.creditPersonId?._id
+    ) {
       try {
         const cpResponse = await fetchCreditPersonas();
         if (cpResponse.success && cpResponse.data) {
-          const fullCP = cpResponse.data.find((cp) => cp._id === order.creditPersonId?._id);
+          const fullCP = cpResponse.data.find(
+            (cp) => cp._id === order.creditPersonId?._id,
+          );
           customerAddress = fullCP?.address || "";
         }
       } catch {
@@ -92,10 +101,19 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       note: order.note,
       serviceCharge: 0,
       tax: 0,
-      receiptSequenceNumber: parseInt(order.orderNumber?.split("/").pop() || "0", 10) || Date.now() % 10000,
-      cashierName: JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
-      customerName: typeof order.creditPersonId === "object" ? order.creditPersonId?.name : "",
-      customerPhone: typeof order.creditPersonId === "object" ? order.creditPersonId?.phone : "",
+      receiptSequenceNumber:
+        parseInt(order.orderNumber?.split("/").pop() || "0", 10) ||
+        Date.now() % 10000,
+      cashierName:
+        JSON.parse(localStorage.getItem("adminData") || "{}").name || "Cashier",
+      customerName:
+        typeof order.creditPersonId === "object"
+          ? order.creditPersonId?.name
+          : "",
+      customerPhone:
+        typeof order.creditPersonId === "object"
+          ? order.creditPersonId?.phone
+          : "",
       customerAddress,
     };
 
@@ -240,7 +258,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       <div className="flex items-center gap-2 mb-2">
                         <User className="w-4 h-4 text-orange-600" />
                         <p className="text-xs text-orange-600 font-medium">
-                          Credit Person
+                          Customer
                         </p>
                       </div>
                       <p className="font-bold text-orange-800">
@@ -248,6 +266,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       </p>
                       <p className="text-xs text-orange-600 mt-1">
                         {order.creditPersonId.phone}
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        {order.creditPersonId.address}
                       </p>
                     </div>
                   )}

@@ -32,7 +32,6 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
   loading,
   startDate,
   endDate,
-  selectedStorefront,
 }) => {
   const [selectedProduct, setSelectedProduct] =
     React.useState<ProductSalesData | null>(null);
@@ -109,6 +108,9 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
 
   const { data } = productSalesStatistics;
   const { totals, products } = data;
+  console.log("data", data);
+  const totalBuyPrice = totals.totalBuyingPrice ?? 0;
+  const totalProfit = totals.totalProfit ?? 0;
   // const totalRetailQuantity = totals.totalRetailQuantity ?? 0;
   // const totalWholesaleQuantity = totals.totalWholesaleQuantity ?? 0;
   // const totalIfRetail = totals.totalIfRetail ?? totals.totalRevenue;
@@ -136,6 +138,22 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
           </div>
         </div>
 
+        <div className="bg-white p-4 rounded-xl shadow border border-cyan-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-cyan-100 rounded-lg">
+              <ShoppingCart className="w-5 h-5 text-cyan-600" />
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase font-bold">
+                Total Cost
+              </p>
+              <p className="text-2xl font-bold text-cyan-600">
+                {totalBuyPrice.toLocaleString()} MMK
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white p-4 rounded-xl shadow border border-green-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -143,7 +161,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
             </div>
             <div>
               <p className="text-slate-500 text-xs uppercase font-bold">
-                Total Revenue
+                Total Sales
               </p>
               <p className="text-2xl font-bold text-green-600">
                 {totals.totalRevenue.toLocaleString()} MMK
@@ -152,37 +170,21 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
           </div>
         </div>
 
-        {/* <div className="bg-white p-4 rounded-xl shadow border border-cyan-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-100 rounded-lg">
-              <ShoppingCart className="w-5 h-5 text-cyan-600" />
-            </div>
-            <div>
-              <p className="text-slate-500 text-xs uppercase font-bold">
-                Retail Qty
-              </p>
-              <p className="text-2xl font-bold text-cyan-600">
-                {totalRetailQuantity.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </div> */}
-
-        {/* <div className="bg-white p-4 rounded-xl shadow border border-amber-100">
+        <div className="bg-white p-4 rounded-xl shadow border border-amber-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
               <Package className="w-5 h-5 text-amber-600" />
             </div>
             <div>
               <p className="text-slate-500 text-xs uppercase font-bold">
-                Wholesale Qty
+                Total Profit
               </p>
               <p className="text-2xl font-bold text-amber-600">
-                {totalWholesaleQuantity.toLocaleString()}
+                {totalProfit.toLocaleString()} MMK
               </p>
             </div>
           </div>
-        </div> */}
+        </div>
 
         {/* <div className="bg-white p-4 rounded-xl shadow border border-orange-100">
           <div className="flex items-center gap-3">

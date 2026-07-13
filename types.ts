@@ -12,6 +12,7 @@ export enum PaymentMethod {
   BANK_TRANSFER = "Bank Transfer",
   CREDIT = "Credit (Pay Later)",
   FOC = "FOC (Free of Charge)",
+  MMQR = "MMQR",
 }
 
 export enum ProductCategory {

@@ -43,6 +43,8 @@ export interface ProductSalesStatisticsResponse {
       totalRetailQuantity?: number;
       totalWholesaleQuantity?: number;
       totalUniqueProducts: number;
+      totalBuyingPrice: number;
+      totalProfit: number;
     };
     products: ProductSalesData[];
   };
@@ -58,7 +60,7 @@ export interface ProductSalesStatisticsResponse {
 export const fetchProductSalesStatistics = async (
   storefrontId: string,
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
     let url = `/sale-report/products?storefrontId=${storefrontId}`;
@@ -98,6 +100,8 @@ export const fetchProductSalesStatistics = async (
           totalQuantity: 0,
           totalRevenue: 0,
           totalUniqueProducts: 0,
+          totalBuyingPrice: 0,
+          totalProfit: 0,
         },
         products: [],
       },
@@ -113,7 +117,7 @@ export const fetchProductSalesStatistics = async (
  */
 export const fetchAllStorefrontsProductSalesStatistics = async (
   startDate?: string | null,
-  endDate?: string | null
+  endDate?: string | null,
 ): Promise<ProductSalesStatisticsResponse> => {
   try {
     let url = `/sale-report/products`;
@@ -135,7 +139,7 @@ export const fetchAllStorefrontsProductSalesStatistics = async (
   } catch (error: any) {
     console.error(
       "Error fetching all storefronts product sales statistics:",
-      error
+      error,
     );
     return {
       success: false,
@@ -156,6 +160,8 @@ export const fetchAllStorefrontsProductSalesStatistics = async (
           totalQuantity: 0,
           totalRevenue: 0,
           totalUniqueProducts: 0,
+          totalBuyingPrice: 0,
+          totalProfit: 0,
         },
         products: [],
       },
