@@ -109,10 +109,16 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 <span className="sm:hidden">Order #</span>
               </th>
               {/* <th className="p-4 font-semibold text-slate-600">Storefront</th> */}
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+              {/* <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
                 <span className="hidden sm:inline">Items</span>
                 <span className="sm:hidden">Items</span>
+              </th> */}
+
+              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                <span className="hidden sm:inline">Customer</span>
+                <span className="sm:hidden">Cust</span>
               </th>
+
               <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
                 <span className="hidden sm:inline">Final Amount</span>
                 <span className="sm:hidden">Total</span>
@@ -151,9 +157,14 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   </span>
                 </div>
               </td> */}
-                <td className="px-2 sm:px-4 py-3">
+                {/* <td className="px-2 sm:px-4 py-3">
                   <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
                     {order.ordersProducts?.length || 0} item(s)
+                  </span>
+                </td> */}
+                <td className="px-2 sm:px-4 py-3">
+                  <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
+                    {order.creditPersonId?.name || "-"}
                   </span>
                 </td>
                 <td className="px-2 sm:px-4 py-3 font-bold text-slate-800 text-xs sm:text-sm">
