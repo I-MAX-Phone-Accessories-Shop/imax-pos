@@ -226,11 +226,11 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
         {/* <h2 className="voucher-shop-name font-bold text-slate-800 mt-3">
           {shopBranding.shopName}
         </h2> */}
-        {/* {shopBranding.address && (
+        {shopBranding.address && (
           <p className="voucher-address text-slate-600 mt-1">
             {shopBranding.address}
           </p>
-        )} */}
+        )}
       </div>
 
       <div className="flex justify-between items-start mb-4 sm:mb-6 voucher-invoice-row">
