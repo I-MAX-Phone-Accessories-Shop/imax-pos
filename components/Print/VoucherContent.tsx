@@ -1,8 +1,6 @@
 import React from "react";
 import { PrintShopBranding } from "../../utils/printShopBranding";
 import { PrintPaperSize } from "../../utils/printPaperSize";
-import logo from "../../public/mmah.png";
-import address from "../../public/address.jpg";
 
 export interface VoucherReceiptItem {
   name: string;
@@ -52,9 +50,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
       <div className="voucher-container" data-paper={paperSize}>
         {/* Header */}
         <div className="text-center mb-2">
-          <img src={logo} alt="MMAH" className="mx-auto" />
-          <img src={address} alt="Address" className="mx-auto" />
-          {/* {shopBranding.logo ? (
+          {shopBranding.logo ? (
             <img
               src={shopBranding.logo}
               alt={shopBranding.shopName}
@@ -64,11 +60,11 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <div className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
               {shopBranding.shopName.charAt(0)}
             </div>
-          )} */}
-          {/* <h2 className="voucher-shop-name font-bold text-slate-800 mt-2">
+          )}
+          <h2 className="voucher-shop-name font-bold text-slate-800 mt-2">
             {shopBranding.shopName}
           </h2>
-          */}
+
           {shopBranding.address && (
             <p className="voucher-address text-slate-600 mt-1 whitespace-pre-line">
               {shopBranding.address}
@@ -210,9 +206,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   return (
     <div className="voucher-container" data-paper={paperSize}>
       <div className="text-center mb-4 sm:mb-8">
-        <img src={logo} alt="MMAH" className="mx-auto w-48" />
-        <img src={address} alt="Address" className="mx-auto w-48" />
-        {/* {shopBranding.logo ? (
+        {shopBranding.logo ? (
           <img
             src={shopBranding.logo}
             alt={shopBranding.shopName}
@@ -222,10 +216,10 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <div className="voucher-logo mx-auto flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
             {shopBranding.shopName.charAt(0)}
           </div>
-        )} */}
-        {/* <h2 className="voucher-shop-name font-bold text-slate-800 mt-3">
+        )}
+        <h2 className="voucher-shop-name font-bold text-slate-800 mt-3">
           {shopBranding.shopName}
-        </h2> */}
+        </h2>
         {shopBranding.address && (
           <p className="voucher-address text-slate-600 mt-1">
             {shopBranding.address}
