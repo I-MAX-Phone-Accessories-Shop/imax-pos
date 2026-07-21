@@ -453,7 +453,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
 
           {/* Wholesale prices */}
-          {/* <div className="col-span-2">
+          <div className="col-span-2">
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -493,107 +493,107 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   {wholesalePrices.map((tier, idx) => {
                     const tierKey = getTierKey(tier, idx);
                     return (
-                    <div
-                      key={tierKey}
-                      className="flex flex-col sm:flex-row sm:items-end gap-2 bg-white border border-amber-200 rounded-xl p-3"
-                    >
-                      <div className="flex-1 grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[11px] font-bold text-slate-500">
-                            Quantity
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            className="w-full border rounded p-2"
-                            value={getTierQuantityValue(tierKey, tier)}
-                            onChange={(e) => {
-                              setTierDrafts((prev) => ({
-                                ...prev,
-                                [tierKey]: {
-                                  ...prev[tierKey],
-                                  quantity: e.target.value,
-                                },
-                              }));
-                            }}
-                            onBlur={() => {
-                              const raw =
-                                tierDrafts[tierKey]?.quantity ??
-                                String(tier.quantity ?? "");
-                              updateWholesaleTier(idx, {
-                                quantity: Math.max(1, parseInt(raw, 10) || 1),
-                              });
-                              setTierDrafts((prev) => {
-                                const next = { ...prev };
-                                if (next[tierKey]) {
-                                  delete next[tierKey].quantity;
-                                  if (Object.keys(next[tierKey]).length === 0) {
-                                    delete next[tierKey];
+                      <div
+                        key={tierKey}
+                        className="flex flex-col sm:flex-row sm:items-end gap-2 bg-white border border-amber-200 rounded-xl p-3"
+                      >
+                        <div className="flex-1 grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500">
+                              Quantity
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              className="w-full border rounded p-2"
+                              value={getTierQuantityValue(tierKey, tier)}
+                              onChange={(e) => {
+                                setTierDrafts((prev) => ({
+                                  ...prev,
+                                  [tierKey]: {
+                                    ...prev[tierKey],
+                                    quantity: e.target.value,
+                                  },
+                                }));
+                              }}
+                              onBlur={() => {
+                                const raw =
+                                  tierDrafts[tierKey]?.quantity ??
+                                  String(tier.quantity ?? "");
+                                updateWholesaleTier(idx, {
+                                  quantity: Math.max(1, parseInt(raw, 10) || 1),
+                                });
+                                setTierDrafts((prev) => {
+                                  const next = { ...prev };
+                                  if (next[tierKey]) {
+                                    delete next[tierKey].quantity;
+                                    if (Object.keys(next[tierKey]).length === 0) {
+                                      delete next[tierKey];
+                                    }
                                   }
-                                }
-                                return next;
-                              });
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-slate-500">
-                            Price (MMK)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            className="w-full border rounded p-2"
-                            value={getTierPriceValue(tierKey, tier)}
-                            onChange={(e) => {
-                              setTierDrafts((prev) => ({
-                                ...prev,
-                                [tierKey]: {
-                                  ...prev[tierKey],
-                                  price: e.target.value,
-                                },
-                              }));
-                            }}
-                            onBlur={() => {
-                              const raw =
-                                tierDrafts[tierKey]?.price ??
-                                String(tier.price ?? "");
-                              updateWholesaleTier(idx, {
-                                price: Math.max(0, Number(raw) || 0),
-                              });
-                              setTierDrafts((prev) => {
-                                const next = { ...prev };
-                                if (next[tierKey]) {
-                                  delete next[tierKey].price;
-                                  if (Object.keys(next[tierKey]).length === 0) {
-                                    delete next[tierKey];
+                                  return next;
+                                });
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500">
+                              Price (MMK)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              className="w-full border rounded p-2"
+                              value={getTierPriceValue(tierKey, tier)}
+                              onChange={(e) => {
+                                setTierDrafts((prev) => ({
+                                  ...prev,
+                                  [tierKey]: {
+                                    ...prev[tierKey],
+                                    price: e.target.value,
+                                  },
+                                }));
+                              }}
+                              onBlur={() => {
+                                const raw =
+                                  tierDrafts[tierKey]?.price ??
+                                  String(tier.price ?? "");
+                                updateWholesaleTier(idx, {
+                                  price: Math.max(0, Number(raw) || 0),
+                                });
+                                setTierDrafts((prev) => {
+                                  const next = { ...prev };
+                                  if (next[tierKey]) {
+                                    delete next[tierKey].price;
+                                    if (Object.keys(next[tierKey]).length === 0) {
+                                      delete next[tierKey];
+                                    }
                                   }
-                                }
-                                return next;
-                              });
-                            }}
-                          />
+                                  return next;
+                                });
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => removeWholesaleTier(idx)}
-                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-red-700 hover:bg-red-50 border border-transparent hover:border-red-100"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span className="text-sm">Remove</span>
-                        </button>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => removeWholesaleTier(idx)}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-red-700 hover:bg-red-50 border border-transparent hover:border-red-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="text-sm">Remove</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
               )}
             </div>
-          </div> */}
+          </div>
         </div>
         <div className="flex justify-end gap-2">
           <button
