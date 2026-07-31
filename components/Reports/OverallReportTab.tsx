@@ -37,7 +37,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
         );
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-primary/20">
           <p className="text-slate-500 text-xs uppercase font-bold">
             Total Sales
@@ -56,17 +56,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-purple-100">
-          <p className="text-slate-500 text-xs uppercase font-bold">
-            Credit Amount
-          </p>
-          <p className="text-lg sm:text-2xl font-bold text-purple-600">
-            {(
-              displayReport.finalAmount - displayReport.paidAmount
-            ).toLocaleString()}{" "}
-            <span className="hidden sm:inline">MMK</span>
-          </p>
-        </div>
+
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-blue-100">
           <p className="text-slate-500 text-xs uppercase font-bold">
             Total Orders
