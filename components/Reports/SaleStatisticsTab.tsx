@@ -49,6 +49,23 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
   const [isOrderModalOpen, setIsOrderModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
+  const products = productSalesStatistics?.data?.products || [];
+
+  const filteredProducts = React.useMemo(() => {
+    if (!products.length) return [];
+    if (!searchQuery.trim()) return products;
+    const query = searchQuery.toLowerCase().trim();
+    return products.filter((product) => {
+      return (
+        product.productName?.toLowerCase().includes(query) ||
+        product.productCode?.toLowerCase().includes(query) ||
+        product.SKU?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query) ||
+        product.brand?.toLowerCase().includes(query)
+      );
+    });
+  }, [products, searchQuery]);
+
   const formatDateForAPI = (date: Date | null): string | null => {
     console.log("date", date);
     if (!date) return null;
@@ -111,22 +128,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
   }
 
   const { data } = productSalesStatistics;
-  const { totals, products } = data;
-
-  const filteredProducts = React.useMemo(() => {
-    if (!products) return [];
-    if (!searchQuery.trim()) return products;
-    const query = searchQuery.toLowerCase().trim();
-    return products.filter((product) => {
-      return (
-        product.productName?.toLowerCase().includes(query) ||
-        product.productCode?.toLowerCase().includes(query) ||
-        product.SKU?.toLowerCase().includes(query) ||
-        product.category?.toLowerCase().includes(query) ||
-        product.brand?.toLowerCase().includes(query)
-      );
-    });
-  }, [products, searchQuery]);
+  const { totals } = data;
 
   return (
     <div className="space-y-6">
