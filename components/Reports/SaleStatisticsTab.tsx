@@ -10,6 +10,7 @@ import {
   Hash,
   X,
   ExternalLink,
+  Search,
 } from "lucide-react";
 import {
   ProductSalesStatisticsResponse,
@@ -46,6 +47,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
   const [selectedViewOrder, setSelectedViewOrder] =
     React.useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const formatDateForAPI = (date: Date | null): string | null => {
     console.log("date", date);
@@ -111,6 +113,21 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
   const { data } = productSalesStatistics;
   const { totals, products } = data;
 
+  const filteredProducts = React.useMemo(() => {
+    if (!products) return [];
+    if (!searchQuery.trim()) return products;
+    const query = searchQuery.toLowerCase().trim();
+    return products.filter((product) => {
+      return (
+        product.productName?.toLowerCase().includes(query) ||
+        product.productCode?.toLowerCase().includes(query) ||
+        product.SKU?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query) ||
+        product.brand?.toLowerCase().includes(query)
+      );
+    });
+  }, [products, searchQuery]);
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -166,16 +183,55 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
 
       {/* Products Table */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="p-4 border-b bg-slate-50">
+        <div className="p-4 border-b bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h3 className="font-semibold text-slate-800 flex items-center gap-2">
             <Package className="w-5 h-5 text-primary" />
-            Product Sales Breakdown ({products.length})
+            Product Sales Breakdown ({filteredProducts.length}
+            {searchQuery.trim() ? ` of ${products.length}` : ""})
           </h3>
+
+          <div className="relative w-full sm:w-72 md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by name, code, SKU, category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400 text-slate-700"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full hover:bg-slate-100 transition-colors"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
         {products.length === 0 ? (
           <div className="p-12 text-center">
             <Package className="w-12 h-12 text-slate-400 mx-auto mb-4" />
             <p className="text-slate-600">No products found in this period</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="p-12 text-center">
+            <Search className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-700 font-medium">
+              No products matching &quot;{searchQuery}&quot;
+            </p>
+            <p className="text-slate-400 text-xs mt-1">
+              Try searching by product name, code, SKU, or category
+            </p>
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="mt-4 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+            >
+              Clear Search
+            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -212,7 +268,7 @@ export const SaleStatisticsTab: React.FC<SaleStatisticsTabProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr
                     key={product.inventoryId}
                     className="hover:bg-slate-50 transition-colors group"
