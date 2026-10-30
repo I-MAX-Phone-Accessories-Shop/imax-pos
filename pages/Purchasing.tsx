@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ShoppingBag, FileText, PackageCheck } from "lucide-react";
 import { Supplier, Product, ApiPurchaseOrder } from "../types";
 import { fetchSuppliers } from "../services/Supplier/fetchSuppliers";
-import { fetchProducts } from "../services/Inventory/fetchProducts";
+import { fetchAllProducts } from "../services/Inventory/fetchProducts";
 import { fetchPurchases } from "../services/Purchase/fetchPurchases";
 import { fetchGRNs, GRNData } from "../services/Purchase/fetchGRNs";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
-import { PurchaseOrderList } from "../components/Purchasing/PurchaseOrderList";
+import {
+  PurchaseOrderList,
+  PoFilter,
+} from "../components/Purchasing/PurchaseOrderList";
 import { CreatePOModal } from "../components/Purchasing/CreatePOModal";
-import { GRNList } from "../components/Purchasing/GRNList";
+import { GRNList, GrnFilter } from "../components/Purchasing/GRNList";
 import { CreateGRNModal } from "../components/Purchasing/CreateGRNModal";
 import { GRNDetailModal } from "../components/Purchasing/GRNDetailModal";
 import { PODetailModal } from "../components/Purchasing/PODetailModal";
@@ -17,9 +21,41 @@ import { TransferWarehouseModal } from "../components/Purchasing/TransferWarehou
 
 type TabType = "po" | "grn";
 
+// GRN statuses shown under each GRN sub-tab (filtered on the server)
+const GRN_STATUS_BY_FILTER: Record<GrnFilter, string> = {
+  pending: "pending",
+  completed: "verified,completed,transferred",
+};
+
 export const Purchasing: React.FC = () => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<TabType>("po");
+
+  // Main tab and sub-tabs live in the URL: ?tab=po|grn&po=...&grn=...
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab: TabType = searchParams.get("tab") === "grn" ? "grn" : "po";
+  const poParam = searchParams.get("po");
+  const poFilter: PoFilter =
+    poParam === "arrived" || poParam === "deleted" ? poParam : "pending";
+  const grnFilter: GrnFilter =
+    searchParams.get("grn") === "completed" ? "completed" : "pending";
+
+  const updateParams = (updates: Record<string, string>) => {
+    // Functional update so several calls in one tick don't overwrite each other
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([key, value]) => next.set(key, value));
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  const setActiveTab = (tab: TabType) => updateParams({ tab });
+
+  // Row to scroll to and highlight after it moved into a list
+  const [highlightPoId, setHighlightPoId] = useState<string | null>(null);
+  const [highlightGrnId, setHighlightGrnId] = useState<string | null>(null);
 
   // Shared State
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -69,7 +105,7 @@ export const Purchasing: React.FC = () => {
         }
 
         // Fetch Products
-        const productRes = await fetchProducts();
+        const productRes = await fetchAllProducts();
         if (productRes.success && Array.isArray(productRes.data)) {
           setProducts(productRes.data);
         } else if (Array.isArray(productRes)) {
@@ -78,14 +114,13 @@ export const Purchasing: React.FC = () => {
           setProducts(productRes.data);
         }
 
-        // Fetch Purchase Orders
-        loadPurchases();
-
-        // Fetch Deleted Purchase Orders
-        loadDeletedPurchases();
-
-        // Fetch GRNs
-        loadGRNs();
+        // Fetch the lists for the sub-tabs in the URL
+        if (poFilter === "deleted") {
+          loadDeletedPurchases();
+        } else {
+          loadPurchases(1, 10, poFilter);
+        }
+        loadGRNs(1, 10, grnFilter);
       } catch (error) {
         console.error("Failed to load data", error);
       }
@@ -125,9 +160,17 @@ export const Purchasing: React.FC = () => {
     }
   };
 
-  const loadGRNs = async (page: number = 1, limit: number = 10) => {
+  const loadGRNs = async (
+    page: number = 1,
+    limit: number = 10,
+    filter: GrnFilter = grnFilter,
+  ) => {
     try {
-      const res = await fetchGRNs({ page, limit });
+      const res = await fetchGRNs({
+        page,
+        limit,
+        status: GRN_STATUS_BY_FILTER[filter],
+      });
       if (res.success) {
         setGRNList(res.data);
         setGrnPagination(res.pagination);
@@ -138,9 +181,56 @@ export const Purchasing: React.FC = () => {
     }
   };
 
+  // Reload the PO list for the current sub-tab
+  const reloadCurrentPOs = () => {
+    if (poFilter !== "deleted") {
+      loadPurchases(
+        poPagination.currentPage,
+        poPagination.itemsPerPage,
+        poFilter,
+      );
+    }
+  };
+
   const handleGRNSuccess = () => {
-    loadGRNs(grnPagination.currentPage);
-    loadPurchases(poPagination.currentPage);
+    loadGRNs(grnPagination.currentPage, grnPagination.itemsPerPage);
+    reloadCurrentPOs();
+  };
+
+  // Changing a sub-tab updates the URL and loads page 1 exactly once,
+  // then highlights the moved row (if any) once its data is in
+  const changePoFilter = async (filter: PoFilter, highlightId?: string) => {
+    updateParams({ po: filter });
+    if (filter === "deleted") {
+      await loadDeletedPurchases(1, deletedPoPagination.itemsPerPage);
+    } else {
+      await loadPurchases(1, poPagination.itemsPerPage, filter);
+    }
+    if (highlightId) setHighlightPoId(highlightId);
+  };
+
+  const changeGrnFilter = async (filter: GrnFilter, highlightId?: string) => {
+    updateParams({ grn: filter });
+    await loadGRNs(1, grnPagination.itemsPerPage, filter);
+    if (highlightId) setHighlightGrnId(highlightId);
+  };
+
+  const handleMarkedArrived = (poId: string) => {
+    toast.success(t("purchasing.movedToArrived"));
+    changePoFilter("arrived", poId);
+  };
+
+  const handleGRNCreated = (grn?: { _id: string }) => {
+    toast.success(t("purchasing.grnCreatedMoved"));
+    setActiveTab("grn");
+    changeGrnFilter("pending", grn?._id);
+    // The PO's remaining quantity changed
+    reloadCurrentPOs();
+  };
+
+  const handleGRNVerified = (grnId: string) => {
+    toast.success(t("purchasing.verifiedMoved"));
+    changeGrnFilter("completed", grnId);
   };
 
   const handleCreateGRNFromPO = (po: ApiPurchaseOrder) => {
@@ -215,6 +305,11 @@ export const Purchasing: React.FC = () => {
             pagination={poPagination}
             deletedPagination={deletedPoPagination}
             onCreateGRN={handleCreateGRNFromPO}
+            poFilter={poFilter}
+            onPoFilterChange={(filter) => changePoFilter(filter)}
+            onMarkedArrived={handleMarkedArrived}
+            highlightId={highlightPoId}
+            onHighlightDone={() => setHighlightPoId(null)}
           />
           <CreatePOModal
             isOpen={isCreateModalOpen}
@@ -242,6 +337,11 @@ export const Purchasing: React.FC = () => {
             onViewGRN={handleViewGRN}
             onTransferGRN={handleTransferGRN}
             pagination={grnPagination}
+            grnFilter={grnFilter}
+            onGrnFilterChange={(filter) => changeGrnFilter(filter)}
+            onVerified={handleGRNVerified}
+            highlightId={highlightGrnId}
+            onHighlightDone={() => setHighlightGrnId(null)}
           />
         </>
       )}
@@ -252,14 +352,14 @@ export const Purchasing: React.FC = () => {
         onClose={() => setIsCreateGRNModalOpen(false)}
         purchaseOrders={poList}
         suppliers={suppliers}
-        onSuccess={handleGRNSuccess}
+        onSuccess={handleGRNCreated}
         selectedPOId={selectedPOId}
       />
       <GRNDetailModal
         isOpen={isGRNDetailModalOpen}
         onClose={() => setIsGRNDetailModalOpen(false)}
         grnId={selectedGRNId}
-        onGRNUpdate={loadGRNs}
+        onGRNUpdate={() => loadGRNs()}
       />
       <TransferWarehouseModal
         isOpen={isTransferModalOpen}

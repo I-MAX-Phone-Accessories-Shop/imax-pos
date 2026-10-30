@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Loader2,
   TrendingUp,
@@ -8,6 +9,8 @@ import {
   Wallet,
   Settings,
   Check,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { StorefrontStockItem } from "../../services/Storefront/fetchStorefrontStock";
 import { CreditOrdersReportResponse } from "../../services/Reports/fetchCreditOrdersReport";
@@ -23,7 +26,11 @@ interface TotalRevenueTabProps {
   paidOrdersReport: PaidOrdersReportResponse | null;
   allStorefrontsPaidOrdersReport: PaidOrdersReportResponse | null;
   totalCreditPaidAmountFromRecords?: number;
-  totalCumulativeCreditPaidAmountFromRecords?: number;
+  // Server-computed outstanding credit (2025-12-01 → chosen date)
+  creditRemainingTotal: number | null;
+  creditPaidDate?: string | null;
+  error?: string | null;
+  onRetry: () => void;
 }
 
 export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
@@ -36,8 +43,12 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
   paidOrdersReport,
   allStorefrontsPaidOrdersReport,
   totalCreditPaidAmountFromRecords,
-  totalCumulativeCreditPaidAmountFromRecords,
+  creditRemainingTotal,
+  creditPaidDate,
+  error,
+  onRetry,
 }) => {
+  const navigate = useNavigate();
   const [visibleMetrics, setVisibleMetrics] = useState({
     inventory: true,
     creditPaid: true,
@@ -45,6 +56,14 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
     paidOrder: true,
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const openReportDetail = (
+    page: "credit-payments" | "credit-remaining" | "paid-orders",
+  ) => {
+    const params = new URLSearchParams({ storefront: selectedStorefront });
+    if (creditPaidDate) params.set("date", creditPaidDate);
+    navigate(`/reports/${page}?${params.toString()}`);
+  };
 
   // Calculate total inventory amount
   const calculateInventoryAmount = (stock: StorefrontStockItem[]) => {
@@ -71,20 +90,6 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
       ? allStorefrontsPaidOrdersReport
       : paidOrdersReport;
 
-  // Check if all required data is loaded
-  const isDataFullyLoaded = () => {
-    const hasStockData = currentStock.length > 0;
-    const hasCreditOrdersData = currentCreditOrders?.success === true;
-    const hasPaidOrdersData = currentPaidOrders?.success === true;
-    // Note: totalCreditPaidAmountFromRecords is optional so we don't strictly require it for "fully loaded" check
-    // unless we want to enforce it. For now, we assume it's loaded if passed.
-
-    return hasStockData && hasCreditOrdersData && hasPaidOrdersData;
-  };
-
-  // Show loading state if base loading is true or if data is not fully loaded
-  const shouldShowLoading = loading || !isDataFullyLoaded();
-
   // Calculate total inventory amount
   const totalInventoryAmount = calculateInventoryAmount(currentStock);
 
@@ -96,15 +101,11 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
         ? currentCreditOrders.data.totals.totalPaidAmount
         : 0;
 
-  const totalCreditRemainingAmount = currentCreditOrders?.success
-    ? currentCreditOrders.data.totals.totalFinalAmount -
-    currentCreditOrders.data.totals.totalInitialPaidAmount -
-    (totalCumulativeCreditPaidAmountFromRecords || 0)
-    : 0;
+  const totalCreditRemainingAmount = creditRemainingTotal ?? 0;
 
-  // Get paid orders data
+  // Get paid orders data (net of change given back)
   const totalPaidOrderAmount = currentPaidOrders?.success
-    ? currentPaidOrders.data.totals.totalPaidAmount
+    ? currentPaidOrders.data.totals.totalNetAmount ?? 0
     : 0;
 
   // Calculate total revenue based on visible metrics
@@ -128,7 +129,7 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
     }));
   };
 
-  if (shouldShowLoading) {
+  if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
@@ -136,6 +137,25 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
         <p className="text-sm text-slate-500 mt-2">
           Fetching inventory, credit orders, and paid orders data
         </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+        <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-4" />
+        <p className="text-slate-800 font-medium">
+          Couldn't load revenue data
+        </p>
+        <p className="text-sm text-slate-500 mt-2">{error}</p>
+        <button
+          onClick={onRetry}
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Retry
+        </button>
       </div>
     );
   }
@@ -228,7 +248,23 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
 
           {/* Total Credit Remaining Amount */}
           {visibleMetrics.creditRemaining && (
-            <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="View credit remaining details"
+              onClick={(e) => {
+                e.stopPropagation();
+                openReportDetail("credit-remaining");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openReportDetail("credit-remaining");
+                }
+              }}
+              className="bg-orange-50 rounded-lg p-4 border border-orange-200 cursor-pointer transition-shadow hover:shadow-md hover:ring-2 hover:ring-orange-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Wallet className="w-5 h-5 text-orange-600" />
                 <span className="text-sm font-medium text-orange-800">
@@ -238,15 +274,36 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
               <p className="text-2xl font-bold text-orange-900">
                 {formatCurrency(totalCreditRemainingAmount)}
               </p>
-              <p className="text-xs text-orange-600 mt-1">
-                Outstanding credit amount
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-orange-600">
+                  Outstanding credit amount
+                </p>
+                <span className="text-xs font-medium text-orange-700 whitespace-nowrap">
+                  View details →
+                </span>
+              </div>
             </div>
           )}
 
           {/* Total Credit Paid Amount */}
           {visibleMetrics.creditPaid && (
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="View credit payment details"
+              onClick={(e) => {
+                e.stopPropagation();
+                openReportDetail("credit-payments");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openReportDetail("credit-payments");
+                }
+              }}
+              className="bg-green-50 rounded-lg p-4 border border-green-200 cursor-pointer transition-shadow hover:shadow-md hover:ring-2 hover:ring-green-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="w-5 h-5 text-green-600" />
                 <span className="text-sm font-medium text-green-800">
@@ -256,15 +313,36 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
               <p className="text-2xl font-bold text-green-900">
                 {formatCurrency(totalCreditPaidAmount)}
               </p>
-              <p className="text-xs text-green-600 mt-1">
-                Amount collected from credit orders
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-green-600">
+                  Amount collected from credit orders
+                </p>
+                <span className="text-xs font-medium text-green-700 whitespace-nowrap">
+                  View details →
+                </span>
+              </div>
             </div>
           )}
 
           {/* Total Paid Order Amount */}
           {visibleMetrics.paidOrder && (
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="View paid order details"
+              onClick={(e) => {
+                e.stopPropagation();
+                openReportDetail("paid-orders");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openReportDetail("paid-orders");
+                }
+              }}
+              className="bg-purple-50 rounded-lg p-4 border border-purple-200 cursor-pointer transition-shadow hover:shadow-md hover:ring-2 hover:ring-purple-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-5 h-5 text-purple-600" />
                 <span className="text-sm font-medium text-purple-800">
@@ -274,7 +352,12 @@ export const TotalRevenueTab: React.FC<TotalRevenueTabProps> = ({
               <p className="text-2xl font-bold text-purple-900">
                 {formatCurrency(totalPaidOrderAmount)}
               </p>
-              <p className="text-xs text-purple-600 mt-1">Direct paid orders</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-purple-600">Direct paid orders</p>
+                <span className="text-xs font-medium text-purple-700 whitespace-nowrap">
+                  View details →
+                </span>
+              </div>
             </div>
           )}
         </div>

@@ -12,6 +12,9 @@ import { WarehouseDetail } from "./pages/WarehouseDetail";
 import { Storefront } from "./pages/Storefront";
 import { StorefrontDetail } from "./pages/StorefrontDetail";
 import { Reports } from "./pages/Reports";
+import { CreditPayments } from "./pages/CreditPayments";
+import { CreditRemaining } from "./pages/CreditRemaining";
+import { PaidOrdersDetail } from "./pages/PaidOrdersDetail";
 import { Settings } from "./pages/Settings";
 import { Inventory } from "./pages/Inventory";
 import { Purchasing } from "./pages/Purchasing";
@@ -184,6 +187,30 @@ const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/credit-payments"
+            element={
+              <ProtectedRoute>
+                <CreditPayments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/credit-remaining"
+            element={
+              <ProtectedRoute>
+                <CreditRemaining />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/paid-orders"
+            element={
+              <ProtectedRoute>
+                <PaidOrdersDetail />
               </ProtectedRoute>
             }
           />

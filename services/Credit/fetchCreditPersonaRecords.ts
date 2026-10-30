@@ -32,9 +32,43 @@ export interface CreditPersonaSummary {
   totalOutstandingAmount: number;
 }
 
+export interface CreditPersonaOrderItem {
+  inventoryId: string;
+  productName: string;
+  productCode: string;
+  SKU: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface CreditPersonaOrderPayment {
+  _id: string;
+  paymentDate: string;
+  paymentMethod: string;
+  paidAmount: number;
+  notes: string | null;
+}
+
 export interface CreditPersonaOrder {
   _id: string;
   orderNumber: string;
+  createdAt: string;
+  orderStatus: string;
+  storefront: {
+    _id: string;
+    locationName: string;
+    locationCode: string;
+  } | null;
+  paymentMethod: string;
+  finalAmount: number;
+  initialPaidAmount: number;
+  creditPaidAmount: number;
+  totalPaidAmount: number;
+  remainingBalance: number;
+  paymentStatus: "paid" | "partial" | "unpaid";
+  items: CreditPersonaOrderItem[];
+  payments: CreditPersonaOrderPayment[];
 }
 
 export interface CreditPersonaRecordsData {

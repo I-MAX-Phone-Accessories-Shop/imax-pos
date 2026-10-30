@@ -1,5 +1,11 @@
 import axios from "../axios";
 
+export interface CreditRecordPerson {
+    _id: string;
+    name: string;
+    phone: string;
+}
+
 export interface CreditRecord {
     _id: string;
     orderId: {
@@ -7,15 +13,17 @@ export interface CreditRecord {
         orderNumber: string;
         finalAmount: number;
         paymentType: string;
+        storefrontId: { _id: string; locationName: string } | null;
+        creditPersonId: CreditRecordPerson | null;
         totalPaidAmount: any;
         remainingBalance: number | null;
-    };
-    creditPersonId: string;
+    } | null;
+    creditPersonId: CreditRecordPerson | null;
     paidAmount: number;
     paymentDate: string;
     paymentMethod: string;
     notes: string | null;
-    addedBy: string;
+    addedBy: { _id: string; name: string; email: string } | null;
     isDeleted: boolean;
     deletedAt: string | null;
     createdAt: string;
@@ -28,6 +36,8 @@ export interface CreditRecordsResponse {
     success: boolean;
     message: string;
     data: CreditRecord[];
+    // Current total outstanding credit per credit person (only when requested)
+    outstandingByPerson?: Record<string, number>;
     pagination: {
         currentPage: number;
         totalPages: number;
@@ -40,7 +50,8 @@ export const fetchCreditRecords = async (
     startDate?: string,
     endDate?: string,
     storefrontId?: string,
-    limit: number = 1000
+    limit: number = 1000,
+    includeOutstanding: boolean = false
 ): Promise<CreditRecordsResponse> => {
     try {
         const params = new URLSearchParams();
@@ -48,6 +59,7 @@ export const fetchCreditRecords = async (
         if (endDate) params.append("endDate", endDate);
         if (storefrontId && storefrontId !== "all") params.append("storefrontId", storefrontId);
         params.append("limit", limit.toString());
+        if (includeOutstanding) params.append("includeOutstanding", "true");
 
         const response = await axios.get(`/credit-record?${params.toString()}`);
         return response.data;

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Product } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
 
 // const UNIT_OF_MEASURE_OPTIONS = [
@@ -67,8 +66,9 @@ interface ProductModalProps {
   formData: ProductFormData;
   error: string | null;
   isLoading: boolean;
-  products: Product[];
-  apiProducts: ApiProduct[];
+  // All categories and their subcategories, from GET /inventory/categories
+  categories: string[];
+  subCategories: Record<string, string[]>;
   onClose: () => void;
   onSave: () => void;
   onFormDataChange: (data: ProductFormData) => void;
@@ -80,8 +80,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   formData,
   error,
   isLoading,
-  products,
-  apiProducts,
+  categories,
+  subCategories,
   onClose,
   onSave,
   onFormDataChange,
@@ -94,31 +94,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // const [subCategoryInput, setSubCategoryInput] = useState("");
   // const [subCategoryShowDropdown, setSubCategoryShowDropdown] = useState(false);
 
-  // Get unique categories from products
-  const getUniqueCategories = (): string[] => {
-    const categories = new Set<string>();
-    products.forEach((p) => {
-      if (p.category) {
-        categories.add(p.category);
-      }
-    });
-    return Array.from(categories).sort();
-  };
-
-  // Get unique subcategories from API products
-  // const getUniqueSubCategories = (): string[] => {
-  //   const subCategories = new Set<string>();
-  //   apiProducts.forEach((p) => {
-  //     if (p.subCategory && p.subCategory.trim()) {
-  //       subCategories.add(p.subCategory);
-  //     }
-  //   });
-  //   return Array.from(subCategories).sort();
-  // };
+  // Subcategories of the chosen category (subcategory field is currently disabled)
+  // const getUniqueSubCategories = (): string[] =>
+  //   subCategories[formData.category] || [];
 
   // Filter categories/subcategories based on input
   const getFilteredCategories = (input: string): string[] => {
-    const allCategories = getUniqueCategories();
+    const allCategories = categories;
     if (!input.trim()) return allCategories;
     return allCategories.filter((cat) =>
       cat.toLowerCase().includes(input.toLowerCase()),

@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Product, ProductCategory } from "../types";
 import { createProduct } from "../services/Inventory/createProduct";
 import { updateProduct } from "../services/Inventory/updateProduct";
-import { fetchProducts } from "../services/Inventory/fetchProducts";
+import {
+  fetchProducts,
+  ProductsPagination,
+} from "../services/Inventory/fetchProducts";
+import { fetchInventoryCategories } from "../services/Inventory/fetchInventoryCategories";
 import { transferInventoryToWarehouse } from "../services/Inventory/transferInventoryToWarehouse";
 import { transferInventoryToStorefront } from "../services/Inventory/transferInventoryToStorefront";
 import { fetchWarehouseProfiles } from "../services/Warehouse/fetchWarehouseProfiles";
@@ -27,6 +32,7 @@ import {
 import { WarehouseProfile } from "../types";
 import { Building2, X, Loader2, Store } from "lucide-react";
 import { SearchInput } from "../components/Inventory/SearchInput";
+import { Pagination } from "../components/Inventory/Pagination";
 
 export const Inventory: React.FC = () => {
   const { t } = useLanguage();
@@ -38,7 +44,22 @@ export const Inventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  // Page, search and category live in the URL so refresh/back keep them
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+  const appliedSearch = searchParams.get("search") || "";
+  const selectedCategory = searchParams.get("category") || "All";
+  const [pagination, setPagination] = useState<ProductsPagination | null>(
+    null,
+  );
+  const [categories, setCategories] = useState<string[]>([]);
+  const [subCategories, setSubCategories] = useState<
+    Record<string, string[]>
+  >({});
+  // Ignore responses from requests that are no longer the latest
+  const requestIdRef = useRef(0);
+  const tableTopRef = useRef<HTMLDivElement>(null);
   const [selectedProductDetail, setSelectedProductDetail] =
     useState<ProductDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -64,7 +85,7 @@ export const Inventory: React.FC = () => {
     useState(false);
 
   // Search State
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(appliedSearch);
 
   // Form State - API structure
   const [formData, setFormData] = useState<ProductFormData>({
@@ -103,21 +124,47 @@ export const Inventory: React.FC = () => {
     };
   };
 
-  // Fetch products from API
-  const loadProducts = async () => {
+  const updateParams = (updates: Record<string, string>) => {
+    const next = new URLSearchParams(searchParams);
+    // An empty value removes the param
+    Object.entries(updates).forEach(([key, value]) =>
+      value ? next.set(key, value) : next.delete(key),
+    );
+    setSearchParams(next, { replace: true });
+  };
+
+  // Fetch the current page of products from API
+  const loadProducts = async (notify = false) => {
+    const requestId = ++requestIdRef.current;
     setIsFetching(true);
     setError(null);
     try {
-      const response = await fetchProducts();
+      const response = await fetchProducts({
+        page,
+        search: appliedSearch,
+        category: selectedCategory,
+      });
+      if (requestId !== requestIdRef.current) return;
       if (response.success && response.data) {
+        // Page no longer exists (e.g. fewer results now): go to the last page
+        if (response.pagination && page > response.pagination.totalPages) {
+          updateParams({
+            page:
+              response.pagination.totalPages > 1
+                ? response.pagination.totalPages.toString()
+                : "",
+          });
+          return;
+        }
+        setPagination(response.pagination || null);
         // Store full API products for subcategory extraction
         // Cast to ApiProduct[] since API returns full product data, not mapped Product type
         const apiData = response.data as unknown as ApiProduct[];
         setApiProducts(apiData);
         const mappedProducts = apiData.map(mapApiProductToProduct);
         setProducts(mappedProducts);
-        // Only show success toast if products were loaded (not on initial load)
-        if (products.length > 0) {
+        // Only show success toast on a manual refresh
+        if (notify) {
           toast.success(
             t("inventory.loadedProducts").replace(
               "{count}",
@@ -131,6 +178,7 @@ export const Inventory: React.FC = () => {
         setError(errorMsg);
       }
     } catch (err: any) {
+      if (requestId !== requestIdRef.current) return;
       const errorMessage = err.message || t("inventory.failedToFetch");
       toast.error(errorMessage);
       setError(errorMessage);
@@ -144,16 +192,57 @@ export const Inventory: React.FC = () => {
         console.warn("Error loading products: " + errorMessage);
       }
     } finally {
-      setIsFetching(false);
+      if (requestId === requestIdRef.current) setIsFetching(false);
     }
   };
 
-  // Fetch products on component mount
+  const loadCategories = async () => {
+    const response = await fetchInventoryCategories();
+    if (response.success) {
+      setCategories(response.data.categories);
+      setSubCategories(response.data.subCategories);
+    }
+  };
+
+  // Load supporting data once
   useEffect(() => {
-    loadProducts();
+    loadCategories();
     loadWarehouses();
     loadStorefronts();
   }, []);
+
+  // Fetch products whenever page, search or category changes, and drop any
+  // selection so transfers only ever act on visible items
+  useEffect(() => {
+    setSelectedProductIds([]);
+    loadProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, appliedSearch, selectedCategory]);
+
+  // Debounce typing into the search box, then reset to page 1
+  useEffect(() => {
+    if (searchQuery.trim() === appliedSearch) return;
+    const timer = setTimeout(() => {
+      updateParams({ search: searchQuery.trim(), page: "" });
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  // Keep the box in sync when the URL changes from outside (e.g. back button)
+  useEffect(() => {
+    if (searchQuery.trim() !== appliedSearch) setSearchQuery(appliedSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedSearch]);
+
+  const handleCategoryChange = (category: string) => {
+    updateParams({ category: category === "All" ? "" : category, page: "" });
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    updateParams({ page: nextPage > 1 ? nextPage.toString() : "" });
+    tableTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const loadWarehouses = async () => {
     try {
@@ -268,8 +357,8 @@ export const Inventory: React.FC = () => {
         setIsModalOpen(false);
         setEditingId(null);
         resetForm();
-        // Refresh products list after updating
-        await loadProducts();
+        // Refresh the current page (and categories, which may have changed)
+        await Promise.all([loadProducts(), loadCategories()]);
         toast.success(
           t("inventory.productUpdated") || "Product updated successfully",
         );
@@ -332,8 +421,8 @@ export const Inventory: React.FC = () => {
 
       setIsModalOpen(false);
       resetForm();
-      // Refresh products list after creating
-      await loadProducts();
+      // Refresh the current page (and categories, a new one may exist)
+      await Promise.all([loadProducts(), loadCategories()]);
       toast.success(t("inventory.productCreated"));
     } catch (err: any) {
       const errorMessage = err.message || t("inventory.failedToCreate");
@@ -392,33 +481,8 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  // Filter products based on selected category and search query
-  const filteredProducts = products
-    .filter(
-      (p) => selectedCategory === "All" || p.category === selectedCategory,
-    )
-    .filter((p) => {
-      if (!searchQuery.trim()) return true;
-
-      const query = searchQuery.toLowerCase().trim();
-      const apiProduct = apiProducts.find((ap) => (ap.id || ap._id) === p.id);
-
-      // Search in product name
-      if (p.name.toLowerCase().includes(query)) return true;
-
-      // Search in barcode
-      if (
-        apiProduct?.barcode &&
-        apiProduct.barcode.toLowerCase().includes(query)
-      )
-        return true;
-
-      // Search in product code
-      if (p.productCode && p.productCode.toLowerCase().includes(query))
-        return true;
-
-      return false;
-    });
+  // Search and category are applied server-side; this is the current page
+  const filteredProducts = products;
 
   // Selection handlers
   const handleSelectionChange = (productId: string, selected: boolean) => {
@@ -579,7 +643,7 @@ export const Inventory: React.FC = () => {
           </h1>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={loadProducts}
+              onClick={() => loadProducts(true)}
               disabled={isFetching}
               className="bg-slate-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-slate-700 disabled:opacity-50 text-sm sm:text-base"
             >
@@ -696,13 +760,13 @@ export const Inventory: React.FC = () => {
 
       {/* Category Filter */}
       <CategoryFilter
-        products={products}
+        categories={categories}
         selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        filteredCount={filteredProducts.length}
-        totalCount={products.length}
+        onCategoryChange={handleCategoryChange}
+        pagination={pagination}
       />
 
+      <div ref={tableTopRef} className="scroll-mt-4" />
       {isFetching && products.length === 0 ? (
         <div className="bg-white shadow-sm border rounded-xl p-8 text-center">
           <p className="text-slate-500">{t("inventory.loadingProducts")}</p>
@@ -710,24 +774,44 @@ export const Inventory: React.FC = () => {
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white shadow-sm border rounded-xl p-8 text-center">
           <p className="text-slate-500">
-            {products.length === 0
-              ? t("inventory.noProductsFound")
-              : t("inventory.noProductsInCategory").replace(
-                  "{category}",
-                  selectedCategory,
-                )}
+            {appliedSearch
+              ? t("inventory.noSearchResults")
+              : selectedCategory !== "All"
+                ? t("inventory.noProductsInCategory").replace(
+                    "{category}",
+                    selectedCategory,
+                  )
+                : t("inventory.noProductsFound")}
           </p>
         </div>
       ) : (
-        <InventoryTable
-          products={filteredProducts}
-          onEdit={openEdit}
-          onViewDetails={handleViewDetails}
-          selectedProductIds={selectedProductIds}
-          onSelectionChange={handleSelectionChange}
-          onSelectAll={handleSelectAll}
-          showSelectBoxes={showSelectBoxes}
-        />
+        // Keep the current rows visible (dimmed) while the next page loads
+        <div
+          className={`transition-opacity ${isFetching ? "opacity-60 pointer-events-none" : ""}`}
+          aria-busy={isFetching}
+        >
+          <InventoryTable
+            products={filteredProducts}
+            onEdit={openEdit}
+            onViewDetails={handleViewDetails}
+            selectedProductIds={selectedProductIds}
+            onSelectionChange={handleSelectionChange}
+            onSelectAll={handleSelectAll}
+            showSelectBoxes={showSelectBoxes}
+            startIndex={
+              pagination
+                ? (pagination.currentPage - 1) * pagination.itemsPerPage
+                : 0
+            }
+          />
+          {pagination && (
+            <Pagination
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              disabled={isFetching}
+            />
+          )}
+        </div>
       )}
 
       {/* Product Modal */}
@@ -737,8 +821,8 @@ export const Inventory: React.FC = () => {
         formData={formData}
         error={error}
         isLoading={isLoading}
-        products={products}
-        apiProducts={apiProducts}
+        categories={categories}
+        subCategories={subCategories}
         onClose={() => {
           setIsModalOpen(false);
           setEditingId(null);

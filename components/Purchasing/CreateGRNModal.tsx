@@ -21,7 +21,8 @@ interface CreateGRNModalProps {
   onClose: () => void;
   purchaseOrders: ApiPurchaseOrder[];
   suppliers: Supplier[];
-  onSuccess: () => void;
+  // Receives the newly created GRN; the parent shows the success toast
+  onSuccess: (grn?: { _id: string }) => void;
   selectedPOId?: string | null;
 }
 
@@ -176,9 +177,8 @@ export const CreateGRNModal: React.FC<CreateGRNModalProps> = ({
       const result = await createGRN(payload);
 
       if (result.success) {
-        toast.success("GRN Created Successfully!");
         resetForm();
-        onSuccess();
+        onSuccess(result.data);
         onClose();
       } else {
         toast.error(result.message || "Failed to create GRN");

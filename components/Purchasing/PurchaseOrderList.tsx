@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   Eye,
@@ -27,13 +27,25 @@ interface PurchaseOrderListProps {
   deletedPOList: ApiPurchaseOrder[];
   suppliers: Supplier[];
   setIsCreateModalOpen: (isOpen: boolean) => void;
-  loadPurchases: (page?: number, limit?: number) => Promise<void>;
+  loadPurchases: (
+    page?: number,
+    limit?: number,
+    status?: "pending" | "arrived"
+  ) => Promise<void>;
   loadDeletedPurchases: (page?: number, limit?: number) => Promise<void>;
   onViewPO?: (po: ApiPurchaseOrder) => void;
   pagination: PaginationData;
   deletedPagination: PaginationData;
   onCreateGRN?: (po: ApiPurchaseOrder) => void;
+  poFilter: PoFilter;
+  onPoFilterChange: (filter: PoFilter) => void;
+  // Called after "Mark Arrived" succeeds; the parent moves to the Arrived tab
+  onMarkedArrived?: (poId: string) => void;
+  highlightId?: string | null;
+  onHighlightDone?: () => void;
 }
+
+export type PoFilter = "pending" | "arrived" | "deleted";
 
 export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   poList,
@@ -46,10 +58,12 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   pagination,
   deletedPagination,
   onCreateGRN,
+  poFilter,
+  onPoFilterChange,
+  onMarkedArrived,
+  highlightId,
+  onHighlightDone,
 }) => {
-  const [poFilter, setPoFilter] = useState<"pending" | "arrived" | "deleted">(
-    "pending"
-  );
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [poToDelete, setPoToDelete] = useState<ApiPurchaseOrder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -57,29 +71,49 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
   // Use the filtered data from API instead of client-side filtering
   const displayList = poFilter === "deleted" ? deletedPOList : poList;
 
+
+  // Scroll to and briefly highlight a row that was just moved into this list
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (poFilter === "deleted") {
-      loadDeletedPurchases(
-        deletedPagination.currentPage,
-        deletedPagination.itemsPerPage
-      );
-    } else {
-      // Load purchases with status filter
-      loadPurchases(pagination.currentPage, pagination.itemsPerPage, poFilter);
+    if (!highlightId) return;
+    const row = tableRef.current?.querySelector<HTMLElement>(
+      `[data-row-id="${highlightId}"]`,
+    );
+    if (!row) {
+      // Not on this page: skip the highlight
+      onHighlightDone?.();
+      return;
     }
-  }, [poFilter]);
+    row.scrollIntoView({ block: "center", behavior: "smooth" });
+    setFlashId(highlightId);
+    const timer = setTimeout(() => {
+      setFlashId(null);
+      onHighlightDone?.();
+    }, 2000);
+    return () => {
+      clearTimeout(timer);
+      setFlashId(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId]);
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
       const res = await updatePurchaseStatus(id, status);
       if (res.success) {
-        toast.success("Status updated successfully");
-        // Reload with current filter status
-        loadPurchases(
-          pagination.currentPage,
-          pagination.itemsPerPage,
-          poFilter
-        );
+        if (status === "arrived" && onMarkedArrived) {
+          // Parent switches to Arrived (one load) and shows the toast
+          onMarkedArrived(id);
+        } else {
+          toast.success("Status updated successfully");
+          // Reload with current filter status
+          loadPurchases(
+            pagination.currentPage,
+            pagination.itemsPerPage,
+            poFilter
+          );
+        }
       } else {
         toast.error(res.message || "Failed to update status");
       }
@@ -278,7 +312,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
       {/* Filter Tabs */}
       <div className="flex gap-2">
         <button
-          onClick={() => setPoFilter("pending")}
+          onClick={() => onPoFilterChange("pending")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             poFilter === "pending"
               ? "bg-slate-800 text-white"
@@ -288,7 +322,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
           Pending
         </button>
         <button
-          onClick={() => setPoFilter("arrived")}
+          onClick={() => onPoFilterChange("arrived")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             poFilter === "arrived"
               ? "bg-btn-primary text-dark"
@@ -298,7 +332,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
           Arrived
         </button>
         <button
-          onClick={() => setPoFilter("deleted")}
+          onClick={() => onPoFilterChange("deleted")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             poFilter === "deleted"
               ? "bg-red-800 text-white"
@@ -310,7 +344,7 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="h-[calc(100vh-450px)] overflow-y-auto">
+        <div ref={tableRef} className="h-[calc(100vh-450px)] overflow-y-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>
@@ -334,7 +368,15 @@ export const PurchaseOrderList: React.FC<PurchaseOrderListProps> = ({
               ) : (
                 displayList.map((po) => {
                   return (
-                    <tr key={po._id} className="hover:bg-slate-50">
+                    <tr
+                      key={po._id}
+                      data-row-id={po._id}
+                      className={`transition-colors duration-700 ${
+                        flashId === po._id
+                          ? "bg-yellow-50 ring-2 ring-inset ring-yellow-300"
+                          : "hover:bg-slate-50"
+                      }`}
+                    >
                       <td className="p-4  ">{po.poNumber}</td>
                       <td className="p-4">
                         {new Date(po.createdAt).toLocaleDateString()}

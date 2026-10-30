@@ -65,14 +65,18 @@ interface FetchGRNsResponse {
 interface FetchGRNsParams {
   page?: number;
   limit?: number;
+  // One status or a comma-separated list, e.g. "verified,completed,transferred"
+  status?: string;
 }
 
 export const fetchGRNs = async (
   params?: FetchGRNsParams
 ): Promise<FetchGRNsResponse> => {
   try {
-    const { page = 1, limit = 10 } = params || {};
-    const response = await axios.get(`/grn?page=${page}&limit=${limit}`);
+    const { page = 1, limit = 10, status } = params || {};
+    let url = `/grn?page=${page}&limit=${limit}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    const response = await axios.get(url);
 
     return response.data;
   } catch (error: any) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   Eye,
@@ -25,7 +25,15 @@ interface GRNListProps {
   onStatusChange?: (page?: number, limit?: number) => void;
   onTransferGRN?: (grn: GRNData) => void;
   pagination: PaginationData;
+  grnFilter: GrnFilter;
+  onGrnFilterChange: (filter: GrnFilter) => void;
+  // Called after "Verify" succeeds; the parent moves to the Completed tab
+  onVerified?: (grnId: string) => void;
+  highlightId?: string | null;
+  onHighlightDone?: () => void;
 }
+
+export type GrnFilter = "pending" | "completed";
 
 export const GRNList: React.FC<GRNListProps> = ({
   grnList,
@@ -34,10 +42,12 @@ export const GRNList: React.FC<GRNListProps> = ({
   onStatusChange,
   onTransferGRN,
   pagination,
+  grnFilter,
+  onGrnFilterChange,
+  onVerified,
+  highlightId,
+  onHighlightDone,
 }) => {
-  const [grnFilter, setGrnFilter] = useState<"pending" | "completed">(
-    "pending"
-  );
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const handleUpdateStatus = async (grnId: string, newStatus: string) => {
@@ -45,8 +55,13 @@ export const GRNList: React.FC<GRNListProps> = ({
     try {
       const res = await updateGRNStatus(grnId, newStatus);
       if (res.success) {
-        toast.success("GRN status updated successfully");
-        onStatusChange?.(pagination.currentPage, pagination.itemsPerPage);
+        if (newStatus === "verified" && onVerified) {
+          // Parent switches to Completed (one load) and shows the toast
+          onVerified(grnId);
+        } else {
+          toast.success("GRN status updated successfully");
+          onStatusChange?.(pagination.currentPage, pagination.itemsPerPage);
+        }
       } else {
         toast.error(res.message || "Failed to update status");
       }
@@ -58,18 +73,32 @@ export const GRNList: React.FC<GRNListProps> = ({
     }
   };
 
-  const filteredGRNs = grnList.filter((grn) => {
-    const status = grn.status?.toLowerCase() || "";
-    if (grnFilter === "pending") {
-      return status === "pending";
-    } else {
-      return (
-        status === "verified" ||
-        status === "completed" ||
-        status === "transferred"
-      );
+
+  // Scroll to and briefly highlight a row that was just moved into this list
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!highlightId) return;
+    const row = tableRef.current?.querySelector<HTMLElement>(
+      `[data-row-id="${highlightId}"]`,
+    );
+    if (!row) {
+      // Not on this page: skip the highlight
+      onHighlightDone?.();
+      return;
     }
-  });
+    row.scrollIntoView({ block: "center", behavior: "smooth" });
+    setFlashId(highlightId);
+    const timer = setTimeout(() => {
+      setFlashId(null);
+      onHighlightDone?.();
+    }, 2000);
+    return () => {
+      clearTimeout(timer);
+      setFlashId(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId]);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
@@ -179,7 +208,7 @@ export const GRNList: React.FC<GRNListProps> = ({
       {/* Filter Tabs */}
       <div className="flex gap-2">
         <button
-          onClick={() => setGrnFilter("pending")}
+          onClick={() => onGrnFilterChange("pending")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             grnFilter === "pending"
               ? "bg-slate-800 text-white"
@@ -189,7 +218,7 @@ export const GRNList: React.FC<GRNListProps> = ({
           Pending
         </button>
         <button
-          onClick={() => setGrnFilter("completed")}
+          onClick={() => onGrnFilterChange("completed")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             grnFilter === "completed"
               ? "bg-btn-primary text-dark"
@@ -201,7 +230,7 @@ export const GRNList: React.FC<GRNListProps> = ({
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="h-[calc(100vh-450px)] overflow-y-auto">
+        <div ref={tableRef} className="h-[calc(100vh-450px)] overflow-y-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b sticky top-0 z-10">
               <tr>
@@ -217,15 +246,23 @@ export const GRNList: React.FC<GRNListProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredGRNs.length === 0 ? (
+              {grnList.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-slate-400">
                     No {grnFilter} GRNs found
                   </td>
                 </tr>
               ) : (
-                filteredGRNs.map((grn) => (
-                  <tr key={grn._id} className="hover:bg-slate-50">
+                grnList.map((grn) => (
+                  <tr
+                    key={grn._id}
+                    data-row-id={grn._id}
+                    className={`transition-colors duration-700 ${
+                      flashId === grn._id
+                        ? "bg-yellow-50 ring-2 ring-inset ring-yellow-300"
+                        : "hover:bg-slate-50"
+                    }`}
+                  >
                     <td className="p-4 font-medium text-blue-600">
                       {grn.grnNumber}
                     </td>

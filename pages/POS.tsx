@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Search,
-  Plus,
-  Minus,
-  Trash2,
   ShoppingCart,
   CreditCard,
   DollarSign,
@@ -19,6 +16,7 @@ import {
   Calculator,
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import { CartPanel } from "../components/POS/CartPanel";
 import { printThermalReceipt } from "../components/ThermalReceipt";
 import { detectDevice } from "../utils/deviceDetect";
 import {
@@ -54,6 +52,24 @@ interface CartItem {
   qty: number;
 }
 
+// Stock at or below this (and above 0) counts as low stock
+const LOW_STOCK_THRESHOLD = 10;
+
+type StockFilter = "all" | "in" | "low" | "out";
+
+const matchesStockFilter = (availableQuantity: number, filter: StockFilter) => {
+  switch (filter) {
+    case "in":
+      return availableQuantity > 0;
+    case "low":
+      return availableQuantity >= 1 && availableQuantity <= LOW_STOCK_THRESHOLD;
+    case "out":
+      return availableQuantity <= 0;
+    default:
+      return true;
+  }
+};
+
 export const POS: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -68,12 +84,17 @@ export const POS: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState<"paid" | "credit">("paid");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [selectedCreditPersonId, setSelectedCreditPersonId] =
     useState<string>("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  // Mobile (< lg) cart bottom sheet and floating button pulse
+  const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
+  const [isCartButtonPulsing, setIsCartButtonPulsing] = useState(false);
+  const prevCartCountRef = useRef(0);
   const [discount, setDiscount] = useState(0);
   const [markup, setMarkup] = useState(0);
   const [markupAmount, setMarkupAmount] = useState(0);
@@ -158,19 +179,101 @@ export const POS: React.FC = () => {
     toast.success(t("pos.productsRefreshed"));
   };
 
-  // Filter products by selected storefront and search
-  const filteredProducts = allStockItems.filter((item) => {
-    const hideProduct = item.inventoryId?._id === "69a15d55218ec5ff9a3fe4a3"
+  const visibleStockItems = allStockItems.filter(
+    (item) => item.inventoryId?._id !== "69a15d55218ec5ff9a3fe4a3",
+  );
+
+  // Filter products by search (name, code, SKU) and category
+  const searchTerm = search.toLowerCase();
+  const searchedProducts = visibleStockItems.filter((item) => {
     // const matchesStorefront = item.storefrontId?._id === selectedStorefrontId;
-    const matchesSearch = item.inventoryId?.productName
-      ?.toLowerCase()
-      .includes(search.toLowerCase());
+    const matchesSearch = [
+      item.inventoryId?.productName,
+      item.inventoryId?.productCode,
+      item.inventoryId?.SKU,
+    ].some((value) => value?.toLowerCase().includes(searchTerm));
     const matchesCategory =
       selectedCategory === "All" ||
       item.inventoryId?.category === selectedCategory;
 
-    return !hideProduct && matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory;
   });
+
+  // Counts for the stock filter options (real stock, not cart-adjusted)
+  const stockFilterCounts: Record<StockFilter, number> = {
+    all: searchedProducts.length,
+    in: 0,
+    low: 0,
+    out: 0,
+  };
+  searchedProducts.forEach((item) => {
+    (["in", "low", "out"] as StockFilter[]).forEach((filter) => {
+      if (matchesStockFilter(item.availableQuantity, filter)) {
+        stockFilterCounts[filter] += 1;
+      }
+    });
+  });
+
+  const filteredProducts = searchedProducts.filter((item) =>
+    matchesStockFilter(item.availableQuantity, stockFilter),
+  );
+
+  const cartQtyByStockId = cart.reduce<Record<string, number>>(
+    (acc, item) => {
+      acc[item.stockItem._id] = item.qty;
+      return acc;
+    },
+    {},
+  );
+
+  const clearFilters = () => {
+    setSearch("");
+    setSelectedCategory("All");
+    setStockFilter("all");
+  };
+
+  const renderStockInfo = (stockItem: StorefrontStockItem) => {
+    const inCart = cartQtyByStockId[stockItem._id] || 0;
+    const remaining = Math.max(0, stockItem.availableQuantity - inCart);
+
+    let badge: React.ReactNode;
+    if (stockItem.availableQuantity <= 0) {
+      badge = (
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 whitespace-nowrap">
+          {t("pos.stockOut")}
+        </span>
+      );
+    } else if (remaining === 0) {
+      badge = (
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap">
+          {t("pos.allInCart")}
+        </span>
+      );
+    } else if (remaining <= LOW_STOCK_THRESHOLD) {
+      badge = (
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap">
+          {t("pos.stockLow").replace("{n}", remaining.toString())}
+        </span>
+      );
+    } else {
+      badge = (
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 whitespace-nowrap">
+          {t("pos.stockIn").replace("{n}", remaining.toString())}
+        </span>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-end gap-0.5">
+        {badge}
+        {inCart > 0 && (
+          <span className="text-[11px] text-gray-400">
+            {t("pos.inCart").replace("{n}", inCart.toString())}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   // Get unique categories from current storefront products
   const categories = [
@@ -313,6 +416,10 @@ export const POS: React.FC = () => {
     (sum, item) => sum + getItemPrice(item.stockItem) * item.qty,
     0,
   );
+  const cartItemCount = cart.reduce((sum, item) => sum + item.qty, 0);
+  const selectedStorefrontName = selectedStorefrontId
+    ? storefronts.find((sf) => sf._id === selectedStorefrontId)?.locationName
+    : undefined;
 
   const totalAfterDiscount = Math.ceil(
     subtotal * (1 - Math.ceil(discount) / 100),
@@ -458,11 +565,63 @@ export const POS: React.FC = () => {
     }
   };
 
+  const handleProceedToCheckout = () => {
+    // Auto-fill paid amount with total when opening checkout modal
+    // Set to 0 for FOC or Credit, otherwise use total
+    const initialPaidAmount =
+      paymentMethod === PaymentMethod.FOC || paymentType === "credit"
+        ? 0
+        : Math.ceil(total);
+    setPaidAmount(initialPaidAmount);
+    // Close the mobile sheet first so overlays never stack
+    setIsCartSheetOpen(false);
+    setShowCheckoutModal(true);
+  };
+
+  // Pulse the floating cart button when an item is added
+  useEffect(() => {
+    if (cartItemCount > prevCartCountRef.current) {
+      setIsCartButtonPulsing(true);
+      const timer = setTimeout(() => setIsCartButtonPulsing(false), 300);
+      prevCartCountRef.current = cartItemCount;
+      return () => clearTimeout(timer);
+    }
+    prevCartCountRef.current = cartItemCount;
+  }, [cartItemCount]);
+
+  // Close the sheet when the cart empties (last item removed, sale done)
+  useEffect(() => {
+    if (cart.length === 0) setIsCartSheetOpen(false);
+  }, [cart.length]);
+
+  // While the sheet is open: lock body scroll, close on Esc, and close if
+  // the screen grows to the desktop layout
+  useEffect(() => {
+    if (!isCartSheetOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsCartSheetOpen(false);
+    };
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    const handleResize = () => {
+      if (desktopQuery.matches) setIsCartSheetOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    desktopQuery.addEventListener("change", handleResize);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+      desktopQuery.removeEventListener("change", handleResize);
+    };
+  }, [isCartSheetOpen]);
+
   // Handle storefront change
   const handleStorefrontChange = (storefrontId: string) => {
     setSelectedStorefrontId(storefrontId);
     setCart([]); // Clear cart when switching storefronts
     setSelectedCategory("All");
+    setStockFilter("all");
   };
 
   if (loading && storefronts.length === 0) {
@@ -479,12 +638,12 @@ export const POS: React.FC = () => {
   return (
     <div className="flex h-[calc(100vh-60px)] overflow-hidden bg-gray-100">
       {/* Product Grid */}
-      <div className="flex-1 flex flex-col px-6 py-4 overflow-hidden">
+      <div className="flex-1 flex flex-col px-4 lg:px-6 py-4 overflow-hidden">
         {/* Search Bar with Storefront Badge */}
         <div className="mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {/* Combined Search/Barcode Input */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none" />
               <Scan className="absolute right-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none opacity-50" />
               <input
@@ -531,8 +690,32 @@ export const POS: React.FC = () => {
               ))}
             </select>
 
+            {/* Stock Filter */}
+            <select
+              className="border border-dark-200 rounded-xl px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none shadow-sm"
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value as StockFilter)}
+            >
+              <option value="all">
+                {t("pos.filterAllStock")} ({stockFilterCounts.all})
+              </option>
+              <option value="in">
+                {t("pos.filterInStock")} ({stockFilterCounts.in})
+              </option>
+              <option value="low">
+                {t("pos.filterLowStock").replace(
+                  "{n}",
+                  LOW_STOCK_THRESHOLD.toString(),
+                )}{" "}
+                ({stockFilterCounts.low})
+              </option>
+              <option value="out">
+                {t("pos.filterOutOfStock")} ({stockFilterCounts.out})
+              </option>
+            </select>
+
             {/* Storefront Settings Button */}
-            <div className="relative">
+            <div className="relative ml-auto">
               <button
                 onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
                 className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
@@ -629,19 +812,31 @@ export const POS: React.FC = () => {
         </div>
 
         {/* Product Grid */}
-        <div className="flex overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 pb-20">
+        <div className="flex overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 pb-28 lg:pb-20">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-400">
-              {selectedStorefrontId
-                ? t("pos.noProductsInStorefront")
-                : t("pos.pleaseSelectStorefront")}
+              {!selectedStorefrontId ? (
+                t("pos.pleaseSelectStorefront")
+              ) : visibleStockItems.length === 0 ? (
+                t("pos.noProductsInStorefront")
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <span>{t("pos.noProductsMatchFilters")}</span>
+                  <button
+                    onClick={clearFilters}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-dark-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    {t("pos.clearFilters")}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             filteredProducts.map((stockItem) => (
               <div
                 key={stockItem._id}
                 onClick={() => addToCart(stockItem)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity === 0
+                className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.availableQuantity <= 0
                   ? "opacity-50 grayscale pointer-events-none"
                   : ""
                   }`}
@@ -657,10 +852,11 @@ export const POS: React.FC = () => {
                     {stockItem.inventoryId.category}
                   </p>
                 </div>
-                <div className="mt-4 flex justify-between items-end">
+                <div className="mt-auto pt-4 flex justify-between items-end gap-2">
                   <span className="font-bold text-primary-600">
                     {getItemPrice(stockItem).toLocaleString()} MMK
                   </span>
+                  {renderStockInfo(stockItem)}
                 </div>
               </div>
             ))
@@ -668,115 +864,91 @@ export const POS: React.FC = () => {
         </div>
       </div>
 
-      {/* Cart Sidebar */}
-      <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
-        <div className="p-4 border-b">
-          <h2 className="font-bold text-lg">{t("pos.currentSale")}</h2>
-          {selectedStorefrontId && (
-            <p className="text-xs text-gray-400 mt-1">
-              {
-                storefronts.find((sf) => sf._id === selectedStorefrontId)
-                  ?.locationName
-              }
-            </p>
-          )}
-        </div>
+      {/* Cart Sidebar (lg and up) */}
+      <div className="hidden lg:flex w-96 bg-white flex-col border-l border-gray-200 shadow-xl h-[calc(100vh-60px)] sticky top-0">
+        <CartPanel
+          variant="sidebar"
+          cart={cart}
+          storefrontName={selectedStorefrontName}
+          subtotal={subtotal}
+          itemCount={cartItemCount}
+          getItemPrice={getItemPrice}
+          onUpdateQty={updateQty}
+          onSetQty={setQty}
+          onRemove={removeFromCart}
+          onCheckout={handleProceedToCheckout}
+        />
+      </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {cart.length === 0 ? (
-            <div className="text-center text-gray-400 mt-10">
-              {t("pos.emptyCart")}
-            </div>
-          ) : (
-            cart.map((item) => (
-              <div
-                key={item.stockItem._id}
-                className="flex justify-between items-start border-b border-gray-200 pb-4"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">
-                    {item.stockItem.inventoryId.productName}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {(getItemPrice(item.stockItem) * item.qty).toLocaleString()}{" "}
-                    MMK
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 ml-2">
-                  <button
-                    onClick={() => updateQty(item.stockItem._id, -1)}
-                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <input
-                    type="number"
-                    min="1"
-                    max={item.stockItem.availableQuantity}
-                    value={item.qty}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setQty(item.stockItem._id, value);
-                    }}
-                    onBlur={(e) => {
-                      // Ensure quantity is at least 1 when input loses focus
-                      const value = parseInt(e.target.value) || 1;
-                      if (value < 1) {
-                        setQty(item.stockItem._id, 1);
-                      }
-                    }}
-                    className="text-sm font-medium w-12 text-center border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-primary focus:border-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <button
-                    onClick={() => updateQty(item.stockItem._id, 1)}
-                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => removeFromCart(item.stockItem._id)}
-                    className="p-1 text-red-500 hover:bg-red-50 rounded ml-2 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Cart Summary & Checkout Button */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t("pos.items")}</span>
-              <span>
-                {cart.reduce((sum, item) => sum + item.qty, 0)}{" "}
-                {t("pos.itemsLower")}
-              </span>
-            </div>
-            <div className="flex justify-between text-xl font-bold text-gray-900">
-              <span>{t("common.total")}</span>
-              <span>{subtotal.toLocaleString()} MMK</span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              // Auto-fill paid amount with total when opening checkout modal
-              // Set to 0 for FOC or Credit, otherwise use total
-              const initialPaidAmount =
-                paymentMethod === PaymentMethod.FOC || paymentType === "credit"
-                  ? 0
-                  : Math.ceil(total);
-              setPaidAmount(initialPaidAmount);
-              setShowCheckoutModal(true);
-            }}
-            disabled={cart.length === 0}
-            className="w-full bg-btn-primary hover:bg-btn-primary-hover text-dark py-3 rounded-lg font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      {/* Floating cart button (below lg) */}
+      <button
+        type="button"
+        onClick={() => {
+          if (cart.length > 0) setIsCartSheetOpen(true);
+        }}
+        disabled={cart.length === 0}
+        aria-disabled={cart.length === 0}
+        aria-label={t("pos.cartButtonLabel")
+          .replace("{count}", cartItemCount.toString())
+          .replace("{total}", subtotal.toLocaleString())}
+        className={`lg:hidden fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 h-14 flex items-center gap-3 pl-3 pr-4 rounded-2xl shadow-lg transition-transform duration-300 ${
+          cart.length === 0
+            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+            : "bg-btn-primary hover:bg-btn-primary-hover text-dark active:scale-95"
+        } ${isCartButtonPulsing ? "scale-110" : "scale-100"}`}
+      >
+        <span className="relative">
+          <ShoppingCart className="w-6 h-6" />
+          <span
+            className={`absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ${
+              cart.length === 0 ? "bg-gray-400 text-white" : "bg-dark text-white"
+            }`}
           >
-            {t("pos.proceedToCheckout")}
-          </button>
+            {cartItemCount}
+          </span>
+        </span>
+        <span className="flex flex-col items-start leading-tight">
+          <span className="text-[11px] font-medium opacity-80">
+            {t("pos.viewCart")}
+          </span>
+          <span className="text-sm font-bold">
+            {subtotal.toLocaleString()} MMK
+          </span>
+        </span>
+      </button>
+
+      {/* Cart bottom sheet (below lg) */}
+      <div className="lg:hidden" aria-hidden={!isCartSheetOpen}>
+        <div
+          className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-[250ms] ${
+            isCartSheetOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setIsCartSheetOpen(false)}
+        />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("pos.currentSale")}
+          className={`fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col transition-transform duration-[250ms] ease-out ${
+            isCartSheetOpen ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div className="flex justify-center pt-2">
+            <span className="w-10 h-1.5 rounded-full bg-gray-300" />
+          </div>
+          <CartPanel
+            variant="sheet"
+            cart={cart}
+            storefrontName={selectedStorefrontName}
+            subtotal={subtotal}
+            itemCount={cartItemCount}
+            getItemPrice={getItemPrice}
+            onUpdateQty={updateQty}
+            onSetQty={setQty}
+            onRemove={removeFromCart}
+            onCheckout={handleProceedToCheckout}
+            onClose={() => setIsCartSheetOpen(false)}
+          />
         </div>
       </div>
 

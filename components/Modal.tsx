@@ -35,7 +35,7 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed h-screen inset-0 -top-6 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
       <div
         ref={modalRef}
         className="bg-white rounded-xl shadow-xl w-full max-w-7xl h-[80vh] overflow-hidden flex flex-col"

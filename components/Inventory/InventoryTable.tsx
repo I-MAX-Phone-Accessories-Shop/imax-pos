@@ -10,6 +10,8 @@ interface InventoryTableProps {
   onSelectionChange?: (productId: string, selected: boolean) => void;
   onSelectAll?: (selected: boolean) => void;
   showSelectBoxes?: boolean;
+  // Row number of the first product, so numbering continues across pages
+  startIndex?: number;
 }
 
 export const InventoryTable: React.FC<InventoryTableProps> = ({
@@ -20,6 +22,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   onSelectionChange,
   onSelectAll,
   showSelectBoxes = false,
+  startIndex = 0,
 }) => {
   const { t } = useLanguage();
 
@@ -94,7 +97,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                     </td>
                   )}
                   <td className="px-2 sm:px-4 py-3 text-center text-slate-600">
-                    {String(index + 1).padStart(2, "0")}
+                    {String(startIndex + index + 1).padStart(2, "0")}
                   </td>
                   <td className="px-2 sm:px-4 py-3 font-medium text-xs sm:text-sm">
                     {p.productCode}

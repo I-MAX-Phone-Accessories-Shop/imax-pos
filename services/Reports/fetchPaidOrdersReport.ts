@@ -14,6 +14,9 @@ export interface PaidOrdersDateRange {
 export interface PaidOrdersTotals {
   totalPaidAmount: number;
   totalFinalAmount: number;
+  // Paid amount minus change given back
+  totalNetAmount: number;
+  totalExtraChange: number;
   totalOrderCount: number;
 }
 
@@ -21,6 +24,7 @@ export interface PaymentMethodData {
   paymentMethod: string;
   totalPaidAmount: number;
   totalFinalAmount: number;
+  totalNetAmount: number;
   orderCount: number;
 }
 
@@ -82,6 +86,8 @@ export const fetchPaidOrdersReport = async (
         },
         totals: {
           totalPaidAmount: 0,
+          totalNetAmount: 0,
+          totalExtraChange: 0,
           totalFinalAmount: 0,
           totalOrderCount: 0,
         },
@@ -137,6 +143,8 @@ export const fetchAllStorefrontsPaidOrdersReport = async (
         },
         totals: {
           totalPaidAmount: 0,
+          totalNetAmount: 0,
+          totalExtraChange: 0,
           totalFinalAmount: 0,
           totalOrderCount: 0,
         },
